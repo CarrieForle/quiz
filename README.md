@@ -1,1 +1,7 @@
-# quiz
+# Quiz
+
+### Run
+
+```powershell
+.\run
+```
