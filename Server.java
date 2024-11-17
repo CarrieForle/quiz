@@ -109,41 +109,52 @@ public class Server {
     }
 
     // $$<問題>::::<正確答案數字(0, 1, 2, 3)其中一個><換行><Answer0>:::<Answer1>:::<Answer2>:::<Answer3>:::
-    private QuestionSet loadQuestions(Path filepath) throws IOException, CorruptedQuestionsException {
+    private static QuestionSet loadQuestions(Path filepath) throws IOException, CorruptedQuestionsException {
         StringBuilder contents = new StringBuilder(Files.readString(filepath, Charset.forName("UTF-8")));
         QuestionSet res = new QuestionSet();
 
-        res.name = popUntil(contents, "\n\n");
+        res.name = popUntil(contents, "\n");
 
         while (contents.length() > 0) {
-            if (contents.substring(0, 1) != "\n") {
+            System.out.println(contents.length());
+            if (!contents.substring(0, 1).equals("\n")) {
                 throw new CorruptedQuestionsException("Expected token `\\n`");
             }
 
             contents.delete(0, 1);
 
-            if (contents.substring(0, 2) != "$$") {
+            if (!contents.substring(0, 2).equals("$$")) {
                 throw new CorruptedQuestionsException("Expected token `$$`");
             }
 
             contents.delete(0, 2);
 
+
+
             Question question = new Question();
-
-            popUntil(contents, "::::");
-
+            question.question = popUntil(contents, "::::");
             question.answer = Integer.parseInt(contents.substring(0, 1));
             contents.delete(0, 1);
+            
+            if (!contents.substring(0, 1).equals("\n")) {
+                throw new CorruptedQuestionsException("Expected token `\\n`");
+            }
+
+            contents.delete(0, 1);
+
+
 
             for (int i = 0; i < 4; i++) {
                 question.setOptions(i, popUntil(contents, ":::"));
             }
 
-            if (contents.substring(0, 1) != "\n") {
+            if (!contents.substring(0, 1).equals("\n")) {
                 throw new CorruptedQuestionsException("Expected token `\\n`");
             }
 
             contents.delete(0, 1);
+
+
 
             res.getQuestions().add(question);
         }
@@ -152,7 +163,7 @@ public class Server {
     }
     
     private static String popUntil(StringBuilder sb, String delimiter) {
-        int delimiter_pos = sb.indexOf(":::");
+        int delimiter_pos = sb.indexOf(delimiter);
         String res = sb.substring(0, delimiter_pos);
         sb.delete(0, delimiter_pos + delimiter.length());
 
@@ -185,13 +196,17 @@ class Question {
     }
 
     public void setOptions(String[] s) {
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < this.options.length; i++) {
             this.options[i] = s[i];
         }
     }
 
     public String getOption(int i) {
         return options[i];
+    }
+
+    public int getOptionLength() {
+        return this.options.length;
     }
 }
 
