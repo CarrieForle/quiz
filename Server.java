@@ -11,6 +11,7 @@ import java.util.List;
 
 import networking.ServerTransmission;
 import utils.QuizAnswerResponse;
+import utils.Question;
 
 public class Server {
     private static final int CLIENT_NUM = 4;
@@ -131,7 +132,7 @@ public class Server {
 
 
 
-            Question question = new Question();
+            QuestionWithAnswer question = new QuestionWithAnswer();
             question.question = popUntil(contents, "::::");
             question.answer = Integer.parseInt(contents.substring(0, 1));
             contents.delete(0, 1);
@@ -179,35 +180,15 @@ class CorruptedQuestionsException extends Exception {
 
 class QuestionSet {
     public String name;
-    private List<Question> questions = new ArrayList<>();
+    private List<QuestionWithAnswer> questions = new ArrayList<>();
 
-    public List<Question> getQuestions() {
+    public List<QuestionWithAnswer> getQuestions() {
         return questions;
     }
 }
 
-class Question {
-    public String question;
-    private String[] options = new String[4];
+class QuestionWithAnswer extends Question {
     public int answer = -1;
-
-    public void setOptions(int i, String s) {
-        this.options[i] = s;
-    }
-
-    public void setOptions(String[] s) {
-        for (int i = 0; i < this.options.length; i++) {
-            this.options[i] = s[i];
-        }
-    }
-
-    public String getOption(int i) {
-        return options[i];
-    }
-
-    public int getOptionLength() {
-        return this.options.length;
-    }
 }
 
 class Client {
