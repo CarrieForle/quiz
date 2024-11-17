@@ -25,11 +25,12 @@ public class ServerTransmission {
         } catch (IOException ex) {
 
         }
+    }
 
-        QuizAnswerResponse res = extractAnswer("1 2 3");
-        System.out.format("from who = %d\n", res.from_id);
-        System.out.format("for how long = %d\n", res.remaining_time);
-        System.out.format("choose which one = %d\n", res.choice_id);
+    public static String receiveName(InputStream reader) throws IOException {
+        DataInputStream dis = new DataInputStream(reader);
+
+        return dis.readUTF();
     }
     
     public static void transmitQuestion(OutputStream writer, String question_message) throws IOException {
@@ -38,16 +39,25 @@ public class ServerTransmission {
         out.writeUTF(question_message);
     }
 
-    public static QuizAnswerResponse extractAnswer(String response) {
+    public static QuizAnswerResponse receiveAnswer(InputStream reader) throws IOException {
+        DataInputStream in = new DataInputStream(reader);
+
         QuizAnswerResponse res = new QuizAnswerResponse();
 
-        String[] segments = response.split(" ");
-
-        res.remaining_time = Integer.parseInt(segments[0]);
-        res.choice_id = Integer.parseInt(segments[1]);
+        res.choice_id = in.readInt();
+        res.remaining_time = in.readLong();
 
         return res;
     }
+    
+    public static void sendRoundResult(OutputStream writer, boolean is_over, int score, int ranking) throws IOException {
+        DataOutputStream dos = new DataOutputStream(writer);
+
+        dos.writeBoolean(is_over);
+        dos.writeInt(score);
+        dos.writeInt(ranking);
+    }
+
 
     public static void transmitLeaderboard(OutputStream writer, int score, int ranking) throws IOException {
         DataOutputStream dos = new DataOutputStream(writer);

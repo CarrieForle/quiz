@@ -7,6 +7,7 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 
 import networking.ServerTransmission;
+import utils.QuizAnswerResponse;
 
 public class Server {
     private static final int CLIENT_NUM = 4;
@@ -42,6 +43,7 @@ public class Server {
                 try {
                     System.out.println("Ready to serve a client.");
                     client.socket = this.server_socket.accept();
+                    client.id = assignID();
                     System.out.println("A client has connected");
                     event_loop(client);
                 } catch (IOException ex) {
@@ -80,15 +82,32 @@ public class Server {
 
     // Return null if ran out of IDs.
     private Integer assignID() {
-        return this.available_ids.poll();
+        synchronized (this.available_ids) {
+            return this.available_ids.poll();
+        }
     }
 
     private void event_loop(Client client) throws IOException {
-        ServerTransmission.transmitQuestion(client.socket.getOutputStream(), "Q1+1等於幾？a2\nA4\nA-5\nA2\nA19\n");
+        String name = ServerTransmission.receiveName(client.socket.getInputStream());
+
+        ServerTransmission.transmitQuestion(client.socket.getOutputStream(), "Q今天星期幾？a3\nA星期一\nA星期二\nA賈伯斯\nA星\n期日\n");
+
+        QuizAnswerResponse qar = ServerTransmission.receiveAnswer(client.socket.getInputStream());
+
+        System.out.format("Client choice: %d\n", qar.choice_id);
+        System.out.format("Client remainig time: %d\n", qar.remaining_time);
+
+        ServerTransmission.sendRoundResult(client.socket.getOutputStream(), true, 1450, 2);
+    }
+
+    // TODO
+    private int caculateScore(int remaining_time) {
+        return 100;
     }
 }
 
 class Client {
     public Socket socket;
     public int id;
+    public int score = 0;
 }
