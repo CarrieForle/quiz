@@ -7,7 +7,7 @@ import java.io.*;
 import java.net.Socket;
 import java.util.List;
 
-public class Program {
+public class Client {
     private static final String SERVER_ADDRESS = "192.168.0.141";
     private static final int SERVER_PORT = 12345;
     public static void main(String[] args) {
