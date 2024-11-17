@@ -2,7 +2,6 @@ package networking;
 
 import java.io.*;
 import utils.QuizAnswerResponse;
-import node.Client;
 import java.util.List;
 
 public class ServerTransmission {
@@ -44,14 +43,14 @@ public class ServerTransmission {
 
         String[] segments = response.split(" ");
 
-        res.from_id = Integer.parseInt(segments[0]);
-        res.remaining_time = Integer.parseInt(segments[1]);
-        res.choice_id = Integer.parseInt(segments[2]);
+        res.remaining_time = Integer.parseInt(segments[0]);
+        res.choice_id = Integer.parseInt(segments[1]);
 
         return res;
     }
 
-    private static List<Integer> calculateRanking(List<Client> clients) {
-        clients.
+    public static void transmitLeaderboard(OutputStream writer, int score, int ranking) throws IOException {
+        DataOutputStream dos = new DataOutputStream(writer);
+        dos.writeUTF(String.format("%d:%d", score, ranking));
     }
 }

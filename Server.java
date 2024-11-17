@@ -1,14 +1,26 @@
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketAddress;
+import java.util.ArrayDeque;
+import java.util.Queue;
+
+import networking.ServerTransmission;
 
 public class Server {
+    private static final int CLIENT_NUM = 4;
     private ServerSocket server_socket;
+    private Client[] clients = new Client[CLIENT_NUM];
+    private Thread[] client_threads = new Thread[CLIENT_NUM];
+    private final Queue<Integer> available_ids = new ArrayDeque<>();
 
     public static void main(String[] args) {
         int port = 12345;
 
         try {
-            Server server = new Server(new ServerSocket(port));
+            ServerSocket socket = new ServerSocket(port);
+            Server server = new Server(socket);
             server.run();
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -17,9 +29,66 @@ public class Server {
 
     public Server(ServerSocket server_socket) {
         this.server_socket = server_socket;
+
+        for (int i = 0; i < CLIENT_NUM; i++) {
+            this.available_ids.add(i);
+        }
+
+        for (int i = 0; i < this.client_threads.length; i++) {
+            Client client = new Client();
+            this.clients[i] = client;
+
+            this.client_threads[i] = new Thread(() -> {
+                try {
+                    System.out.println("Ready to serve a client.");
+                    client.socket = this.server_socket.accept();
+                    System.out.println("A client has connected");
+                    event_loop(client);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            });
+        }
+
+        // Thread t = new Thread(() -> {
+        //     try {
+        //         Socket s = new Socket();
+        //         s.connect(new InetSocketAddress("192.168.0.141", 12345));
+        //     } catch (IOException ex) {
+        //         ex.printStackTrace();
+        //     }
+        // });
+
+        // t.start();
     }
     
-    public void run() {
+    private void run() {
+        for (Thread t : this.client_threads) {
+            t.start();
+        }
 
+        System.out.println("Server on!");
+
+        while (true) {
+
+        }
     }
+
+    private void pullBackID(int id) {
+        this.available_ids.add(id);
+    }
+
+    // Return null if ran out of IDs.
+    private Integer assignID() {
+        return this.available_ids.poll();
+    }
+
+    private void event_loop(Client client) throws IOException {
+        ServerTransmission.transmitQuestion(client.socket.getOutputStream(), "Q1+1等於幾？a2\nA4\nA-5\nA2\nA19\n");
+    }
+}
+
+class Client {
+    public Socket socket;
+    public int id;
 }
