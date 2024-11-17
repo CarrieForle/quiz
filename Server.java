@@ -19,6 +19,7 @@ public class Server {
     private Client[] clients = new Client[CLIENT_NUM];
     private Thread[] client_threads = new Thread[CLIENT_NUM];
     private final Queue<Integer> available_ids = new ArrayDeque<>();
+    private static final Path QUESTION_DIRECTORY = Path.of("quiz_question");
 
     public static void main(String[] args) {
         int port = 12345;
@@ -32,11 +33,15 @@ public class Server {
         }
     }
 
-    public Server(ServerSocket server_socket) {
+    public Server(ServerSocket server_socket) throws IOException {
         this.server_socket = server_socket;
 
         for (int i = 0; i < CLIENT_NUM; i++) {
             this.available_ids.add(i);
+        }
+
+        if (Files.notExists(QUESTION_DIRECTORY)) {
+            Files.createDirectory(QUESTION_DIRECTORY);
         }
 
         for (int i = 0; i < this.client_threads.length; i++) {
