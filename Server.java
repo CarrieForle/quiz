@@ -54,7 +54,7 @@ public class Server {
                     client.socket = this.server_socket.accept();
                     client.id = assignID();
                     System.out.println("A client has connected");
-                    event_loop(client);
+                    eventLoop(client);
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
@@ -96,7 +96,7 @@ public class Server {
         }
     }
 
-    private void event_loop(Client client) throws IOException {
+    private void eventLoop(Client client) throws IOException {
         String name = ServerTransmission.receiveName(client.socket.getInputStream());
 
         ServerTransmission.transmitQuestion(client.socket.getOutputStream(), "Q今天星期幾？a3\nA星期一\nA星期二\nA賈伯斯\nA星\n期日\n");
