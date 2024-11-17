@@ -1,10 +1,13 @@
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketAddress;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Queue;
+import java.util.List;
 
 import networking.ServerTransmission;
 import utils.QuizAnswerResponse;
@@ -63,7 +66,7 @@ public class Server {
 
         // t.start();
     }
-    
+
     private void run() {
         for (Thread t : this.client_threads) {
             t.start();
@@ -103,6 +106,92 @@ public class Server {
     // TODO
     private int caculateScore(int remaining_time) {
         return 100;
+    }
+
+    // $$<問題>::::<正確答案數字(0, 1, 2, 3)其中一個><換行><Answer0>:::<Answer1>:::<Answer2>:::<Answer3>:::
+    private QuestionSet loadQuestions(Path filepath) throws IOException, CorruptedQuestionsException {
+        StringBuilder contents = new StringBuilder(Files.readString(filepath, Charset.forName("UTF-8")));
+        QuestionSet res = new QuestionSet();
+
+        res.name = popUntil(contents, "\n\n");
+
+        while (contents.length() > 0) {
+            if (contents.substring(0, 1) != "\n") {
+                throw new CorruptedQuestionsException("Expected token `\\n`");
+            }
+
+            contents.delete(0, 1);
+
+            if (contents.substring(0, 2) != "$$") {
+                throw new CorruptedQuestionsException("Expected token `$$`");
+            }
+
+            contents.delete(0, 2);
+
+            Question question = new Question();
+
+            popUntil(contents, "::::");
+
+            question.answer = Integer.parseInt(contents.substring(0, 1));
+            contents.delete(0, 1);
+
+            for (int i = 0; i < 4; i++) {
+                question.setOptions(i, popUntil(contents, ":::"));
+            }
+
+            if (contents.substring(0, 1) != "\n") {
+                throw new CorruptedQuestionsException("Expected token `\\n`");
+            }
+
+            contents.delete(0, 1);
+
+            res.getQuestions().add(question);
+        }
+
+        return res;
+    }
+    
+    private static String popUntil(StringBuilder sb, String delimiter) {
+        int delimiter_pos = sb.indexOf(":::");
+        String res = sb.substring(0, delimiter_pos);
+        sb.delete(0, delimiter_pos + delimiter.length());
+
+        return res;
+    }
+}
+
+class CorruptedQuestionsException extends Exception {
+    public CorruptedQuestionsException(String s) {
+        super(s);
+    }
+}
+
+class QuestionSet {
+    public String name;
+    private List<Question> questions = new ArrayList<>();
+
+    public List<Question> getQuestions() {
+        return questions;
+    }
+}
+
+class Question {
+    public String question;
+    private String[] options = new String[4];
+    public int answer = -1;
+
+    public void setOptions(int i, String s) {
+        this.options[i] = s;
+    }
+
+    public void setOptions(String[] s) {
+        for (int i = 0; i < 4; i++) {
+            this.options[i] = s[i];
+        }
+    }
+
+    public String getOption(int i) {
+        return options[i];
     }
 }
 
