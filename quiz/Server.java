@@ -23,6 +23,13 @@ public class Server {
     private final Queue<Integer> available_ids = new ArrayDeque<>();
     private static final Path QUESTION_DIRECTORY = Path.of("quiz_questions");
 
+    private class Participant {
+        Socket socket;
+        String name;
+        int id;
+        int score = 0;
+    }
+
     public static void main(String[] args) {
         int port = 12345;
 
@@ -55,7 +62,7 @@ public class Server {
                     System.out.println("Ready to serve a client.");
                     client.socket = this.server_socket.accept();
                     client.id = assignID();
-                    System.out.format("A client (id: %d) has connected.\n");
+                    System.out.format("A client (id: %d) has connected.\n", client.id);
                     eventLoop(client);
                 } catch (IOException ex) {
                     ex.printStackTrace();
@@ -99,7 +106,7 @@ public class Server {
     }
 
     private void eventLoop(Participant client) throws IOException {
-        String name = ServerTransmission.receiveName(client.socket.getInputStream());
+        client.name = ServerTransmission.receiveName(client.socket.getInputStream());
 
         ServerTransmission.transmitQuestion(client.socket.getOutputStream(), "Q今天星期幾？a3\nA星期一\nA星期二\nA賈伯斯\nA星\n期日\n");
 
@@ -199,10 +206,4 @@ class QuestionSet {
 
 class QuestionWithAnswer extends Question {
     public int answer = -1;
-}
-
-class Participant {
-    public Socket socket;
-    public int id;
-    public int score = 0;
 }

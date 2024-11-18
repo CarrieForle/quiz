@@ -20,7 +20,7 @@ public class Client {
     }
 
     public static void main(String[] args) throws UnknownHostException, IOException{
-        try{
+        try {
             Socket socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
             Client p = new Client(socket);
             ClientAnswerFrame gui = new ClientAnswerFrame();
