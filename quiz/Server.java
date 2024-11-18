@@ -111,9 +111,12 @@ public class Server {
         ServerTransmission.sendRoundResult(client.socket.getOutputStream(), true, 1450, 2);
     }
 
-    // TODO
-    private int caculateScore(int remaining_time) {
-        return 100;
+    private static int caculateScore(int remaining_time) {
+        final int MAX_SCORE = 1000;
+        final int MAX_REMAINING_TIME = 10000; // milliseconds
+        final double RATE = MAX_SCORE / (double) MAX_REMAINING_TIME;
+
+        return (int) Math.ceil(RATE * remaining_time);
     }
 
     // $$<問題>::::<正確答案數字(0, 1, 2, 3)其中一個><換行><Answer0>:::<Answer1>:::<Answer2>:::<Answer3>:::
