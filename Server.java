@@ -19,7 +19,7 @@ public class Server {
     private Client[] clients = new Client[CLIENT_NUM];
     private Thread[] client_threads = new Thread[CLIENT_NUM];
     private final Queue<Integer> available_ids = new ArrayDeque<>();
-    private static final Path QUESTION_DIRECTORY = Path.of("quiz_question");
+    private static final Path QUESTION_DIRECTORY = Path.of("quiz_questions");
 
     public static void main(String[] args) {
         int port = 12345;
