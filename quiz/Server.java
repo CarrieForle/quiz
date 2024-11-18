@@ -18,10 +18,11 @@ import utils.Question;
 public class Server {
     private static final int CLIENT_NUM = 4;
     private ServerSocket server_socket;
-    private Participant[] clients = new Participant[CLIENT_NUM];
+    private List<Participant> clients = new ArrayList<>(CLIENT_NUM);
     private Thread[] client_threads = new Thread[CLIENT_NUM];
     private final Queue<Integer> available_ids = new ArrayDeque<>();
     private static final Path QUESTION_DIRECTORY = Path.of("quiz_questions");
+    private boolean is_in_game = false;
 
     private class Participant {
         Socket socket;
@@ -54,26 +55,47 @@ public class Server {
         }
 
         for (int i = 0; i < this.client_threads.length; i++) {
-            Participant client = new Participant();
-            this.clients[i] = client;
+            final int thread_id = i;
 
             this.client_threads[i] = new Thread(() -> {
-                try {
-                    System.out.println("Ready to serve a client.");
-                    client.socket = this.server_socket.accept();
-                    client.id = assignID();
-                    System.out.format("A client.%d has connected.\n", client.id);
-                    eventLoop(client);
-                } catch (IOException ex) {
-                    ex.printStackTrace();
+                Participant client = null;
+                boolean exit = false;
+
+                while (!exit) {
+                    try {
+                        System.out.format("Thread #%d is ready to serve a client.\n", thread_id);
+                        client = wait_and_init_client();
+                        System.out.format("Client.%d is connected and served by thread #%d.\n", client.id, thread_id);
+
+                        synchronized (this.clients) {
+                            this.clients.add(client);
+                        }
+
+                        eventLoop(client);
+                        exit = true;
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                        
+                        if (client == null)  {
+                            continue;
+                        }
+
+                        System.out.format("\n\nClient.%d is disconnected. Thread #%d is about to be freed.\n", client.id, thread_id);
+
+                        synchronized (this.clients) {
+                            this.clients.remove(client);
+                        }
+
+                        pullBackID(client.id);
+                        client = null;
+                    }
                 }
             });
         }
     }
 
-    private Participant init_client() throws IOException {
+    private Participant wait_and_init_client() throws IOException {
         Participant client = new Participant();
-
         client.socket = this.server_socket.accept();
         client.id = assignID();
 
