@@ -62,7 +62,7 @@ public class Server {
                     System.out.println("Ready to serve a client.");
                     client.socket = this.server_socket.accept();
                     client.id = assignID();
-                    System.out.format("A client (id: %d) has connected.\n", client.id);
+                    System.out.format("A client.%d has connected.\n", client.id);
                     eventLoop(client);
                 } catch (IOException ex) {
                     ex.printStackTrace();
@@ -107,6 +107,8 @@ public class Server {
 
     private void eventLoop(Participant client) throws IOException {
         client.name = ServerTransmission.receiveName(client.socket.getInputStream());
+
+        System.out.format("Receive client.%d's name: %s\n", client.id, client.name);
 
         ServerTransmission.transmitQuestion(client.socket.getOutputStream(), "Q今天星期幾？a3\nA星期一\nA星期二\nA賈伯斯\nA星\n期日\n");
 
