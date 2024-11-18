@@ -18,7 +18,7 @@ import utils.Question;
 public class Server {
     private static final int CLIENT_NUM = 4;
     private ServerSocket server_socket;
-    private Client[] clients = new Client[CLIENT_NUM];
+    private Participant[] clients = new Participant[CLIENT_NUM];
     private Thread[] client_threads = new Thread[CLIENT_NUM];
     private final Queue<Integer> available_ids = new ArrayDeque<>();
     private static final Path QUESTION_DIRECTORY = Path.of("quiz_questions");
@@ -47,7 +47,7 @@ public class Server {
         }
 
         for (int i = 0; i < this.client_threads.length; i++) {
-            Client client = new Client();
+            Participant client = new Participant();
             this.clients[i] = client;
 
             this.client_threads[i] = new Thread(() -> {
@@ -64,8 +64,8 @@ public class Server {
         }
     }
 
-    private Client init_client() throws IOException {
-        Client client = new Client();
+    private Participant init_client() throws IOException {
+        Participant client = new Participant();
 
         client.socket = this.server_socket.accept();
         client.id = assignID();
@@ -96,15 +96,15 @@ public class Server {
         }
     }
 
-    private void eventLoop(Client client) throws IOException {
+    private void eventLoop(Participant client) throws IOException {
         String name = ServerTransmission.receiveName(client.socket.getInputStream());
 
         ServerTransmission.transmitQuestion(client.socket.getOutputStream(), "Q今天星期幾？a3\nA星期一\nA星期二\nA賈伯斯\nA星\n期日\n");
 
         QuizAnswerResponse qar = ServerTransmission.receiveAnswer(client.socket.getInputStream());
 
-        System.out.format("Client choice: %d\n", qar.choice_id);
-        System.out.format("Client remainig time: %d\n", qar.remaining_time);
+        System.out.format("Participant choice: %d\n", qar.choice_id);
+        System.out.format("Participant remainig time: %d\n", qar.remaining_time);
 
         ServerTransmission.sendRoundResult(client.socket.getOutputStream(), true, 1450, 2);
     }
@@ -196,7 +196,7 @@ class QuestionWithAnswer extends Question {
     public int answer = -1;
 }
 
-class Client {
+class Participant {
     public Socket socket;
     public int id;
     public int score = 0;
