@@ -1,6 +1,6 @@
 @echo off
-javac -d out Client.java
+javac -d out quiz/Client.java
 
 IF %ERRORLEVEL% EQU 0 (
-    java -cp out Client
+    java -cp out quiz/Client
 )
