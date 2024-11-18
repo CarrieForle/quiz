@@ -1,6 +1,9 @@
+package quiz;
+
 import gui.*;
 import javax.swing.*;
 import javax.swing.event.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -8,18 +11,18 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.List;
 
-public class Program {
+public class Client {
     private static final String SERVER_ADDRESS = "192.168.0.141";
     private static final int SERVER_PORT = 12345;
     private Socket socket;
-    public Program(Socket socket){
+    public Client(Socket socket){
         this.socket = socket;
     }
 
     public static void main(String[] args) throws UnknownHostException, IOException{
         try{
             Socket socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
-            Program p = new Program(socket);
+            Client p = new Client(socket);
             ClientAnswerFrame gui = new ClientAnswerFrame();
             p.setName("Kuei");
             p.getQuestion();

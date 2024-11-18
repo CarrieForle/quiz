@@ -1,3 +1,5 @@
+package quiz;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -19,7 +21,7 @@ public class Server {
     private Client[] clients = new Client[CLIENT_NUM];
     private Thread[] client_threads = new Thread[CLIENT_NUM];
     private final Queue<Integer> available_ids = new ArrayDeque<>();
-    private static final Path QUESTION_DIRECTORY = Path.of("quiz_question");
+    private static final Path QUESTION_DIRECTORY = Path.of("quiz_questions");
 
     public static void main(String[] args) {
         int port = 12345;
@@ -60,17 +62,15 @@ public class Server {
                 }
             });
         }
+    }
 
-        // Thread t = new Thread(() -> {
-        //     try {
-        //         Socket s = new Socket();
-        //         s.connect(new InetSocketAddress("192.168.0.141", 12345));
-        //     } catch (IOException ex) {
-        //         ex.printStackTrace();
-        //     }
-        // });
+    private Client init_client() throws IOException {
+        Client client = new Client();
 
-        // t.start();
+        client.socket = this.server_socket.accept();
+        client.id = assignID();
+
+        return client;
     }
 
     private void run() {
