@@ -1,5 +1,5 @@
-javac -d out Client.java
+javac -d out quiz/Client.java
 
 if ($?) {
-    java -cp out Client
+    java -cp out quiz/Client
 }
