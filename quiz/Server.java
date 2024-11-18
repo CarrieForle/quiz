@@ -55,7 +55,7 @@ public class Server {
                     System.out.println("Ready to serve a client.");
                     client.socket = this.server_socket.accept();
                     client.id = assignID();
-                    System.out.println("A client has connected");
+                    System.out.format("A client (id: %d) has connected.\n");
                     eventLoop(client);
                 } catch (IOException ex) {
                     ex.printStackTrace();
@@ -86,7 +86,9 @@ public class Server {
     }
 
     private void pullBackID(int id) {
-        this.available_ids.add(id);
+        synchronized (this.available_ids) {
+            this.available_ids.add(id);
+        }
     }
 
     // Return null if ran out of IDs.
