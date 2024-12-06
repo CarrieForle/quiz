@@ -22,3 +22,7 @@ public class Question {
         return this.options.length;
     }
 }
+
+class QuestionWithAnswer extends Question {
+    public int answer;
+}

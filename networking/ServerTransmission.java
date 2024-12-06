@@ -3,13 +3,21 @@ package networking;
 import java.io.*;
 import utils.QuizAnswerResponse;
 import java.util.List;
+import utils.Question;
 
 public class ServerTransmission {
     public static void main(String[] args) {
         ByteArrayOutputStream test = new ByteArrayOutputStream();
 
         try {
-            transmitQuestion(test, "Q1+1等於幾？a2\nA4\nA-5\nA2\nA19\n");
+            Question q = new Question();
+
+            q.question = "1+1等於幾？";
+            q.setOptions(new String[] {
+                "2", "4", "-5", "19"
+            });
+            
+            transmitQuestion(test, q);
 
             byte[] res = test.toByteArray();
 
@@ -33,10 +41,14 @@ public class ServerTransmission {
         return dis.readUTF();
     }
     
-    public static void transmitQuestion(OutputStream writer, String question_message) throws IOException {
+    public static void transmitQuestion(OutputStream writer, Question question) throws IOException {
         DataOutputStream out = new DataOutputStream(writer);
 
-        out.writeUTF(question_message);
+        out.writeUTF(question.question);
+
+        for (int i = 0; i < question.getOptionLength(); i++) {
+            out.writeUTF(question.getOption(i));
+        }
     }
 
     public static QuizAnswerResponse receiveAnswer(InputStream reader) throws IOException {

@@ -132,7 +132,14 @@ public class Server {
 
         System.out.format("Receive client.%d's name: %s\n", client.id, client.name);
 
-        ServerTransmission.transmitQuestion(client.socket.getOutputStream(), "Q今天星期幾？a3\nA星期一\nA星期二\nA賈伯斯\nA星\n期日\n");
+        Question sample_question = new Question();
+
+        sample_question.question = "1+1等於幾？";
+        sample_question.setOptions(new String[] {
+                "2", "4", "-5", "19"
+        });
+
+        ServerTransmission.transmitQuestion(client.socket.getOutputStream(), sample_question);
 
         QuizAnswerResponse qar = ServerTransmission.receiveAnswer(client.socket.getInputStream());
 
