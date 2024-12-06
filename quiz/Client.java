@@ -12,7 +12,7 @@ import java.net.UnknownHostException;
 import java.util.List;
 
 public class Client {
-    private static final String SERVER_ADDRESS = "192.168.0.141";
+    private static final String SERVER_ADDRESS = "26.198.51.130";
     private static final int SERVER_PORT = 12345;
     private Socket socket;
     public Client(Socket socket){
@@ -48,13 +48,22 @@ public class Client {
         try{
             DataOutputStream out = new DataOutputStream(this.socket.getOutputStream());
             DataInputStream in = new DataInputStream(this.socket.getInputStream());
-            String read = (String) in.readUTF();
-            String[] temp = read.split("a");
-            String[] Option = temp[1].split("A");
-            System.out.println(temp[0]);
-            for(String c : Option){
-               System.out.println(c);
-            }
+            String question = (String) in.readUTF();
+            String option1 = (String) in.readUTF();
+            String option2 = (String) in.readUTF();
+            String option3 = (String) in.readUTF();
+            String option4 = (String) in.readUTF();
+            System.out.println(question);
+            System.out.println(option1);
+            System.out.println(option2);
+            System.out.println(option3);
+            System.out.println(option4);
+            // String[] temp = read.split("a");
+            // String[] Option = temp[1].split("A");
+            // System.out.println(temp[0]);
+            // for(String c : Option){
+            //    System.out.println(c);
+            // }
         }catch (Exception e) {
             e.printStackTrace();
         }
