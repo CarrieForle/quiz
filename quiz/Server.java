@@ -12,8 +12,7 @@ import java.util.Queue;
 import java.util.List;
 
 import networking.ServerTransmission;
-import utils.QuizAnswerResponse;
-import utils.Question;
+import utils.*;
 
 public class Server {
     private static final int CLIENT_NUM = 4;
@@ -23,6 +22,7 @@ public class Server {
     private final Queue<Integer> available_ids = new ArrayDeque<>();
     private static final Path QUESTION_DIRECTORY = Path.of("quiz_questions");
     private boolean is_in_game = false;
+    private ServerStorage storage_manager = new ServerStorage();
 
     private class Participant {
         Socket socket;
