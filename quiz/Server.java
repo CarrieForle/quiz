@@ -126,6 +126,7 @@ public class Server {
             return this.available_ids.poll();
         }
     }
+    
 
     private void eventLoop(Participant client) throws IOException {
         client.name = ServerTransmission.receiveName(client.socket.getInputStream());
@@ -158,65 +159,8 @@ public class Server {
     }
 
     // $$<問題>::::<正確答案數字(0, 1, 2, 3)其中一個><換行><Answer0>:::<Answer1>:::<Answer2>:::<Answer3>:::
-    private static QuestionSet loadQuestions(Path filepath) throws IOException, CorruptedQuestionsException {
-        StringBuilder contents = new StringBuilder(Files.readString(filepath, StandardCharsets.UTF_8));
-        QuestionSet res = new QuestionSet();
-
-        res.name = popUntil(contents, "\n");
-
-        while (contents.length() > 0) {
-            System.out.println(contents.length());
-            if (!contents.substring(0, 1).equals("\n")) {
-                throw new CorruptedQuestionsException("Expected token `\\n`");
-            }
-
-            contents.delete(0, 1);
-
-            if (!contents.substring(0, 2).equals("$$")) {
-                throw new CorruptedQuestionsException("Expected token `$$`");
-            }
-
-            contents.delete(0, 2);
-
-
-
-            QuestionWithAnswer question = new QuestionWithAnswer();
-            question.question = popUntil(contents, "::::");
-            question.answer = Integer.parseInt(contents.substring(0, 1));
-            contents.delete(0, 1);
-            
-            if (!contents.substring(0, 1).equals("\n")) {
-                throw new CorruptedQuestionsException("Expected token `\\n`");
-            }
-
-            contents.delete(0, 1);
-
-
-
-            for (int i = 0; i < 4; i++) {
-                question.setOptions(i, popUntil(contents, ":::"));
-            }
-
-            if (!contents.substring(0, 1).equals("\n")) {
-                throw new CorruptedQuestionsException("Expected token `\\n`");
-            }
-
-            contents.delete(0, 1);
-
-
-
-            res.getQuestions().add(question);
-        }
-
-        return res;
-    }
-    
-    private static String popUntil(StringBuilder sb, String delimiter) {
-        int delimiter_pos = sb.indexOf(delimiter);
-        String res = sb.substring(0, delimiter_pos);
-        sb.delete(0, delimiter_pos + delimiter.length());
-
-        return res;
+    public static QuestionSet loadQuestions(Path filepath) throws IOException, CorruptedQuestionsException {
+        return new QuestionSet(Files.readString(filepath, StandardCharsets.UTF_8));
     }
 }
 
@@ -232,6 +176,62 @@ class QuestionSet {
 
     public List<QuestionWithAnswer> getQuestions() {
         return questions;
+    }
+
+    public QuestionSet() {
+
+    }
+
+    public QuestionSet(String s) throws CorruptedQuestionsException {
+        StringBuilder contents = new StringBuilder(s);
+        QuestionSet res = new QuestionSet();
+
+        res.name = popUntil(contents, "\n");
+
+        while (contents.length() > 0) {
+            if (!contents.substring(0, 1).equals("\n")) {
+                throw new CorruptedQuestionsException(String.format("Expected token `\\n`. Found `\n`", contents.substring(0, 1)));
+            }
+
+            contents.delete(0, 1);
+
+            if (!contents.substring(0, 2).equals("$$")) {
+                throw new CorruptedQuestionsException(String.format("Expected token `$$`. Found `%s`", contents.substring(0, 2)));
+            }
+
+            contents.delete(0, 2);
+
+            QuestionWithAnswer question = new QuestionWithAnswer();
+            question.question = popUntil(contents, "::::");
+            question.answer = Integer.parseInt(contents.substring(0, 1));
+            contents.delete(0, 1);
+
+            if (!contents.substring(0, 1).equals("\n")) {
+                throw new CorruptedQuestionsException(String.format("Expected token `\\n`. Found `%s`", contents.substring(0, 1)));
+            }
+
+            contents.delete(0, 1);
+
+            for (int i = 0; i < 4; i++) {
+                question.setOptions(i, popUntil(contents, ":::"));
+            }
+
+            if (!contents.substring(0, 1).equals("\n")) {
+                throw new CorruptedQuestionsException(String.format("Expected token `\\n`. Found `%s`", contents.substring(0, 1)));
+            }
+
+            contents.delete(0, 1);
+
+            res.getQuestions().add(question);
+        }
+    }
+
+    private static String popUntil(StringBuilder sb, String delimiter) {
+        int delimiter_pos = sb.indexOf(delimiter);
+        String res = sb.substring(0, delimiter_pos);
+        sb.delete(0, delimiter_pos + delimiter.length());
+
+        return res;
     }
 }
 
