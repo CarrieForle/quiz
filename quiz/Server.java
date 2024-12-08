@@ -3,7 +3,7 @@ package quiz;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
@@ -159,7 +159,7 @@ public class Server {
 
     // $$<問題>::::<正確答案數字(0, 1, 2, 3)其中一個><換行><Answer0>:::<Answer1>:::<Answer2>:::<Answer3>:::
     private static QuestionSet loadQuestions(Path filepath) throws IOException, CorruptedQuestionsException {
-        StringBuilder contents = new StringBuilder(Files.readString(filepath, Charset.forName("UTF-8")));
+        StringBuilder contents = new StringBuilder(Files.readString(filepath, StandardCharsets.UTF_8));
         QuestionSet res = new QuestionSet();
 
         res.name = popUntil(contents, "\n");
