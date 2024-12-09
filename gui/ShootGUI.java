@@ -17,9 +17,10 @@ public class ShootGUI extends JFrame {
         this.setSize(400, 200);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLayout(null);
+        this.setResizable(false);
 
         // Name input label and field
-        JLabel nameLabel = new JLabel(" Name:");
+        JLabel nameLabel = new JLabel("Name");
         nameLabel.setBounds(30, 30, 150, 30);
         this.add(nameLabel);
 
@@ -28,7 +29,7 @@ public class ShootGUI extends JFrame {
         this.add(nameField);
 
         // Server address input label and field
-        JLabel serverLabel = new JLabel("IP Address:");
+        JLabel serverLabel = new JLabel("Server Address");
         serverLabel.setBounds(30, 80, 150, 30);
         this.add(serverLabel);
 
