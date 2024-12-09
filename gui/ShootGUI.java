@@ -83,7 +83,7 @@ public class ShootGUI extends JFrame {
             JButton askQuestionButton = new JButton("Ask Question");
             askQuestionButton.setBounds(130, 150, 140, 30);
             menuFrame.add(askQuestionButton);
-            askQuestionButton.addActionListener(e1 -> new AskQuestionMode());
+            askQuestionButton.addActionListener(e1 -> new MakeQuestionFrame());
 
             // Exit Button
             JButton exitButton = new JButton("Exit");
@@ -244,73 +244,5 @@ class MultiplayerClient {
             JOptionPane.showMessageDialog(null, "Unable to connect to server.");
             e.printStackTrace();
         }
-    }
-}
-
-// Ask Question Mode 
-class AskQuestionMode {
-    public AskQuestionMode() {
-        JFrame frame = new JFrame("Ask Question");
-        frame.setSize(600, 600);
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setLayout(null);
-
-        JLabel questionLabel = new JLabel("Enter Question:");
-        questionLabel.setBounds(30, 30, 150, 30);
-        frame.add(questionLabel);
-
-        JTextField questionField = new JTextField();
-        questionField.setBounds(150, 30, 400, 30);
-        frame.add(questionField);
-
-        JLabel answerLabel = new JLabel("Answers:");
-        answerLabel.setBounds(30, 80, 150, 30);
-        frame.add(answerLabel);
-
-        JTextField[] answerFields = new JTextField[4];
-        for (int i = 0; i < 4; i++) {
-            answerFields[i] = new JTextField("Answer " + i);
-            answerFields[i].setBounds(150, 80 + i * 50, 300, 30);
-            frame.add(answerFields[i]);
-        }
-
-        JLabel correctLabel = new JLabel("Correct Answer:");
-        correctLabel.setBounds(30, 300, 150, 30);
-        frame.add(correctLabel);
-
-        JRadioButton[] correctAnswerButtons = new JRadioButton[4];
-        ButtonGroup group = new ButtonGroup();
-        for (int i = 0; i < 4; i++) {
-            correctAnswerButtons[i] = new JRadioButton(String.valueOf(i + 1));
-            correctAnswerButtons[i].setBounds(460, 80 + i * 50, 50, 30);
-            group.add(correctAnswerButtons[i]);
-            frame.add(correctAnswerButtons[i]);
-        }
-
-        JButton saveButton = new JButton("Save");
-        saveButton.setBounds(150, 400, 100, 30);
-        saveButton.addActionListener(e -> {
-            String question = questionField.getText();
-            if (question.isEmpty()) {
-                JOptionPane.showMessageDialog(frame, "Please enter a question!", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            StringBuilder questionData = new StringBuilder(question + "\n");
-            for (int i = 0; i < 4; i++) {
-                questionData.append((correctAnswerButtons[i].isSelected() ? "*" : "") + answerFields[i].getText() + "\n");
-            }
-            JOptionPane.showMessageDialog(frame, "Question saved successfully!");
-        });
-        frame.add(saveButton);
-
-        JButton uploadButton = new JButton("Upload");
-        uploadButton.setBounds(400, 400, 100, 30);
-        frame.add(uploadButton);
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
-
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
     }
 }
