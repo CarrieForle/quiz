@@ -184,9 +184,8 @@ class QuestionSet {
 
     public QuestionSet(String s) throws CorruptedQuestionsException {
         StringBuilder contents = new StringBuilder(s);
-        QuestionSet res = new QuestionSet();
 
-        res.name = popUntil(contents, "\n");
+        this.name = popUntil(contents, "\n");
 
         while (contents.length() > 0) {
             if (!contents.substring(0, 1).equals("\n")) {
@@ -222,7 +221,7 @@ class QuestionSet {
 
             contents.delete(0, 1);
 
-            res.getQuestions().add(question);
+            this.questions.add(question);
         }
     }
 
