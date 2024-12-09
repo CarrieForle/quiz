@@ -1,10 +1,13 @@
 package gui;
 
 import javax.swing.*;
+import utils.*;
 
-public class MakeQuestionFrame extends JFrame {
-    public MakeQuestionFrame() {
-        setTitle("Make Question");
+public class MakeQuizFrame extends JFrame {
+    private QuizBuilder quizBuilder = new QuizBuilder("Untitled");
+
+    public MakeQuizFrame() {
+        setTitle("Quiz Builder");
         this.setSize(600, 600);
         this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         this.setLayout(null);

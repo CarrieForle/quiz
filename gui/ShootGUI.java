@@ -84,7 +84,7 @@ public class ShootGUI extends JFrame {
             JButton askQuestionButton = new JButton("Ask Question");
             askQuestionButton.setBounds(130, 150, 140, 30);
             menuFrame.add(askQuestionButton);
-            askQuestionButton.addActionListener(e1 -> new MakeQuestionFrame());
+            askQuestionButton.addActionListener(e1 -> new MakeQuizFrame());
 
             // Exit Button
             JButton exitButton = new JButton("Exit");
