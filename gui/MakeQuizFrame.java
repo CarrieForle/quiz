@@ -2,8 +2,17 @@ package gui;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
 import java.awt.*;
 import java.awt.event.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 
 import utils.*;
@@ -16,6 +25,7 @@ public class MakeQuizFrame extends JFrame {
     private JTextArea[] optionAreas = new JTextArea[4];
     private JPanel buttonPanel = new JPanel();
     private java.util.List<QuestionButton> questionButtons = new ArrayList<QuestionButton>();
+    private JLabel status = new JLabel("Status: Editing Q1", SwingConstants.CENTER);
 
     public static void main(String[] args) {
         MakeQuizFrame f = new MakeQuizFrame();
@@ -27,7 +37,7 @@ public class MakeQuizFrame extends JFrame {
         setTitle("Quiz Builder");
         setSize(600, 600);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new BorderLayout());
 
         for (int i = 0; i < this.quizBuilder.size(); i++) {
             QuestionButton referenceButton = new QuestionButton(this.quizBuilder.get(i));
@@ -36,6 +46,7 @@ public class MakeQuizFrame extends JFrame {
             referenceButton.addActionListener(e -> {
                 if (editing != referenceButton.question) {
                     saveQuestion();
+                    this.updateStatusToCurrentEditing();
                     editing = referenceButton.question;
                     loadQuestion();
                 }
@@ -49,8 +60,7 @@ public class MakeQuizFrame extends JFrame {
         JLabel questionLabel = new JLabel("Question", SwingConstants.CENTER);
         questionPanel.add(questionLabel, BorderLayout.NORTH);
         questionPanel.add(new JScrollPane(this.questionArea), BorderLayout.CENTER);
-        questionPanel.add(new JScrollPane(this.buttonPanel, JScrollPane.VERTICAL_SCROLLBAR_NEVER,
-                JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS), BorderLayout.SOUTH);
+        questionPanel.add(new JScrollPane(this.buttonPanel, JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS), BorderLayout.SOUTH);
 
         this.updateButtonsUI();
 
@@ -71,8 +81,7 @@ public class MakeQuizFrame extends JFrame {
         ButtonGroup group = new ButtonGroup();
         for (int i = 0; i < 4; i++) {
             this.correctAnswerButtons[i] = new JRadioButton(String.valueOf((char) (65 + i)));
-            this.correctAnswerButtons[i]
-                    .addActionListener(new SelectAsAnswer(optionAreaScrollPane, optionAreaScrollPane[i]));
+            this.correctAnswerButtons[i].addActionListener(new SelectAsAnswer(optionAreaScrollPane, optionAreaScrollPane[i]));
             group.add(this.correctAnswerButtons[i]);
             correctAnswerButtonPanel.add(this.correctAnswerButtons[i]);
         }
@@ -86,23 +95,28 @@ public class MakeQuizFrame extends JFrame {
         JPanel actionButtonPanel = new JPanel();
         JButton addButton = new JButton("Add");
         JButton deleteButton = new JButton("Delete");
-        JButton copyButton = new JButton("Copy");
         JButton saveButton = new JButton("Save");
         JButton openButton = new JButton("Open");
         JButton uploadButton = new JButton("Upload");
 
         addButton.addActionListener(e -> addQuestion());
+        deleteButton.addActionListener(e -> deleteQuestion());
+        saveButton.addActionListener(e -> saveQuiz());
+        openButton.addActionListener(e -> loadQuiz());
 
         actionButtonPanel.add(addButton);
         actionButtonPanel.add(deleteButton);
-        actionButtonPanel.add(copyButton);
         actionButtonPanel.add(saveButton);
         actionButtonPanel.add(openButton);
         actionButtonPanel.add(uploadButton);
 
-        add(questionPanel, BorderLayout.CENTER);
-        add(answerPanel, BorderLayout.EAST);
-        add(actionButtonPanel, BorderLayout.SOUTH);
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        mainPanel.add(questionPanel, BorderLayout.CENTER);
+        mainPanel.add(answerPanel, BorderLayout.EAST);
+        mainPanel.add(actionButtonPanel, BorderLayout.SOUTH);
+
+        this.add(this.status, BorderLayout.NORTH);
+        this.add(mainPanel, BorderLayout.CENTER);
 
         setLocationRelativeTo(null);
         setVisible(true);
@@ -126,6 +140,7 @@ public class MakeQuizFrame extends JFrame {
 
     public void addQuestion() {
         this.saveQuestion();
+
         this.editing = this.quizBuilder.append_new();
         final int id = this.quizBuilder.size();
 
@@ -133,26 +148,106 @@ public class MakeQuizFrame extends JFrame {
         referenceButton.setText("Q" + String.valueOf(id));
 
         referenceButton.addActionListener(e -> {
-            if (editing != referenceButton.question) {
-                saveQuestion();
-                editing = referenceButton.question;
-                loadQuestion();
+            if (editing == referenceButton.question) {
+                return;
             }
+
+            saveQuestion();
+            this.updateStatusToCurrentEditing();
+            editing = referenceButton.question;
+            loadQuestion();
         });
 
         this.questionButtons.add(referenceButton);
+        this.updateStatusToCurrentEditing();
         this.updateButtonsUI();
         this.clearFields();
+    }
+
+    public void deleteQuestion() {
+        if (this.quizBuilder.size() <= 1) {
+            return;
+        }
+
+        int new_index = 0;
+        this.quizBuilder.remove(this.editing);
+
+        for (QuestionButton button : this.questionButtons) {
+            if (button.question == this.editing) {
+                this.questionButtons.remove(button);
+                break;
+            }
+        }
+
+        this.editing = this.quizBuilder.get(new_index);
+        this.updateStatusToCurrentEditing();
+        this.loadQuestion();
+        this.updateButtonsUI();
+    }
+    
+    public void saveQuiz() {
+        JFileChooser fileChooser = new JFileChooser();
+
+        if (JFileChooser.APPROVE_OPTION == fileChooser.showSaveDialog(this)) {
+            saveQuestion();
+
+            File file = fileChooser.getSelectedFile();
+
+            if (!file.getName().endsWith(".quiz")) {
+                file = new File(file.getAbsolutePath() + ".quiz");
+            }
+
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+                writer.write(this.quizBuilder.getName());
+                writer.write("\n");
+
+                for (int i = 0; i < quizBuilder.size(); i++) {
+                    QuizBuilder.PartialQuestionWithAnswer question = quizBuilder.get(i);
+                    writer.write(String.format("\n$$%s::::%d\n", question, question.answer));
+
+                    for (int j = 0; j < 4; j++) {
+                        writer.write(String.format("%s:::", question.getOption(j)));
+                    }
+
+                    writer.write("\n");
+                }
+
+                JOptionPane.showMessageDialog(this, "Question bank saved successfully!");
+            } catch (IOException e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Failed to save question bank.");
+            }
+        }
+    }
+
+    public void loadQuiz() {
+        JFileChooser fileChooser = new JFileChooser();
+
+        if (JFileChooser.APPROVE_OPTION == fileChooser.showOpenDialog(this)) {
+            File file = fileChooser.getSelectedFile();
+
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String contents = Files.readString(file.toPath());
+
+                // TODO
+                System.out.println(contents);
+            } catch (IOException e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Failed to load question bank.");
+            }
+        }
     }
 
     public void updateButtonsUI() {
         this.buttonPanel.removeAll();
 
-        for (JButton button : this.questionButtons) {
-            this.buttonPanel.add(button);
+        for (int i = 0; i < this.questionButtons.size(); i++) {
+            this.questionButtons.get(i).setText("Q" + String.valueOf(i + 1));
+            this.buttonPanel.add(this.questionButtons.get(i));
         }
 
         revalidate();
+        repaint();
     }
 
     public void clearFields() {
@@ -188,6 +283,14 @@ public class MakeQuizFrame extends JFrame {
                 break;
             }
         }
+    }
+
+    private void updateStatus(String s) {
+        this.status.setText(String.format("Status: %s", s));
+    }
+
+    private void updateStatusToCurrentEditing() {
+        this.updateStatus(String.format("Editing Q%d", this.quizBuilder.indexOf(this.editing) + 1));
     }
 }
 

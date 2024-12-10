@@ -89,6 +89,10 @@ public class QuizBuilder {
     private List<PartialQuestionWithAnswer> questions = new ArrayList<>();
     private String name;
 
+    public QuizBuilder(String name) {
+        this.name = name;
+    }
+    
     // Call this method when the quiz might be incomplete
     public String toPartialQuizString() {
         StringBuilder res = new StringBuilder();
@@ -136,10 +140,6 @@ public class QuizBuilder {
         
         return q;
     }
-    
-    public QuizBuilder(String name) {
-        this.name = name;
-    }
 
     public boolean setName(String name) {
         if (name == null || name.isEmpty()) {
@@ -161,5 +161,13 @@ public class QuizBuilder {
 
     public int size() {
         return this.questions.size();
+    }
+
+    public void remove(Object o) {
+        this.questions.remove(o);
+    }
+
+    public int indexOf(Object o) {
+        return this.questions.indexOf(o);
     }
 }
