@@ -23,7 +23,7 @@ public class Server {
     private static final Path QUESTION_DIRECTORY = Path.of("quiz_questions");
     private boolean is_in_game = false;
     private ServerStorage storage_manager = new ServerStorage();
-
+    
     private class Participant {
         Socket socket;
         String name;
@@ -189,7 +189,8 @@ class QuestionSet {
 
         while (contents.length() > 0) {
             if (!contents.substring(0, 1).equals("\n")) {
-                throw new CorruptedQuestionsException(String.format("Expected token `\\n`. Found `\n`", contents.substring(0, 1)));
+                throw new CorruptedQuestionsException(String.format("Expected token `\\n`. Found `%s`", contents.substring(0, 1)));
+                
             }
 
             contents.delete(0, 1);
