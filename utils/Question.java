@@ -24,7 +24,7 @@ public class Question {
 }
 
 class QuestionWithAnswer extends Question {
-    public int answer;
+    public int answer = 0;
 
     @Override
     public String toString() {

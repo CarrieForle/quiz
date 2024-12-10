@@ -4,29 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class QuizBuilder {
-    class PartialQuestionWithAnswer {
-        public Integer answer;
-        public String question;
-        protected String[] options = new String[4];
-
-        public void setOptions(int i, String s) {
-            this.options[i] = s;
-        }
-
-        public void setOptions(String[] s) {
-            for (int i = 0; i < this.options.length; i++) {
-                this.options[i] = s[i];
-            }
-        }
-
-        public String getOption(int i) {
-            return options[i];
-        }
-
-        public int getOptionLength() {
-            return this.options.length;
-        }
-
+    static public class PartialQuestionWithAnswer extends QuestionWithAnswer implements Cloneable {
         // Get a list of string representation of incompleted fields separated by newline
         // Return empty list if every field is complete.
         public List<String> getIncompleteField() {
@@ -40,10 +18,6 @@ public class QuizBuilder {
                 if (this.options[i] == null || this.options[i].isEmpty()) {
                     res.add(String.valueOf(i));
                 }
-            }
-
-            if (this.answer == null || this.answer < 0 || this.answer >= this.options.length) {
-                res.add("answer");
             }
 
             return res;
@@ -65,15 +39,28 @@ public class QuizBuilder {
 
             return res;
         }
-        
+
+        @Override
+        public PartialQuestionWithAnswer clone() {
+            PartialQuestionWithAnswer copied = new PartialQuestionWithAnswer();
+
+            // OK: Integer is immutable
+            copied.answer = this.answer;
+            copied.question = this.question;
+            copied.options = this.options.clone();
+
+            return copied;
+        }
+
+        @Override
         public String toString() {
             StringBuilder res = new StringBuilder();
 
             res.append(str_or_unit(this.question));
             res.append("::::");
-            res.append(str_or_unit(this.answer.toString()));
+            res.append(str_or_unit(String.valueOf(this.answer)));
             res.append("\n");
-            
+
             for (String option : this.options) {
                 res.append(str_or_unit(option));
                 res.append(":::");
@@ -89,6 +76,14 @@ public class QuizBuilder {
                 return s;
             }
         }
+    }
+    
+    // Create a new QuizBuilder with 1 empty question
+    public static QuizBuilder init(String s) {
+        QuizBuilder res = new QuizBuilder(s);
+        res.append_new();
+
+        return res;
     }
 
     private List<PartialQuestionWithAnswer> questions = new ArrayList<>();
@@ -121,6 +116,26 @@ public class QuizBuilder {
 
         return res.toString();
     }
+
+    public PartialQuestionWithAnswer insert_new(int i) {
+        PartialQuestionWithAnswer q = new PartialQuestionWithAnswer();
+        this.questions.add(i, q);
+
+        return q;
+    }
+
+    public PartialQuestionWithAnswer append_new() {
+        PartialQuestionWithAnswer q = new PartialQuestionWithAnswer();
+        this.questions.add(q);
+
+        return q;
+    }
+
+    public PartialQuestionWithAnswer insert_copy_of(PartialQuestionWithAnswer q, int i) {
+        this.questions.add(i, q.clone());
+        
+        return q;
+    }
     
     public QuizBuilder(String name) {
         this.name = name;
@@ -142,5 +157,9 @@ public class QuizBuilder {
 
     public PartialQuestionWithAnswer get(int i) {
         return this.questions.get(i);
+    }
+
+    public int size() {
+        return this.questions.size();
     }
 }
