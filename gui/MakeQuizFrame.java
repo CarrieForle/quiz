@@ -207,7 +207,7 @@ public class MakeQuizFrame extends JFrame {
         if (JFileChooser.APPROVE_OPTION == fileChooser.showOpenDialog(this)) {
             File file = fileChooser.getSelectedFile();
 
-            try (BufferedReader reader = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
+            try {
                 String contents = Files.readString(file.toPath());
                 this.quizBuilder = new QuizBuilder(contents);
 
