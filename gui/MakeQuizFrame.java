@@ -245,7 +245,7 @@ public class MakeQuizFrame extends JFrame {
         repaint();
     }
 
-    public void updateButtonsUI() {
+    private void updateButtonsUI() {
         this.buttonPanel.removeAll();
 
         for (QuestionButton button : this.questionButtons) {
@@ -257,7 +257,7 @@ public class MakeQuizFrame extends JFrame {
         repaint();
     }
 
-    public void clearFields() {
+    private void clearFields() {
         this.questionArea.setText("");
 
         for (JTextArea area : this.optionAreas) {
@@ -267,7 +267,7 @@ public class MakeQuizFrame extends JFrame {
         this.correctAnswerButtons[0].setSelected(true);
     }
 
-    public void updateQuestionUI() {
+    private void updateQuestionUI() {
         this.questionArea.setText(this.editing.question);
 
         for (int i = 0; i < this.optionAreas.length; i++) {
@@ -277,7 +277,7 @@ public class MakeQuizFrame extends JFrame {
         this.correctAnswerButtons[this.editing.answer].setSelected(true);
     }
 
-    public void saveQuestion() {
+    private void saveQuestion() {
         this.editing.question = this.questionArea.getText();
 
         for (int i = 0; i < this.optionAreas.length; i++) {
@@ -300,7 +300,7 @@ public class MakeQuizFrame extends JFrame {
         this.updateStatus(String.format("Editing Q%d", this.getQuestionID(this.editing)));
     }
 
-    private static JFileChooser getFileChooser() {
+    private JFileChooser getFileChooser() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileFilter(new FileNameExtensionFilter("Quiz File (.quiz)", "quiz"));
 
