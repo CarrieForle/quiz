@@ -235,7 +235,7 @@ public class MakeQuizFrame extends JFrame {
         String name = "";
 
         while (true) {
-            name = JOptionPane.showInputDialog(this, "Enter new quiz name", this.file.getName());
+            name = JOptionPane.showInputDialog(this, "Enter new quiz name", this.quizBuilder.getName());
 
             if (name == null) {
                 return;
