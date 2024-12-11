@@ -99,13 +99,12 @@ public class MakeQuizFrame extends JFrame {
         actionButtonPanel.add(openButton);
         actionButtonPanel.add(uploadButton);
 
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.add(questionPanel, BorderLayout.CENTER);
-        mainPanel.add(answerPanel, BorderLayout.EAST);
-        mainPanel.add(actionButtonPanel, BorderLayout.SOUTH);
-
+        JSplitPane mainPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, questionPanel, answerPanel);
+        mainPane.setResizeWeight(0.7);
+        
         this.add(this.status, BorderLayout.NORTH);
-        this.add(mainPanel, BorderLayout.CENTER);
+        this.add(mainPane, BorderLayout.CENTER);
+        this.add(actionButtonPanel, BorderLayout.SOUTH);
 
         setLocationRelativeTo(null);
         setVisible(true);
