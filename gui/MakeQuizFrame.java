@@ -82,17 +82,19 @@ public class MakeQuizFrame extends JFrame {
         answerPanel.add(correctAnswerButtonPanel, BorderLayout.EAST);
 
         JPanel actionButtonPanel = new JPanel();
+        JButton renameButton = new JButton("Rename");
         JButton addButton = new JButton("Add");
         JButton deleteButton = new JButton("Delete");
         JButton saveButton = new JButton("Save");
         JButton openButton = new JButton("Open");
         JButton uploadButton = new JButton("Upload");
 
-        addButton.addActionListener(e -> addQuestion());
+        renameButton.addActionListener(e -> renameQuiz());
         deleteButton.addActionListener(e -> deleteQuestion());
         saveButton.addActionListener(e -> saveQuiz());
         openButton.addActionListener(e -> loadQuiz());
 
+        actionButtonPanel.add(renameButton);
         actionButtonPanel.add(addButton);
         actionButtonPanel.add(deleteButton);
         actionButtonPanel.add(saveButton);
@@ -207,7 +209,30 @@ public class MakeQuizFrame extends JFrame {
         }
     }
     
-    public void constructButtons() {
+    public void renameQuiz() {
+        String name = "";
+
+        while (true) {
+            name = JOptionPane.showInputDialog(this, "Enter new quiz name", this.filename.getName());
+
+            if (name == null) {
+                return;
+            }
+
+            name = name.trim();
+
+            if (name.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "The quiz name must not be blank", "Error", JOptionPane.ERROR_MESSAGE);
+                continue;
+            }
+
+            break;
+        }
+
+        this.quizBuilder.setName(name);
+    }
+    
+    private void constructButtons() {
         this.buttonPanel.removeAll();
         this.questionButtons.clear();
 
