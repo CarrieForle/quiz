@@ -218,6 +218,7 @@ public class MakeQuizFrame extends JFrame {
                 this.editing = this.quizBuilder.get(0);
                 this.file = file;
                 this.updateQuestionUI();
+                this.updateStatusToCurrentEditing();
                 this.constructButtons();
                 this.setTitle(String.format("Quiz Builder (%s)", file.getName()));
             } catch (IOException e) {
