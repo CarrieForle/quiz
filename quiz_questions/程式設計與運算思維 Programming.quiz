@@ -1,0 +1,426 @@
+程式設計與運算思維 Programming
+
+$$若編寫了以下的程式碼，則結果為何？
+s1 ='5300元'
+s2 ='2000元'
+s3 = s1 + s2
+print(s3)::::3
+7300元 :::7300:::53002000:::5300元2000元:::
+
+$$方框內的程式碼結果及你的判斷以下何者正確？
+def funca(a, b):
+    if a > b :
+        return a * b
+    else:
+        return a + b
+　
+def funcb(a, b):
+    if b == 0 :
+        return -1
+    else:
+        return float(a) / b
+　
+a = 10
+b = 4
+print("funca(a, b) = ", funca(10, 4))
+print("funcb(a, b) = ", funcb(10, 4))::::3
+語法錯誤，因為變數a,b重複使用:::print結果為40, 2.5 且的a,b為全域變數:::print結果為40, 2.5 且a=10的a及b=4的b為區域變數:::print結果為40, 2.5 且 a=10的a及b=4的b為全域變數:::
+
+$$小人國中最近出現一個新的流感病毒，第一天發現病毒時，並沒有人出現類似症狀，然而隔天就發現一名研究人員確診，研究院急忙進行快篩檢查，再隔日又發現另一名人員確診，此後每隔一天的確診人數恰為前兩日確診人數和。請問到第八天結束共有多少人確診?（選項中的recFac函數如下所示）（請用 Java 表示）
+public static int recFac(int day){
+if(day==1) return 0;
+else if(day==2) return 1;
+else return recFac(day-1::::1
+recFac(8):::int total = 0, day = 8; for(int i =1; i<=day; i++){total+=recFac(i);}:::1+1+2+3+5+8+11+19:::0+1+2+3+4+5+6+7:::
+
+$$⊕為邏輯互斥或（XOR）運算的符號。文字序列的每個字元可以通過與給定的金鑰進行按位元互斥或運算來加密。如果要解密，只需要將加密後的結果與金鑰再次進行按位元互斥或運算即可。請用 Java 表示A⊕B::::3
+A>>B:::A<<b< div="" style="box-sizing: border-box;"></b<>:::A^^B:::A^B:::
+
+$$SDGs目標2為「消除飢餓，實現糧食安全，改善營養狀況和促進可持續農業」。而在2.2.2中提到「按類型（消瘦和超重）分列的五歲以下兒童營養不良發生率」，其標準制定為依據身高標準體重大於或小於世衛組織兒童生長發育標準中位數 + 2 或 - 2 的標準偏差。
+假設世衛組織兒童生長發育標準中位數為x，而欲測量之兒童數值為y，請問下列選項中何者可以正確利用 JavaScript判斷欲測量之兒童是否滿足標準?::::1
+if(Math.abs(x-y)<2){console.log('不滿足標準');}else{console.log('滿足標準');}:::if(Math.abs(x-y)>2){console.log('不滿足標準');}else{console.log('滿足標準');}:::if(Math.abs(x-y)<2){System.out.println('不滿足標準');}else{System.out.println('滿足標準');
+}:::if(Math.abs(x-y)>2){System.out.println('不滿足標準');}else{System.out.println('滿足標準');}:::
+
+$$請問執行下列 python程式碼後會分別印出什麼?
+x = 2
+def change():
+ x = 10
+ print(x)
+change()
+print(x)::::1
+2023-02-02 00:00:00:::2023-10-02 00:00:00:::2023-10-10 00:00:00:::2023-02-10 00:00:00:::
+
+$$有一段C語言程式碼是這樣寫的：
+int a=11, b=21;
+int *p;
+p = &a;
+b = *p;
+*p = 0;
+已知存放a變數的記憶體位置為0X0012FF74；b變數的記憶體位置為0X0012FF78。請問，執行完程式後，a和b的值各為多少?::::0
+a = 0; b = 11:::a = 0; b = 0X0012FF74:::a = 0X0012FF74; b = 0X0012FF74:::a = 11; b = 0X0012FF78:::
+
+$$下列何種c指標宣告方式正確?::::0
+int *point = &a;:::int &point = &a;:::int %point = &a;:::int @point = &a;:::
+
+$$小美在公部門上班，上司希望他可以找出包括水災在內的各種災害造成的死亡人數和受災人數，大幅減少上述災害造成的與全球國內生產總值有關的直接經濟損失，重點保護窮人和處境脆弱群體。因此小美決定先根據SDGs細項中的11.5.1「每10萬人當中因災害死亡、失蹤和直接受影響的人數」著手處理此議題。
+在python中，過去五年總受害者數量設為 record = np.array([1.7e+7, 2.3e+6, 4.7e+6, 8.3e+5, 5.6e+6])，請問以下何選項內可以算出過去五年來總受害者數量之平均數?::::0
+np.mean(record):::np.max(record):::np.min(record):::np.std (record):::
+
+$$下列敘述何者”非”為 Python 內建的容器資料格式?
+a3\nA串列 (list)\nA元組 (tuple)\nA字典 (dict)\nA布林值 (boolean)\n
+Q x = 9 * 3
+y = x // 2.0
+z = x % 2
+針對上述程式運算後，下列敘述何者為非?::::2
+“//” 進行除法運算並回傳商數部分:::變數 x 中儲存整數 27:::變數 y 中儲存整數 13:::變數 z 中儲存整數 1:::
+
+$$x = y = z = 5.0
+print(x, y, z)
+print(id(x), id(y), id(z))
+z = y + 5
+print(x, y, z)
+print(id(x), id(y), id(z))
+z = z - 5
+print(x, y, z)
+print(id(x), id(y), id(z))
+在 Python 中可以透過函數 id() 獲取變數的位址，上述程式運算後，選項敘述何者為非?::::3
+第一次 print(id(x), id(y), id(z)) 會顯示三個相同整數。:::第二次 print(id(x), id(y), id(z)) 會顯示第三個整數與前兩個整數相異。:::第三次 print(x, y, z) 會顯示三個浮點數 5.0。:::第三次 print(id(x), id(y), id(z)) 會顯示第三個相同整數。:::
+
+$$下列何者在 Python 邏輯判斷中會被視為真 (True)?::::3
+空串列 ([]):::空元組 (()):::整數零 (0):::包含一個半形空格的字串 (" "):::
+
+$$下列何者為 Python 中合法變數名稱?::::1
+break:::變數B:::3a:::x.D:::
+
+$$score = 95
+name = "HDYANG"
+count = 2
+print("{}，你的第 {} 次考試成績為：{}".format(name, count, score))
+print("{1}，你的第 {2} 次考試成績為：{0}".format(score, name, count))
+print("{n}，你的第 {c} 次考試成績為：{s}".format(s = score, c = count, n = name))
+print("%d，你的第 %d 次考試成績為：%d" % (n::::3
+print("{}，你的第 {} 次考試成績為：{}".format(name, count, score)):::print("{1}，你的第 {2} 次考試成績為：{0}".format(score, name, count)):::print("{n}，你的第 {c} 次考試成績為：{s}".format(s = score, c = count, n = name)):::rint("%d，你的第 %d 次考試成績為：%d" % (name, count, score)):::
+
+$$在 Python 中可以由 re 模組處理正則表達式 (regular expression)，若定義我國電話號碼碼格式為：xxxx-xxx-xxx (行動電話號碼格式)或(xx)xxx-xxxx (家用電話號碼格式)其中 x 為 0 到 9 的整數，選項敘述何者不為我國電話號碼的完整正則表達式?::::3
+r'\d{4}-\d{3}-\d{3}':::r'(\d{4})-(\d{3})-(\d{3})':::r'\d2-\d{3}-\d{4}':::r'(\d\d)-\d\d\d-\d\d\d\d\d':::
+
+$$ import copy
+a = [1, 2, 3, [4, 5, 6]]
+b = a.copy()
+c = copy.deepcopy(a)
+a.append(7)
+a[3].append("e")
+print(id(a), id(b), id(c))
+上述程式運算後，下列敘述何者錯誤?::::2
+print(id(a), id(b), id(c)) 列印出三個相異的整數:::變數 a 儲存內容為 [1, 2, 3, [4, 5, 6, 'e'], 7]:::變數 b儲存內容為 [1, 2, 3, [4, 5, 6]]:::變數 c 的儲存內容為 [1, 2, 3, [4, 5, 6]]:::
+
+$$oddsq = [i ** 2 for i in range(1,10) if i %2 == 1]
+上述程式運算後，變數 oddsq 儲存的內容為何?::::0
+[1, 9, 25, 49, 81]:::[1, 9, 25, 49, 81, 100]:::[1, 4, 9, 16, 25, 36, 49, 64, 81]:::[1, 4, 9, 16, 25, 36, 49, 64, 81, 100]:::
+
+$$以下選項何者非可迭代物件 (iterable object)?::::3
+串列 (list):::元組 (tuple):::字串 (string):::集合 (set):::
+
+$$房價持續高漲已成為社會重大議題並使弱勢民眾一房難求。假設我們想要以Python寫一程式依照實價登錄資料來計算某一區域每年房價的漲幅。請問下列的?述何者較為適宜?::::1
+rate% = (new_price – old_price) / old_price:::rate = (new_price – old_price) / old_price:::%rate = (new_price – old_price) / old_price:::rate = (new_price – old_price) % old_price:::
+
+$$請問以下的Python程式碼之執行結果為何?
+if True:
+    print("True", end='')
+    #print("True again", end='')
+if False:
+    print("False", end='')
+print("False again", end='')::::3
+程式錯誤，產生錯誤訊息:::TrueFalseFalse again:::TrueTrue againFalse again:::TrueFalse again:::
+
+$$近來使用程式來抓取網頁特定內容（Web Scraping）為相當重要的應用，如口罩地圖、空氣品質數據等，假設有一段簡單Web Scraping相關程式碼如下…
+[
+    {
+     "title":"資訊安全",
+     "author":"趙大師",
+     "category":"Web",
+     "pubdate":"06/2020",
+           "id":"S101"
+           },
+           {
+     "title":"PHP網頁設計",
+     "author":"李大師",
+     "category":"Web",
+     "pubdate":"07/2020",
+           "id":"P101"
+           },
+           …
+]::::3
+該段程式碼是一種資料交換程式，可能是JSON格式，用來達成網頁抓取程式和網頁間的資料交換。:::假設是JSON格式，若要抓取圖書資料需要在 Web Scraping程式中先匯入json模組，例如import json，然後進一步做資料解碼，如 books = json.loads(contents.decode('utf-8-sig'))。:::此時若要取出每一本書的書名和書號，可以使用這樣的程式編碼…for book in books:print("書號: ",book["id"], end="-")print("書名: ", book["title"]):::以上是一種正確的Web Scraping程式寫法。:::
+
+$$請問以下程式碼中的?述I與其印出結果何者為真?
+count = 0
+for ch in 'Python':
+    count += 1
+    if ch == 't':
+        I
+print(count)::::3
+當I為 count += 1時, 印出6:::當I為 continue時, 印出 5:::當I為 break時, 印出 4:::當I為 pass時, 印出 6:::
+
+$$數值是我們經常使用之資料型態。請問下列何者不是Python所直接支援的數值資料型態?::::1
+具正負號之整數(integer):::只為0或1之布林數(Boolean number):::可表達小數之浮點數(floating point real number):::可表達虛數之複數(complex number):::
+
+$$假設我們要寫一個程式來偵測文章中之歧視字詞，若已建立一包含了歧視字詞的串列abuse，而我們想要使用其中位於第i個位置到第j個位置的字詞進行偵測，請問下列何種語法可以滿足我們的需求?::::2
+abuse[i-j]:::abuse[i]:abuse[j]:::abuse[i:j]:::abuse[i--j]:::
+
+$$請問下列Python程式碼之輸出為何?
+tup1 = (12, 34.56);
+tup2 = (34, 56.78);
+tup3 = tup1 + tup2;
+print(tup3)::::1
+(1234, 34.5656.78):::(12, 34.56, 34, 56.78):::(46, 91.34):::(12, 34,78) + (34, 56.78):::
+
+$$若有下列Python變數：
+x = (12, 34, 56)
+y = [12, 34, 56]
+z = {'a': 12, 'b': 34, 'c':56}
+請問下列運算何者為錯誤?::::0
+x[1] = 78:::y[1] = x[0] + y[1]:::z['c'] = z['a'] + z['b']:::z['a'] = x[0] + y[1]:::
+
+$$請問下列Python程式碼之輸出為何?
+total = 0
+def sum( arg1, arg2 ):
+   total = arg1 + arg2
+   print("Inside the function local total : ", total)
+   return total;
+sum( 10, 20 );
+print("Outside the function global total : ", total)::::0
+Inside the function local total : 30Outside the function global total : 0:::Inside the function local total : 30Outside the function global total : 30:::Inside the function local total : 0Outside the function global total : 0:::Inside the function local total : 0Outside the function global total : 30:::
+
+$$下列程式碼之結果為何?
+'Python Programming' [100:]::::1
+索引錯誤(index error):::'(空字串):::Python Programming':::語法錯誤(syntax error):::
+
+$$下列程式碼之輸出為何?
+print([ (a,b) for a in range(3) for b in range(a) ])::::3
+[ (1,0),(2,1),(3,2)]:::[ (0,0),(1,1),(2,2)]:::[(1,0),(2,1),(2,1)]:::[ (1,0),(2,0),(2,1)]:::
+
+$$ "char[] x ={ 'a', 'b', 'c', 'd', 'e' }；
+執行完上述程式碼後，下列敘述何者正確?"::::0
+x[0]為 'a':::x[1]為 'a':::x[5]為 'e':::x[5]未定義:::
+
+$$以下何者不是java之保留字?::::3
+void:::double:::public:::none:::
+
+$$若 A[1]、A[2]，和 A[3]分別為陣列 A[]的三個元素(element)，下列那個程式片段可以將 A[1] 和 A[2]的內容交換？::::1
+A[1] = A[2]; A[2] = A[1];:::A[3] = A[1]; A[1] = A[2]; A[2] = A[3];:::A[2] = A[1]; A[3] = A[2]; A[1] = A[3];:::以上皆可:::
+
+$$"以下程式執行完後，執行結果為何?
+public class Test {
+        public static void main(String[] args) {
+                int i = 4;
+                if (++i >= 5){
+                        ++i;
+                }
+                else{
+                        i--;
+                }
+                System.out.print(i);
+        }
+}"::::3
+3:::4:::5:::6:::
+
+$$ "以下程式執行完後，執行結果為何?
+public class Test {
+        public static void main(String[] args) {
+                boolean b = true;
+                int x = 10;
+                int y = 30;
+                System.out.print(b ? x : y);
+        }
+}"::::2
+0:::1:::10:::30:::
+
+$$以下何者不是基本資料型態(primitive data type)?::::2
+long:::Boolean:::string:::float:::
+
+$$下列何者為Java之換行字元?::::3
+/r':::\r':::/n':::\n':::
+
+$$ "以下程式執行完後，執行結果為何?
+public class Test {
+        public static void main(String[] args) {
+                int x = 1;
+                switch(x){
+          case 1: System.out.print(""1"");
+          case 2: System.out.print(""2""); break;
+          case 3: System.out.print(""3""); break;
+}
+        }
+}"::::1
+1:::12:::123:::2:::
+
+$$"以下程式執行完後，執行結果為何?
+public class Test{
+         public static void main(String[] args) {
+                int i=0;
+                for(int j=1;i<3;i++)
+       {
+                        System.out.print(i+j);
+}                        
+        }
+}"::::2
+11223:::1233:::123:::編譯錯誤:::
+
+$$"以下程式執行完後，執行結果為何?
+public class Test{
+         public static void main(String[] args) {
+                int x=10;
+                do{
+                    System.out.print(x--);
+System.out.print(x);
+                }while(x>10);
+        }
+}"::::1
+98:::109:::1010:::99:::
+
+$$下列何者指令無法達到迴圈的效果?::::3
+for(;;) {}:::while(true) {}:::do{} while(true);:::try{} and catch(){}:::
+
+$$"以下為 JavaScript程式碼
+1. var i = 1;
+2. do {
+3.    console.log(i); 
+4.    i++;
+5.    if (i % 2 === 1) {
+6.      continue;
+7.     };
+8.    console.log('i++', i);
+9. }
+10. console.log('i=', i);
+以下何者錯誤？"::::1
+第3行 印出 1 到 10:::第9行語法錯誤:::第10行 印出11::: % 2 === 1是當i為奇數時條件為真:::
+
+$$方框內程式碼，執行時的輸出為何？
+void main() {
+  for (int i=0; i<=10; i=i+1) {
+    printf (“%d”, i);
+    i = i + 1;
+  }
+  printf (“\n”);
+}::::0
+0 2 4 6 8 10:::0 1 2 3 4 5 6 7 8 9 10:::0 1 3 5 7 9:::0 1 3 5 7 9 11:::
+
+$$"便利商店因週年慶而提供折扣優惠，只要消費滿99元就可從紙盒中隨機抽一球來決定該筆消費的折扣數（每顆球被抽到的機率相等）。店家已在盒中放了9顆球，其中寫著6折和7折的各有1顆、9折2顆、95折5顆。令隨機變數X代表消費100元的顧客在折扣後需要付的金額（元），哪個程式片段可以求得X的期望值是多少？
+已宣告二維陣列array2D儲存(折扣數,球數)。 
+double[,] array2D = new double[4,2]{{0.6,1},{0.7,1},{0.9,2},{0.95,5}};::::0
+double totalBalls = 0;
+double x = 0;
+for (int i = 0; i < array2D.Length / array2D.Rank; i++)
+{
+totalBalls = totalBalls + array2D[i, 1];
+}
+for (int i = 0; i < array2D.Length / array2D.Rank; i++)
+{
+if(totalBalls != 0)
+x = x + array2D[i, 0] * array2D[i, 1] / totalBalls;
+}
+label1.Text =x.ToString("0.000");:::double totalBalls = 0;
+double x = 0;
+for (int i = 0; i < array2D.Length; i++)
+{
+totalBalls = totalBalls + array2D[i, 1];
+}
+for (int i = 0; i < array2D.Length; i++)
+{
+x = x + array2D[i, 0] * array2D[i, 1] / totalBalls;
+}:::int i = 0;
+int k = 0;
+int totalBalls = 0;
+double x = 0;
+foreach (int j in array2D)
+{
+i++;
+if (i % 2 == 0)
+totalBalls = totalBalls + j;
+}
+i = 0;
+foreach (int j in array2D)
+{
+i++;
+if (i % 2 == 1)
+k = j;
+else
+{
+x = x + k * j / totalBalls;
+}
+}:::double totalBalls = 0;
+totalBalls = array2D[1, 2] + array2D[2, 2] + array2D[3, 2] + array2D[4, 2];
+double x = 0;
+x = x + array2D[1, 1] * array2D[1, 2] / totalBalls;
+x = x + array2D[2, 1] * array2D[2, 2] / totalBalls;
+x = x + array2D[3, 1] * array2D[3, 2] / totalBalls;
+x = x + array2D[4, 1] * array2D[4, 2] / totalBalls;:::
+
+$$"以下為 JavaScript程式碼
+var name = 'World!';
+(function () {
+    if (typeof name === 'undefined') {
+        var name = 'John';
+        console.log('Goodbye ' + name);
+    } else {
+        console.log('Hello ' + name);
+    }
+})();
+以下何者正確？"::::0
+Goodbye John:::Hello John:::Hello undefined:::Hello World:::
+
+$$"以下為 JavaScript程式碼
+var two   = 0.2
+var one   = 0.1
+var eight = 0.8
+var six   = 0.6
+[two - one == one, eight - six == two]
+以下何者正確？"::::2
+[true, true]:::[false, false]:::[true, false]:::以上皆非:::
+
+$$"以下為 JavaScript程式碼
+function check(x, y, z) {
+  var result = [];
+  var a1 = x > y ? (x > z ? x : z)  : (y > z ? y : z);
+  var a2 = x < y ? (x < z ? x : z)  : (y < z ? y : z);
+  result.push(a1);
+  result.push(a2);
+  return result;
+}
+Score = check(10, 20, 30);
+以下何者正確？"::::3
+Score=[10, 20]:::Score=[20, 30]:::Score=[10, 30]:::Score=[30, 10]:::
+
+$$"以下為 JavaScript程式碼
+'5' + 3  
+'5' – 3
+以下何者正確？"::::0
+53, 2:::2023-08-02 00:00:00:::語法錯誤:::以上皆非:::
+
+$$對於寫完程式的執行結果驗證以下何者有誤？::::3
+執行程式時需要證明它的執行結果是正確的，程式師須準備測試所有輸入資料的組合，來測試所寫的各種演算法的需求。:::程式需要測試各種可能情況、條件和輸入資料，以測試程式執行無誤，如果有錯誤產生，就需要除錯來解決問題。:::如果程式無法輸出正確結果，除錯是在找出錯誤的地方，程式師不但需要找出錯誤，還需要決定找出更正錯誤的方法。:::如果你預期的結果出現代表你程式邏輯無誤。:::
+
+$$假設你想開車從高速公路北上到台北市大安森林公園，檢視地圖後寫下步驟如下：
+Step 1：中山高速公路向北開。
+Step 2：下圓山交流道（建國高架橋）。
+Step 3：下建國高架橋（仁愛路）。
+Step 4：直行建國南路，在紅綠燈右轉仁愛路。
+Step 5：左轉新生南路。
+以下選項何者有誤？::::1
+這些資訊已經足以讓人順利開車到達目的地:::電腦程式師可以直接將上述步驟編寫成電腦導航程式的邏輯:::編寫導航程式需要加入其他步驟，例如如何分辨已經到了圓山交流道，或是如何從交流道下來:::編寫導航程式需要判斷在建國高架橋上開幾公里可以到達仁愛路出口以及如何下去:::
+
+$$以下是Bao規劃的議題和問題，請問答案選項何者不正確？
+Bao最近手頭有點緊，需要去餐廳打工才能買線上遊戲，不同餐廳的節日獎金不同，Bao需要決定甚麼時段要去哪間餐廳打工才能賺到最多錢。Bao有寫Python程式記帳和紙本記帳的習慣，但偶爾會少記所以需要兩邊互相檢查。
+　
+問題1：Bao需查看12月、1月、2月的月曆來排餐廳的班表
+問題2：Bao需查看個別餐廳在不同連假期間的薪水加碼方案
+問題3：Bao需要統計自己最多能賺多少錢
+問題4：Bao需要利用比大小來確認自己能不能買得起線上遊戲
+問題5：Bao需要調閱Python的電子計帳來修正紙本記帳::::0
+透過print(calendar.month(2021,12)), print(calendar.month(2021,1))
+,print(calendar.month(2021,2))即可解決問題1。:::要解決問題2先要有以下的程式碼才能查詢
+Mlist = [] #建立加碼方案變數
+Mlist.append('A餐廳聖誕時段有加碼') #新增第1項加碼方案
+Mlist.append('B餐廳跨年時段有加碼') #新增第2項加碼方案
+Mlist.append('C餐廳過年時段有加碼') #新增第3項加碼方案:::答案A有運算思維盲點，程式可執行但結果不正確。:::答案B的 Mlist = [] 是建立空的list型別變數來存放加碼方案:::
