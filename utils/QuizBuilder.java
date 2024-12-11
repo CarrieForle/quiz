@@ -180,12 +180,6 @@ public class QuizBuilder {
         return q;
     }
 
-    public PartialQuestionWithAnswer insert_copy_of(PartialQuestionWithAnswer q, int i) {
-        this.questions.add(i, q.clone());
-        
-        return q;
-    }
-
     public boolean setName(String name) {
         if (name == null || name.isEmpty()) {
             return false;

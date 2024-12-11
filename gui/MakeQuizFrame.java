@@ -1,17 +1,11 @@
 package gui;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -38,7 +32,7 @@ public class MakeQuizFrame extends JFrame {
     public MakeQuizFrame() {
         this.editing = this.quizBuilder.get(0);
 
-        setTitle("Quiz Builder (Untitled.quiz)");
+        setTitle(String.format("Quiz Builder (%s)", this.filename));
         setSize(600, 600);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -61,7 +55,6 @@ public class MakeQuizFrame extends JFrame {
 
         for (int i = 0; i < 4; i++) {
             this.optionAreas[i] = new JTextArea();
-            this.optionAreas[i].setColumns(20);
             optionAreaScrollPane[i] = new JScrollPane(this.optionAreas[i]);
             optionAreaPanel.add(optionAreaScrollPane[i]);
         }
@@ -69,6 +62,7 @@ public class MakeQuizFrame extends JFrame {
         JPanel correctAnswerButtonPanel = new JPanel();
         correctAnswerButtonPanel.setLayout(new GridLayout(4, 1));
         ButtonGroup group = new ButtonGroup();
+
         for (int i = 0; i < 4; i++) {
             this.correctAnswerButtons[i] = new JRadioButton(String.valueOf((char) (65 + i)));
             this.correctAnswerButtons[i].addActionListener(new SelectAsAnswer(optionAreaScrollPane, optionAreaScrollPane[i]));
@@ -76,7 +70,7 @@ public class MakeQuizFrame extends JFrame {
             correctAnswerButtonPanel.add(this.correctAnswerButtons[i]);
         }
 
-        this.correctAnswerButtons[0].setSelected(true);
+        this.correctAnswerButtons[0].doClick();
 
         answerPanel.add(new JLabel("Options", SwingConstants.CENTER), BorderLayout.NORTH);
         answerPanel.add(optionAreaPanel, BorderLayout.CENTER);
@@ -85,18 +79,22 @@ public class MakeQuizFrame extends JFrame {
         JPanel actionButtonPanel = new JPanel();
         JButton renameButton = new JButton("Rename");
         JButton addButton = new JButton("Add");
+        JButton insertButton = new JButton("Insert");
         JButton deleteButton = new JButton("Delete");
         JButton saveButton = new JButton("Save");
         JButton openButton = new JButton("Open");
         JButton uploadButton = new JButton("Upload");
 
         renameButton.addActionListener(e -> renameQuiz());
+        addButton.addActionListener(e -> appendQuestion());
+        insertButton.addActionListener(e -> insertQuestion());
         deleteButton.addActionListener(e -> deleteQuestion());
         saveButton.addActionListener(e -> saveQuiz());
         openButton.addActionListener(e -> loadQuiz());
 
         actionButtonPanel.add(renameButton);
         actionButtonPanel.add(addButton);
+        actionButtonPanel.add(insertButton);
         actionButtonPanel.add(deleteButton);
         actionButtonPanel.add(saveButton);
         actionButtonPanel.add(openButton);
@@ -117,21 +115,42 @@ public class MakeQuizFrame extends JFrame {
         this.quizBuilder = qb;
     }
 
-    public String getQuestion() {
-        return editing.question;
+    public void insertQuestion() {
+        int index = 0;
+
+        while (true) {
+            try {
+                String input = JOptionPane.showInputDialog(this, "Input the index of new question", "Inset new question", JOptionPane.QUESTION_MESSAGE);
+
+                if (input == null) {
+                    return;
+                }
+
+                index = Integer.parseInt(input);
+
+                if (index < 1 || index > this.quizBuilder.size() + 1) {
+                    JOptionPane.showMessageDialog(this, "Number is out of bound.", "Error", JOptionPane.ERROR_MESSAGE);
+                    continue;
+                }
+
+                break;
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "You must enter a number.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+
+        index -= 1;
+
+        this.addQuestion(index);
     }
 
-    public String getOption(int i) {
-        return editing.getOption(i);
+    public void appendQuestion() {
+        this.addQuestion(this.quizBuilder.size());
     }
 
-    public Integer getAnswer() {
-        return editing.answer;
-    }
-
-    public void addQuestion() {
+    public void addQuestion(int i) {
         this.saveQuestion();
-        this.editing = this.quizBuilder.append_new();
+        this.editing = this.quizBuilder.insert_new(i);
         this.addButton(editing);
         this.updateStatusToCurrentEditing();
         this.clearFields();
@@ -265,7 +284,7 @@ public class MakeQuizFrame extends JFrame {
             area.setText("");
         }
 
-        this.correctAnswerButtons[0].setSelected(true);
+        this.correctAnswerButtons[0].doClick();
     }
 
     private void updateQuestionUI() {
@@ -275,7 +294,7 @@ public class MakeQuizFrame extends JFrame {
             this.optionAreas[i].setText(this.editing.getOption(i));
         }
 
-        this.correctAnswerButtons[this.editing.answer].setSelected(true);
+        this.correctAnswerButtons[this.editing.answer].doClick();
     }
 
     private void saveQuestion() {
@@ -324,7 +343,8 @@ public class MakeQuizFrame extends JFrame {
             updateQuestionUI();
         });
 
-        this.questionButtons.add(referenceButton);
+        int index = this.quizBuilder.indexOf(referenceButton.question);
+        this.questionButtons.add(index, referenceButton);
     }
 
     private int getQuestionID(PartialQuestionWithAnswer question) {
