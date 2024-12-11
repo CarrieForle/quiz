@@ -15,7 +15,7 @@ import utils.QuizBuilder.PartialQuestionWithAnswer;
 import utils.exceptions.CorruptedQuestionsException;
 
 public class MakeQuizFrame extends JFrame {
-    private File filename = new File("Untitled");
+    private File file = new File("Untitled");
     private QuizBuilder quizBuilder = QuizBuilder.init("Untitled");
     private QuizBuilder.PartialQuestionWithAnswer editing;
     private JTextArea questionArea = new JTextArea();
@@ -32,7 +32,7 @@ public class MakeQuizFrame extends JFrame {
     public MakeQuizFrame() {
         this.editing = this.quizBuilder.get(0);
 
-        setTitle(String.format("Quiz Builder (%s)", this.filename));
+        setTitle(String.format("Quiz Builder (%s)", this.file));
         setSize(600, 600);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -216,6 +216,7 @@ public class MakeQuizFrame extends JFrame {
                 }
 
                 this.editing = this.quizBuilder.get(0);
+                this.file = file;
                 this.updateQuestionUI();
                 this.constructButtons();
                 this.setTitle(String.format("Quiz Builder (%s)", file.getName()));
@@ -233,7 +234,7 @@ public class MakeQuizFrame extends JFrame {
         String name = "";
 
         while (true) {
-            name = JOptionPane.showInputDialog(this, "Enter new quiz name", this.filename.getName());
+            name = JOptionPane.showInputDialog(this, "Enter new quiz name", this.file.getName());
 
             if (name == null) {
                 return;
@@ -323,7 +324,7 @@ public class MakeQuizFrame extends JFrame {
     private JFileChooser getFileChooser() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileFilter(new FileNameExtensionFilter("Quiz File (.quiz)", "quiz"));
-        fileChooser.setSelectedFile(this.filename);
+        fileChooser.setSelectedFile(this.file);
 
         return fileChooser;
     }
