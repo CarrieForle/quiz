@@ -21,6 +21,7 @@ import utils.QuizBuilder.PartialQuestionWithAnswer;
 import utils.exceptions.CorruptedQuestionsException;
 
 public class MakeQuizFrame extends JFrame {
+    private File filename = new File("Untitled");
     private QuizBuilder quizBuilder = QuizBuilder.init("Untitled");
     private QuizBuilder.PartialQuestionWithAnswer editing;
     private JTextArea questionArea = new JTextArea();
@@ -159,7 +160,7 @@ public class MakeQuizFrame extends JFrame {
     }
     
     public void saveQuiz() {
-        JFileChooser fileChooser = getFileChooser();
+        JFileChooser fileChooser = this.getFileChooser();
 
         if (JFileChooser.APPROVE_OPTION == fileChooser.showSaveDialog(this)) {
             this.saveQuestion();
@@ -182,7 +183,7 @@ public class MakeQuizFrame extends JFrame {
     }
 
     public void loadQuiz() {
-        JFileChooser fileChooser = getFileChooser();
+        JFileChooser fileChooser = this.getFileChooser();
 
         if (JFileChooser.APPROVE_OPTION == fileChooser.showOpenDialog(this)) {
             File file = fileChooser.getSelectedFile();
@@ -303,6 +304,7 @@ public class MakeQuizFrame extends JFrame {
     private JFileChooser getFileChooser() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileFilter(new FileNameExtensionFilter("Quiz File (.quiz)", "quiz"));
+        fileChooser.setSelectedFile(this.filename);
 
         return fileChooser;
     }
