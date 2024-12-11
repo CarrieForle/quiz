@@ -3,6 +3,8 @@ package utils;
 import java.util.ArrayList;
 import java.util.List;
 
+import utils.exceptions.CorruptedQuestionsException;
+
 public class QuizBuilder {
     static public class PartialQuestionWithAnswer extends QuestionWithAnswer implements Cloneable {
         // Get a list of string representation of incompleted fields separated by newline
@@ -56,69 +58,112 @@ public class QuizBuilder {
         public String toString() {
             StringBuilder res = new StringBuilder();
 
-            res.append(str_or_unit(this.question));
+            res.append("$$");
+            res.append(this.question);
             res.append("::::");
-            res.append(str_or_unit(String.valueOf(this.answer)));
+            res.append(String.valueOf(this.answer));
             res.append("\n");
 
             for (String option : this.options) {
-                res.append(str_or_unit(option));
+                res.append(option);
                 res.append(":::");
             }
 
             return res.toString();
         }
+    }    
 
-        private static String str_or_unit(String s) {
-            if (s == null) {
-                return String.valueOf((char) 31);
-            } else {
-                return s;
+    private List<PartialQuestionWithAnswer> questions = new ArrayList<>();
+    private String name;
+
+    private QuizBuilder() {
+
+    }
+
+    public QuizBuilder(String s) throws CorruptedQuestionsException {
+        StringBuilder contents = new StringBuilder(s);
+
+        this.name = popUntil(contents, "\n");
+
+        while (contents.length() > 0) {
+            if (!contents.substring(0, 1).equals("\n")) {
+                throw new CorruptedQuestionsException(String.format("Expected token `\\n`. Found `%s`", contents.substring(0, 1)));
             }
+
+            contents.delete(0, 1);
+
+            if (!contents.substring(0, 2).equals("$$")) {
+                throw new CorruptedQuestionsException(String.format("Expected token `$$`. Found `%s`", contents.substring(0, 2)));
+            }
+
+            contents.delete(0, 2);
+
+            PartialQuestionWithAnswer question = new PartialQuestionWithAnswer();
+            question.question = popUntil(contents, "::::");
+            question.answer = Integer.parseInt(contents.substring(0, 1));
+            contents.delete(0, 1);
+
+            if (!contents.substring(0, 1).equals("\n")) {
+                throw new CorruptedQuestionsException(String.format("Expected token `\\n`. Found `%s`", contents.substring(0, 1)));
+            }
+
+            contents.delete(0, 1);
+
+            for (int i = 0; i < 4; i++) {
+                question.setOptions(i, popUntil(contents, ":::"));
+            }
+
+            if (!contents.substring(0, 1).equals("\n")) {
+                throw new CorruptedQuestionsException(String.format("Expected token `\\n`. Found `%s`", contents.substring(0, 1)));
+            }
+
+            contents.delete(0, 1);
+
+            this.questions.add(question);
         }
     }
     
+    private static String popUntil(StringBuilder sb, String delimiter) {
+        int delimiter_pos = sb.indexOf(delimiter);
+        String res = sb.substring(0, delimiter_pos);
+        sb.delete(0, delimiter_pos + delimiter.length());
+
+        return res;
+    }
+
     // Create a new QuizBuilder with 1 empty question
-    public static QuizBuilder init(String s) {
-        QuizBuilder res = new QuizBuilder(s);
+    public static QuizBuilder init(String name) {
+        QuizBuilder res = new QuizBuilder();
+        res.name = name;
         res.append_new();
 
         return res;
     }
 
-    private List<PartialQuestionWithAnswer> questions = new ArrayList<>();
-    private String name;
-
-    public QuizBuilder(String name) {
-        this.name = name;
-    }
-    
-    // Call this method when the quiz might be incomplete
-    public String toPartialQuizString() {
+    @Override
+    public String toString() {
         StringBuilder res = new StringBuilder();
 
-        // 31 is unit separater
-        res.append(String.format("%c%s\n\n", (char) 31, this.name));
-
-        for (PartialQuestionWithAnswer question : this.questions) {
-            res.append(String.format("%s\n\n", question.toString()));
-        }
-
-        return res.toString();
-    }
-
-    // Call this method when the quiz is complete
-    public String toQuizString() {
-        StringBuilder res = new StringBuilder();
-
-        // 31 is unit separater
         res.append(String.format("%s\n", this.name));
 
         for (PartialQuestionWithAnswer question : this.questions) {
-            res.append(String.format("%s\n", question.toQuestionWithAnswer().toString()));
+            res.append(String.format("\n%s\n", question.toString()));
         }
 
         return res.toString();
+    }
+
+    public QuestionSet toQuestionSet() {
+        QuestionSet questionSet = new QuestionSet();
+
+        questionSet.name = this.name;
+        List<QuestionWithAnswer> questions = questionSet.getQuestions();
+
+        for (PartialQuestionWithAnswer question : this.questions) {
+            questions.add(question.toQuestionWithAnswer());
+        }
+
+        return questionSet;
     }
 
     public PartialQuestionWithAnswer insert_new(int i) {

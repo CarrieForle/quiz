@@ -30,6 +30,7 @@ class QuestionWithAnswer extends Question {
     public String toString() {
         StringBuilder res = new StringBuilder();
 
+        res.append("$$");
         res.append(this.question);
         res.append("::::");
         res.append(String.valueOf(this.answer));

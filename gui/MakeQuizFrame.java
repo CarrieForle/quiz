@@ -12,10 +12,13 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 
 import utils.*;
+import utils.QuizBuilder.PartialQuestionWithAnswer;
+import utils.exceptions.CorruptedQuestionsException;
 
 public class MakeQuizFrame extends JFrame {
     private QuizBuilder quizBuilder = QuizBuilder.init("Untitled");
@@ -34,26 +37,12 @@ public class MakeQuizFrame extends JFrame {
     public MakeQuizFrame() {
         this.editing = this.quizBuilder.get(0);
 
-        setTitle("Quiz Builder");
+        setTitle("Quiz Builder (Untitled.quiz)");
         setSize(600, 600);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        for (int i = 0; i < this.quizBuilder.size(); i++) {
-            QuestionButton referenceButton = new QuestionButton(this.quizBuilder.get(i));
-            referenceButton.setText("Q" + String.valueOf(i + 1));
-
-            referenceButton.addActionListener(e -> {
-                if (editing != referenceButton.question) {
-                    saveQuestion();
-                    this.updateStatusToCurrentEditing();
-                    editing = referenceButton.question;
-                    loadQuestion();
-                }
-            });
-
-            this.questionButtons.add(referenceButton);
-        }
+        this.constructButtons();
 
         JPanel questionPanel = new JPanel(new BorderLayout());
 
@@ -140,28 +129,11 @@ public class MakeQuizFrame extends JFrame {
 
     public void addQuestion() {
         this.saveQuestion();
-
         this.editing = this.quizBuilder.append_new();
-        final int id = this.quizBuilder.size();
-
-        QuestionButton referenceButton = new QuestionButton(this.editing);
-        referenceButton.setText("Q" + String.valueOf(id));
-
-        referenceButton.addActionListener(e -> {
-            if (editing == referenceButton.question) {
-                return;
-            }
-
-            saveQuestion();
-            this.updateStatusToCurrentEditing();
-            editing = referenceButton.question;
-            loadQuestion();
-        });
-
-        this.questionButtons.add(referenceButton);
+        this.addButton(editing);
         this.updateStatusToCurrentEditing();
-        this.updateButtonsUI();
         this.clearFields();
+        this.updateButtonsUI();
     }
 
     public void deleteQuestion() {
@@ -181,15 +153,15 @@ public class MakeQuizFrame extends JFrame {
 
         this.editing = this.quizBuilder.get(new_index);
         this.updateStatusToCurrentEditing();
-        this.loadQuestion();
+        this.updateQuestionUI();
         this.updateButtonsUI();
     }
     
     public void saveQuiz() {
-        JFileChooser fileChooser = new JFileChooser();
+        JFileChooser fileChooser = getFileChooser();
 
         if (JFileChooser.APPROVE_OPTION == fileChooser.showSaveDialog(this)) {
-            saveQuestion();
+            this.saveQuestion();
 
             File file = fileChooser.getSelectedFile();
 
@@ -197,53 +169,64 @@ public class MakeQuizFrame extends JFrame {
                 file = new File(file.getAbsolutePath() + ".quiz");
             }
 
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                writer.write(this.quizBuilder.getName());
-                writer.write("\n");
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8))) {
+                writer.write(quizBuilder.toString());
 
-                for (int i = 0; i < quizBuilder.size(); i++) {
-                    QuizBuilder.PartialQuestionWithAnswer question = quizBuilder.get(i);
-                    writer.write(String.format("\n$$%s::::%d\n", question, question.answer));
-
-                    for (int j = 0; j < 4; j++) {
-                        writer.write(String.format("%s:::", question.getOption(j)));
-                    }
-
-                    writer.write("\n");
-                }
-
-                JOptionPane.showMessageDialog(this, "Question bank saved successfully!");
+                JOptionPane.showMessageDialog(this, "Quiz saved successfully!");
             } catch (IOException e) {
                 e.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Failed to save question bank.");
+                JOptionPane.showMessageDialog(this, "Failed to save quiz.");
             }
         }
     }
 
     public void loadQuiz() {
-        JFileChooser fileChooser = new JFileChooser();
+        JFileChooser fileChooser = getFileChooser();
 
         if (JFileChooser.APPROVE_OPTION == fileChooser.showOpenDialog(this)) {
             File file = fileChooser.getSelectedFile();
 
-            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
                 String contents = Files.readString(file.toPath());
+                this.quizBuilder = new QuizBuilder(contents);
 
-                // TODO
-                System.out.println(contents);
+                if (this.quizBuilder.size() == 0) {
+                    this.quizBuilder.append_new();
+                }
+
+                this.editing = this.quizBuilder.get(0);
+                this.updateQuestionUI();
+                this.constructButtons();
+                this.setTitle(String.format("Quiz Builder (%s)", file.getName()));
             } catch (IOException e) {
                 e.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Failed to load question bank.");
+                JOptionPane.showMessageDialog(this, "Failed to load quiz.", "Error", JOptionPane.ERROR_MESSAGE);
+            } catch (CorruptedQuestionsException e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this, String.format("Failed to parse quiz: %s", e.getMessage()), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
+    }
+    
+    public void constructButtons() {
+        this.buttonPanel.removeAll();
+        this.questionButtons.clear();
+
+        for (int i = 0; i < this.quizBuilder.size(); i++) {
+            addButton(this.quizBuilder.get(i));
+            this.buttonPanel.add(this.questionButtons.getLast());
+        }
+
+        revalidate();
+        repaint();
     }
 
     public void updateButtonsUI() {
         this.buttonPanel.removeAll();
 
-        for (int i = 0; i < this.questionButtons.size(); i++) {
-            this.questionButtons.get(i).setText("Q" + String.valueOf(i + 1));
-            this.buttonPanel.add(this.questionButtons.get(i));
+        for (QuestionButton button : this.questionButtons) {
+            button.setText("Q" + this.getQuestionID(button.question));
+            this.buttonPanel.add(button);
         }
 
         revalidate();
@@ -260,7 +243,7 @@ public class MakeQuizFrame extends JFrame {
         this.correctAnswerButtons[0].setSelected(true);
     }
 
-    public void loadQuestion() {
+    public void updateQuestionUI() {
         this.questionArea.setText(this.editing.question);
 
         for (int i = 0; i < this.optionAreas.length; i++) {
@@ -290,7 +273,36 @@ public class MakeQuizFrame extends JFrame {
     }
 
     private void updateStatusToCurrentEditing() {
-        this.updateStatus(String.format("Editing Q%d", this.quizBuilder.indexOf(this.editing) + 1));
+        this.updateStatus(String.format("Editing Q%d", this.getQuestionID(this.editing)));
+    }
+
+    private static JFileChooser getFileChooser() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Quiz File (.quiz)", "quiz"));
+
+        return fileChooser;
+    }
+
+    private void addButton(PartialQuestionWithAnswer question) {
+        QuestionButton referenceButton = new QuestionButton(question);
+        referenceButton.setText("Q" + this.getQuestionID(question));
+        
+        referenceButton.addActionListener(e -> {
+            if (editing == referenceButton.question) {
+                return;
+            }
+            
+            saveQuestion();
+            editing = referenceButton.question;
+            updateStatusToCurrentEditing();
+            updateQuestionUI();
+        });
+
+        this.questionButtons.add(referenceButton);
+    }
+
+    private int getQuestionID(PartialQuestionWithAnswer question) {
+        return this.quizBuilder.indexOf(question) + 1;
     }
 }
 
