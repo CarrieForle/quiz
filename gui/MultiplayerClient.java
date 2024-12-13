@@ -6,12 +6,15 @@ import quiz.Client;
 
 import java.io.*;
 import java.net.*;
+import java.util.TimerTask;
+import java.util.Timer;
 
 class MultiplayerClient {
     private Socket socket;
     private JFrame frame;
     private BufferedReader in;
     private PrintWriter out;
+    private TimerTask tt;
 
     public MultiplayerClient(Socket socket, String name) throws IOException {
         Client p = new Client(socket);
@@ -41,6 +44,7 @@ class MultiplayerClient {
             int finalI = i;
             answerButtons[i].addActionListener(e -> {
                 try {
+                    tt.cancel();
                     p.writeAns(finalI);
                     long timestamp = e.getWhen();
                     p.writeTimeStamp(timestamp);
@@ -58,7 +62,10 @@ class MultiplayerClient {
 
                     String question = p.getQuestion();
                     String[] options = p.getOptions();
-
+                    long ClientTimestamp = p.getTimeStamp();
+                    tt = p.sendInvalidAnswerInSecond(ClientTimestamp);
+                    Timer t = new Timer();
+                    t.schedule(tt, ClientTimestamp);
                     questionLabel.setText(question);
 
                     for (int j = 0; j < 4; j++) {
@@ -73,13 +80,19 @@ class MultiplayerClient {
         frame.setVisible(true);
         String question = p.getQuestion();
         String[] options = p.getOptions();
+        long ClientTimestamp = p.getTimeStamp();
+        tt = p.sendInvalidAnswerInSecond(ClientTimestamp);
+
+        Timer t = new Timer();
+        t.schedule(tt, ClientTimestamp);
+        
+        
 
         questionLabel.setText(question);
 
         for (int j = 0; j < 4; j++) {
             answerButtons[j].setText(options[j]);
         }
-        
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }

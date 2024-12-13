@@ -3,11 +3,15 @@ package quiz;
 import gui.*;
 import java.io.*;
 import java.net.*;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class Client {
     private static final String SERVER_ADDRESS = "26.198.51.130";
     private static final int SERVER_PORT = 12345;
     private Socket socket;
+    private Timer t = new Timer();
+
     public Client(Socket socket){
         this.socket = socket;
     }
@@ -86,7 +90,15 @@ public class Client {
         int rank = in.readInt();
         return rank;
     }
-    
+
+    public long getTimeStamp() throws IOException {
+        DataInputStream in = new DataInputStream(this.socket.getInputStream());
+        long timestamp = in.readLong();
+        return timestamp;
+    }
+    public Timer getTimer() {
+        return t;
+    }
     private void uploadToServer(File file) throws IOException {
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
             DataOutputStream dataOutputStream = new DataOutputStream(this.socket.getOutputStream());
@@ -96,13 +108,20 @@ public class Client {
         }
     }
 
-    private void sendInvalidAnswerInSecond(long time) {
-        Timer t = new Timer();
-
-        t.schedule(new TimerTask() {
-            void run() {
-                // code
-            }
-        }, time);
+    public TimerTask sendInvalidAnswerInSecond(long time){
+        return new TimerTask() {
+                public void run() {
+                    try{
+                        System.out.println("task");
+                        DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+                        out.writeInt(-1);
+                        out.flush();
+                    }catch(IOException e){
+                        e.printStackTrace();
+                    }
+                    
+                }
+            };
     }
+    
 }
