@@ -26,7 +26,12 @@ class MultiplayerClient {
         JLabel questionLabel = new JLabel("Waiting for a question...");
         questionLabel.setBounds(50, 50, 500, 30);
         frame.add(questionLabel);
-
+        JLabel scoreLabel = new JLabel("Score : ");
+        scoreLabel.setBounds(0,300,50,50);
+        frame.add(scoreLabel);
+        JLabel rankLabel = new JLabel("Rank : ");
+        rankLabel.setBounds(0,320,50,50);
+        frame.add(rankLabel);
         JButton[] answerButtons = new JButton[4];
         for (int i = 0; i < 4; i++) {
             answerButtons[i] = new JButton();
@@ -37,7 +42,28 @@ class MultiplayerClient {
             answerButtons[i].addActionListener(e -> {
                 try {
                     p.writeAns(finalI);
-                    p.writeTimeStamp();
+                    long timestamp = e.getWhen();
+                    p.writeTimeStamp(timestamp);
+
+                    if (p.CheckEnd()) {
+                        System.out.printf("sus");
+                    }
+        
+                    int score = p.getScore();
+                    System.out.printf("分數為%d", score);
+                    scoreLabel.setText("Score : " + score);
+                    int rank = p.getRank();
+                    System.out.printf("名次為%d", rank);
+                    rankLabel.setText("Rank : " + rank);
+
+                    String question = p.getQuestion();
+                    String[] options = p.getOptions();
+
+                    questionLabel.setText(question);
+
+                    for (int j = 0; j < 4; j++) {
+                        answerButtons[j].setText(options[j]);
+                    }
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
@@ -50,10 +76,10 @@ class MultiplayerClient {
 
         questionLabel.setText(question);
 
-        for (int i = 0; i < 4; i++) {
-            answerButtons[i].setText(options[i]);
+        for (int j = 0; j < 4; j++) {
+            answerButtons[j].setText(options[j]);
         }
-
+        
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }

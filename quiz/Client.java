@@ -24,14 +24,7 @@ public class Client {
             // p.writeAns(0);
             // p.writeTimeStamp();
 
-            if (p.CheckEnd()) {
-                System.out.printf("sus");
-            }
-
-            int score = p.getScore();
-            System.out.printf("分數為%d", score);
-            int rank = p.getRank();
-            System.out.printf("分數為%d", score);
+            
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -66,9 +59,9 @@ public class Client {
         out.flush();
     }
 
-    public void writeTimeStamp() throws IOException {
+    public void writeTimeStamp(long a) throws IOException {
         DataOutputStream out = new DataOutputStream(this.socket.getOutputStream());
-        out.writeLong(1731822526000L);
+        out.writeLong(a);
         out.flush();
     }
     
