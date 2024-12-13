@@ -30,23 +30,20 @@ public class MakeQuizFrame extends JFrame {
     }
 
     public MakeQuizFrame() {
-        this.editing = this.quizBuilder.get(0);
-
         setTitle(String.format("Quiz Builder (%s)", this.file));
         setSize(600, 600);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
-
+        
         this.constructButtons();
-
+        this.editing = this.quizBuilder.get(0);
+        
         JPanel questionPanel = new JPanel(new BorderLayout());
 
         JLabel questionLabel = new JLabel("Question", SwingConstants.CENTER);
         questionPanel.add(questionLabel, BorderLayout.NORTH);
         questionPanel.add(new JScrollPane(this.questionArea), BorderLayout.CENTER);
         questionPanel.add(new JScrollPane(this.buttonPanel, JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS), BorderLayout.SOUTH);
-
-        this.updateButtonsUI();
 
         JPanel answerPanel = new JPanel(new BorderLayout());
         JPanel optionAreaPanel = new JPanel();
@@ -154,7 +151,7 @@ public class MakeQuizFrame extends JFrame {
         this.addButton(editing);
         this.updateStatusToCurrentEditing();
         this.clearFields();
-        this.updateButtonsUI();
+        this.updateButtonPanel();
     }
 
     public void deleteQuestion() {
@@ -175,7 +172,7 @@ public class MakeQuizFrame extends JFrame {
         this.editing = this.quizBuilder.get(new_index);
         this.updateStatusToCurrentEditing();
         this.updateQuestionUI();
-        this.updateButtonsUI();
+        this.updateButtonPanel();
     }
     
     public void saveQuiz() {
@@ -267,11 +264,11 @@ public class MakeQuizFrame extends JFrame {
         repaint();
     }
 
-    private void updateButtonsUI() {
+    private void updateButtonPanel() {
         this.buttonPanel.removeAll();
 
         for (QuestionButton button : this.questionButtons) {
-            button.setText("Q" + this.getQuestionID(button.question));
+            button.setText(this.getQuestionName(button.question));
             this.buttonPanel.add(button);
         }
 
@@ -312,6 +309,13 @@ public class MakeQuizFrame extends JFrame {
                 break;
             }
         }
+
+        for (QuestionButton button : this.questionButtons) {
+            if (button.question == this.editing) {
+                button.updateToolTip();
+                break;
+            }
+        }
     }
 
     private void updateStatus(String s) {
@@ -319,7 +323,7 @@ public class MakeQuizFrame extends JFrame {
     }
 
     private void updateStatusToCurrentEditing() {
-        this.updateStatus(String.format("Editing Q%d", this.getQuestionID(this.editing)));
+        this.updateStatus(String.format("Editing %s", this.getQuestionName(this.editing)));
     }
 
     private JFileChooser getFileChooser() {
@@ -332,7 +336,7 @@ public class MakeQuizFrame extends JFrame {
 
     private void addButton(PartialQuestionWithAnswer question) {
         QuestionButton referenceButton = new QuestionButton(question);
-        referenceButton.setText("Q" + this.getQuestionID(question));
+        referenceButton.setText(this.getQuestionName(question));
         
         referenceButton.addActionListener(e -> {
             if (editing == referenceButton.question) {
@@ -349,8 +353,8 @@ public class MakeQuizFrame extends JFrame {
         this.questionButtons.add(index, referenceButton);
     }
 
-    private int getQuestionID(PartialQuestionWithAnswer question) {
-        return this.quizBuilder.indexOf(question) + 1;
+    private String getQuestionName(PartialQuestionWithAnswer question) {
+        return String.format("Q%d", this.quizBuilder.indexOf(question) + 1);
     }
 }
 
@@ -378,5 +382,24 @@ class QuestionButton extends JButton {
 
     public QuestionButton(QuizBuilder.PartialQuestionWithAnswer q) {
         this.question = q;
+        this.updateToolTip();
+    }
+
+    public void updateToolTip() {
+        String question = this.question.question;
+
+        if (question == null) {
+            return;
+        }
+
+        String text;
+
+        if (question.length() > 30) {
+            text = question.substring(0, 27) + "...";
+        } else {
+            text = question;
+        }
+
+        this.setToolTipText(text);
     }
 }
