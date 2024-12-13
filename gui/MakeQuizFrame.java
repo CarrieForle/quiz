@@ -24,7 +24,7 @@ public class MakeQuizFrame extends JFrame {
     private JTextArea[] optionAreas = new JTextArea[4];
     private JPanel buttonPanel = new JPanel();
     private List<QuestionButton> questionButtons = new ArrayList<QuestionButton>();
-    private IncompleteFrame incompleteFrame = new IncompleteFrame(this);
+    private IncompleteDialog incompleteFrame = new IncompleteDialog(this);
     private JLabel status = new JLabel("Status: Editing Q1", SwingConstants.CENTER);
 
     public static void main(String[] args) {
@@ -384,11 +384,11 @@ public class MakeQuizFrame extends JFrame {
     }
 }
 
-class IncompleteFrame extends JFrame {
+class IncompleteDialog extends JDialog {
     private JTabbedPane pane = new JTabbedPane();
 
-    public IncompleteFrame(MakeQuizFrame parent) {
-        setTitle("Quiz failed to upload");
+    public IncompleteDialog(MakeQuizFrame parent) {
+        super(parent, "Quiz failed to upload", Dialog.ModalityType.DOCUMENT_MODAL);
         setSize(300, 400);
         setLocationRelativeTo(parent);
         add(this.pane);
