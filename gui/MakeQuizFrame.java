@@ -120,10 +120,6 @@ public class MakeQuizFrame extends JFrame {
         this.quizBuilder = qb;
     }
 
-    public QuizBuilder getQuizBuilder() {
-        return this.quizBuilder;
-    }
-
     public void insertQuestion() {
         int index = 0;
 
