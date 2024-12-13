@@ -23,6 +23,7 @@ public class MakeQuizFrame extends JFrame {
     private JTextArea[] optionAreas = new JTextArea[4];
     private JPanel buttonPanel = new JPanel();
     private java.util.List<QuestionButton> questionButtons = new ArrayList<QuestionButton>();
+    private IncompleteFrame incompleteFrame = new IncompleteFrame(this);
     private JLabel status = new JLabel("Status: Editing Q1", SwingConstants.CENTER);
 
     public static void main(String[] args) {
@@ -93,6 +94,7 @@ public class MakeQuizFrame extends JFrame {
         deleteButton.addActionListener(e -> deleteQuestion());
         saveButton.addActionListener(e -> saveQuiz());
         openButton.addActionListener(e -> loadQuiz());
+        uploadButton.addActionListener(e -> uploadQuiz());
 
         actionButtonPanel.add(renameButton);
         actionButtonPanel.add(addButton);
@@ -179,7 +181,7 @@ public class MakeQuizFrame extends JFrame {
         this.updateQuestionUI();
         this.updateButtonPanel();
     }
-    
+
     public void saveQuiz() {
         JFileChooser fileChooser = this.getFileChooser();
 
@@ -232,7 +234,7 @@ public class MakeQuizFrame extends JFrame {
             }
         }
     }
-    
+
     public void renameQuiz() {
         String name = "";
 
@@ -255,7 +257,44 @@ public class MakeQuizFrame extends JFrame {
 
         this.quizBuilder.setName(name);
     }
-    
+
+    public void uploadQuiz() {
+        this.saveQuestion();
+        java.util.List<PartialQuestionWithAnswer> questions = this.quizBuilder.getIncompleteQuestions();
+
+        if (questions.isEmpty()) {
+            // do upload work
+        } else {
+            StringBuilder errorText = new StringBuilder();
+
+            for (PartialQuestionWithAnswer question : questions) {
+                String name = this.getQuestionName(question);
+
+                errorText.append(name);
+                errorText.append(":\n");
+
+                for (String field : question.getIncompleteField()) {
+                    String fieldText = "";
+
+                    if (field.equals("question")) {
+                        fieldText = "Question must not be blank";
+                    } else {
+                        char option = (char) (65 + Integer.valueOf(field));
+                        fieldText = String.format("Option %c must not be blank", option);
+                    }
+
+                    errorText.append(fieldText);
+                    errorText.append("\n");
+                }
+
+                errorText.append("\n");
+            }
+            
+            this.incompleteFrame.setText(errorText.toString());
+            this.incompleteFrame.setVisible(true);
+        }
+    }
+
     private void constructButtons() {
         this.buttonPanel.removeAll();
         this.questionButtons.clear();
@@ -360,6 +399,26 @@ public class MakeQuizFrame extends JFrame {
 
     private String getQuestionName(PartialQuestionWithAnswer question) {
         return String.format("Q%d", this.quizBuilder.indexOf(question) + 1);
+    }
+}
+
+class IncompleteFrame extends JFrame {
+    private JTextArea text = new JTextArea();
+
+    public IncompleteFrame(Component parent) {
+        setTitle("Quiz failed to upload");
+        setLayout(new BorderLayout());
+
+        this.text.setEditable(false);
+        this.text.setFont(this.text.getFont().deriveFont(14f));
+
+        add(new JScrollPane(this.text), BorderLayout.CENTER);
+        setSize(300, 400);
+        setLocationRelativeTo(parent);
+    }
+
+    public void setText(String text) {
+        this.text.setText(text);
     }
 }
 

@@ -209,4 +209,12 @@ public class QuizBuilder {
     public int indexOf(Object o) {
         return this.questions.indexOf(o);
     }
+
+    public List<PartialQuestionWithAnswer> getQuestions() {
+        return this.questions;
+    }
+
+    public List<PartialQuestionWithAnswer> getIncompleteQuestions() {
+        return this.questions.stream().filter(x -> !x.is_complete()).toList();
+    }
 }
