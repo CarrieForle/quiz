@@ -43,7 +43,12 @@ public class MakeQuizFrame extends JFrame {
         JLabel questionLabel = new JLabel("Question", SwingConstants.CENTER);
         questionPanel.add(questionLabel, BorderLayout.NORTH);
         questionPanel.add(new JScrollPane(this.questionArea), BorderLayout.CENTER);
-        questionPanel.add(new JScrollPane(this.buttonPanel, JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS), BorderLayout.SOUTH);
+
+        JScrollPane buttonScrollPane = new JScrollPane(this.buttonPanel, JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        
+        buttonScrollPane.getHorizontalScrollBar().setUnitIncrement(15);
+
+        questionPanel.add(buttonScrollPane, BorderLayout.SOUTH);
 
         JPanel answerPanel = new JPanel(new BorderLayout());
         JPanel optionAreaPanel = new JPanel();
