@@ -10,16 +10,11 @@ import java.util.TimerTask;
 import java.util.Timer;
 
 class MultiplayerClient {
-    private Socket socket;
     private JFrame frame;
-    private BufferedReader in;
-    private PrintWriter out;
     private TimerTask tt;
 
     public MultiplayerClient(Socket socket, String name) throws IOException {
         Client p = new Client(socket);
-        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        out = new PrintWriter(socket.getOutputStream(), true);
         p.setName(name);
         frame = new JFrame("Multiplayer Mode");
         frame.setSize(600, 400);
