@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Queue;
@@ -134,29 +135,60 @@ public class Server {
 
         System.out.format("Receive client.%d's name: %s\n", client.id, client.name);
 
-        Question sample_question = new Question();
+        QuestionSet qs = new QuestionSet();
 
-        sample_question.question = "1+1等於幾？";
-        sample_question.setOptions(new String[] {
-                "2", "4", "-5", "19"
-        });
+        try {
+            qs = loadQuestions(Path.of("quiz_questions/網際網路概論.quiz"));
+        } catch (Exception e) {
 
-        ServerTransmission.transmitQuestion(client.socket.getOutputStream(), sample_question);
+        }
 
-        QuizAnswerResponse qar = ServerTransmission.receiveAnswer(client.socket.getInputStream());
+        System.out.format("Question is loaded.\n");
+        System.out.format("The game started!\n");
 
-        System.out.format("Participant choice: %d\n", qar.choice_id);
-        System.out.format("Participant remainig time: %d\n", qar.remaining_time);
+        int score = 0;
+        List<QuestionWithAnswer> questions = qs.getQuestions();
+        for (int i = 0; i < questions.size(); i++) {
+            QuestionWithAnswer qa = questions.get(i);
+            Instant now = Instant.now();
+        
+            System.out.println(i + ". " + qa.question);
+            ServerTransmissiozn.transmitQuestion(client.socket.getOutputStream(), qa, now);
+
+            System.out.println(now.toEpochMilli());
+
+            QuizAnswerResponse qar = ServerTransmission.receiveAnswer(client.socket.getInputStream());
+
+            System.out.format("Participant choice: %d\n", qar.choice_id);
+            System.out.format("Participant remainig time: %d\n", qar.send_timestamp);
+
+            if (qar.is_correct(qa.answer)) {
+                System.out.format("Correct!\n");
+            } else {
+                System.out.format("Incorrect!\n");
+            }
+
+            score += calculateScore(qar, qa.answer, now.toEpochMilli());
+            System.out.format("Participant score: %d\n", score);
+
+            System.out.println();
+
+            ServerTransmission.sendRoundResult(client.socket.getOutputStream(), false, score, 1);
+        }
 
         ServerTransmission.sendRoundResult(client.socket.getOutputStream(), true, 1450, 2);
     }
 
-    private static int caculateScore(int remaining_time) {
+    private static int calculateScore(QuizAnswerResponse qar, int answer, long question_sending_time) {
         final int MAX_SCORE = 1000;
         final int MAX_REMAINING_TIME = 10000; // milliseconds
         final double RATE = MAX_SCORE / (double) MAX_REMAINING_TIME;
 
-        return (int) Math.ceil(RATE * remaining_time);
+        if (qar.is_correct(answer)) {
+            return (int) Math.ceil(RATE * (MAX_REMAINING_TIME -(qar.send_timestamp - question_sending_time) * 0.001));
+        } else {
+            return 0;
+        }
     }
 
     // $$<問題>::::<正確答案數字(0, 1, 2, 3)其中一個><換行><Answer0>:::<Answer1>:::<Answer2>:::<Answer3>:::

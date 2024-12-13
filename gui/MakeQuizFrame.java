@@ -283,7 +283,7 @@ public class MakeQuizFrame extends JFrame {
 
         for (int i = 0; i < this.quizBuilder.size(); i++) {
             addButton(this.quizBuilder.get(i));
-            this.buttonPanel.add(this.questionButtons.get(this.questionButtons.size()-1));
+            this.buttonPanel.add(this.questionButtons.get(this.questionButtons.size() - 1));
         }
 
         revalidate();
