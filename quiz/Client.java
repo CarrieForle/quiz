@@ -102,4 +102,14 @@ public class Client {
             dataOutputStream.writeUTF(contents);
         }
     }
+
+    private void sendInvalidAnswerInSecond(long time) {
+        Timer t = new Timer();
+
+        t.schedule(new TimerTask() {
+            void run() {
+                // code
+            }
+        }, time);
+    }
 }
