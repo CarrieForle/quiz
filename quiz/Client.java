@@ -20,14 +20,17 @@ public class Client {
     }
 
     public static void main(String[] args) throws UnknownHostException, IOException {
+        ShootGUI gui = new ShootGUI();
+        
+    }
+    public void connectToServer(){
         try {
             Socket socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
             Client p = new Client(socket);
-            ClientAnswerFrame gui = new ClientAnswerFrame();
-            p.setName("Kuei");
-            p.getQuestion();
-            p.writeAns(0);
-            p.writeTimeStamp();
+            // p.setName("Kuei");
+            // p.getQuestion();
+            // p.writeAns(0);
+            // p.writeTimeStamp();
 
             if (p.CheckEnd()) {
                 System.out.printf("sus");
@@ -41,32 +44,72 @@ public class Client {
             e.printStackTrace();
         }
     }
-    
-    public void getQuestion(){
+    public String getQuestion(){
+        try{
+            DataInputStream in = new DataInputStream(this.socket.getInputStream());
+            String question = (String) in.readUTF();
+            return question;
+        }catch (Exception e) {
+            e.printStackTrace();
+            return "Error";
+            }
+    }
+    public String getOption1(){
         try{
             DataOutputStream out = new DataOutputStream(this.socket.getOutputStream());
             DataInputStream in = new DataInputStream(this.socket.getInputStream());
-            String question = (String) in.readUTF();
+            
             String option1 = (String) in.readUTF();
-            String option2 = (String) in.readUTF();
-            String option3 = (String) in.readUTF();
-            String option4 = (String) in.readUTF();
-            System.out.println(question);
             System.out.println(option1);
-            System.out.println(option2);
-            System.out.println(option3);
-            System.out.println(option4);
-            // String[] temp = read.split("a");
-            // String[] Option = temp[1].split("A");
-            // System.out.println(temp[0]);
-            // for(String c : Option){
-            //    System.out.println(c);
-            // }
+            return option1;
+
         }catch (Exception e) {
             e.printStackTrace();
+            return "Error";
         }
     }
+    public String getOption2(){
+        try{
+            DataOutputStream out = new DataOutputStream(this.socket.getOutputStream());
+            DataInputStream in = new DataInputStream(this.socket.getInputStream());
+            
+            String option2 = (String) in.readUTF();
+            System.out.println(option2);
+            return option2;
 
+        }catch (Exception e) {
+            e.printStackTrace();
+            return "Error";
+        }
+    }
+    public String getOption3(){
+        try{
+            DataOutputStream out = new DataOutputStream(this.socket.getOutputStream());
+            DataInputStream in = new DataInputStream(this.socket.getInputStream());
+            
+            String option3 = (String) in.readUTF();
+            System.out.println(option3);
+            return option3;
+
+        }catch (Exception e) {
+            e.printStackTrace();
+            return "Error";
+        }
+    }
+    public String getOption4(){
+        try{
+            DataOutputStream out = new DataOutputStream(this.socket.getOutputStream());
+            DataInputStream in = new DataInputStream(this.socket.getInputStream());
+            
+            String option4 = (String) in.readUTF();
+            System.out.println(option4);
+            return option4;
+
+        }catch (Exception e) {
+            e.printStackTrace();
+            return "Error";
+        }
+    }
     public void setName(String name) {
         try {
             DataOutputStream out = new DataOutputStream(this.socket.getOutputStream());
