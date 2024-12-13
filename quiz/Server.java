@@ -153,7 +153,7 @@ public class Server {
             Instant now = Instant.now();
         
             System.out.println(i + ". " + qa.question);
-            ServerTransmissiozn.transmitQuestion(client.socket.getOutputStream(), qa, now);
+            ServerTransmission.transmitQuestion(client.socket.getOutputStream(), qa, now);
 
             System.out.println(now.toEpochMilli());
 
