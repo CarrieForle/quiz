@@ -9,14 +9,25 @@ import java.net.*;
 import java.util.TimerTask;
 import java.util.Timer;
 
-class MultiplayerClient {
+public class MultiplayerClient {
     private JFrame frame;
     private TimerTask tt;
+    private Timer t = new Timer();
+
+    public static void main(String[] args) {
+        try {
+            String address = "0.0.0.0";
+            String name = "Bob";
+            new MultiplayerClient(new Socket(address, 12345), name);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public MultiplayerClient(Socket socket, String name) throws IOException {
         Client p = new Client(socket);
         p.setName(name);
-        frame = new JFrame("Multiplayer Mode");
+        frame = new JFrame("刷題趣！");
         frame.setSize(600, 400);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setLayout(null);
@@ -36,13 +47,13 @@ class MultiplayerClient {
             int x = (i % 2 == 0) ? 100 : 300;
             int y = 100 + (i / 2) * 60;
             answerButtons[i].setBounds(x, y, 150, 40);
-            int finalI = i;
+            final int id = i;
             answerButtons[i].addActionListener(e -> {
                 try {
-                    tt.cancel();
-                    p.writeAns(finalI);
-                    long timestamp = e.getWhen();
-                    p.writeTimeStamp(timestamp);
+                    if (tt.cancel()) {
+                        p.writeAns(id);
+                        long timestamp = e.getWhen();
+                        p.writeTimeStamp(timestamp);
 
                     if (p.CheckEnd()) {
                         System.out.printf("sus");
@@ -57,10 +68,9 @@ class MultiplayerClient {
 
                     String question = p.getQuestion();
                     String[] options = p.getOptions();
-                    long ClientTimestamp = p.getTimeStamp();
-                    tt = p.sendInvalidAnswerInSecond(ClientTimestamp);
-                    Timer t = new Timer();
-                    t.schedule(tt, ClientTimestamp);
+                    long clientTimestamp = p.getTimeStamp();
+                    tt = sendInvalidAnswerInSecond(socket);
+                    t.schedule(tt, clientTimestamp);
                     questionLabel.setText(question);
 
                     for (int j = 0; j < 4; j++) {
@@ -75,13 +85,9 @@ class MultiplayerClient {
         frame.setVisible(true);
         String question = p.getQuestion();
         String[] options = p.getOptions();
-        long ClientTimestamp = p.getTimeStamp();
-        tt = p.sendInvalidAnswerInSecond(ClientTimestamp);
-
-        Timer t = new Timer();
-        t.schedule(tt, ClientTimestamp);
-        
-        
+        long clientTimestamp = p.getTimeStamp();
+        tt = sendInvalidAnswerInSecond(socket);
+        t.schedule(tt, clientTimestamp);
 
         questionLabel.setText(question);
 
@@ -94,5 +100,20 @@ class MultiplayerClient {
 
     public void dispose() {
         frame.dispose();
+    }
+
+    private static TimerTask sendInvalidAnswerInSecond(Socket socket){
+        return new TimerTask() {
+            public void run() {
+                try{
+                    System.out.println("task");
+                    DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+                    out.writeInt(-1);
+                    out.flush();
+                }catch(IOException e){
+                    e.printStackTrace();
+                }
+            }
+        };
     }
 }

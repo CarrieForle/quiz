@@ -4,7 +4,6 @@ import gui.*;
 import java.io.*;
 import java.net.*;
 import java.util.Timer;
-import java.util.TimerTask;
 
 public class Client {
     private static final String SERVER_ADDRESS = "26.198.51.130";
@@ -107,21 +106,4 @@ public class Client {
             dataOutputStream.writeUTF(contents);
         }
     }
-
-    public TimerTask sendInvalidAnswerInSecond(long time){
-        return new TimerTask() {
-                public void run() {
-                    try{
-                        System.out.println("task");
-                        DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-                        out.writeInt(-1);
-                        out.flush();
-                    }catch(IOException e){
-                        e.printStackTrace();
-                    }
-                    
-                }
-            };
-    }
-    
 }
