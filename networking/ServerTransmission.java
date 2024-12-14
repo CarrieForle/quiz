@@ -1,7 +1,7 @@
 package networking;
 
 import java.io.*;
-import java.time.Instant;
+import java.time.Duration;
 
 import utils.QuizAnswerResponse;
 import java.util.List;
@@ -19,7 +19,7 @@ public class ServerTransmission {
                 "2", "4", "-5", "19"
             });
             
-            transmitQuestion(test, q, Instant.now());
+            transmitQuestion(test, q, Duration.ofMillis(10000));
 
             byte[] res = test.toByteArray();
 
@@ -43,7 +43,7 @@ public class ServerTransmission {
         return dis.readUTF();
     }
     
-    public static void transmitQuestion(OutputStream writer, Question question, Instant time) throws IOException {
+    public static void transmitQuestion(OutputStream writer, Question question, Duration duration) throws IOException {
         DataOutputStream out = new DataOutputStream(writer);
 
         out.writeUTF(question.question);
@@ -52,7 +52,7 @@ public class ServerTransmission {
             out.writeUTF(question.getOption(i));
         }
 
-        out.writeLong(time.toEpochMilli());
+        out.writeLong(duration.toMillis());
     }
 
     public static QuizAnswerResponse receiveAnswer(InputStream reader) throws IOException {

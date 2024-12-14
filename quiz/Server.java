@@ -3,9 +3,11 @@ package quiz;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -66,7 +68,7 @@ public class Server {
                 while (!exit) {
                     try {
                         System.out.format("Thread #%d is ready to serve a client.\n", thread_id);
-                        client = wait_and_init_client();
+                        client = waitAndInitClient();
                         System.out.format("Client.%d is connected and served by thread #%d.\n", client.id, thread_id);
 
                         synchronized (this.clients) {
@@ -75,28 +77,32 @@ public class Server {
 
                         eventLoop(client);
                         exit = true;
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                        
-                        if (client == null)  {
-                            continue;
-                        }
-
-                        System.out.format("\n\nClient.%d is disconnected. Thread #%d is about to be freed.\n", client.id, thread_id);
-
-                        synchronized (this.clients) {
-                            this.clients.remove(client);
-                        }
-
-                        pullBackID(client.id);
-                        client = null;
+                    } catch (SocketException e) {
+                        this.freeClient(client, thread_id);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        this.freeClient(client, thread_id);
                     }
                 }
             });
         }
     }
+    
+    private void freeClient(Participant client, int thread_id) {
+        if (client == null)  {
+            return;
+        }
 
-    private Participant wait_and_init_client() throws IOException {
+        System.out.format("\n\nClient.%d is disconnected. Thread #%d is about to be freed.\n", client.id, thread_id);
+
+        synchronized (this.clients) {
+            this.clients.remove(client);
+        }
+
+        pullBackID(client.id);
+    }
+
+    private Participant waitAndInitClient() throws IOException {
         Participant client = new Participant();
         client.socket = this.server_socket.accept();
         client.id = assignID();
@@ -153,9 +159,9 @@ public class Server {
             Instant now = Instant.now();
         
             System.out.println(i + ". " + qa.question);
-            ServerTransmission.transmitQuestion(client.socket.getOutputStream(), qa, now);
+            ServerTransmission.transmitQuestion(client.socket.getOutputStream(), qa, Duration.ofMillis(10000));
 
-            System.out.println(now.toEpochMilli());
+            System.out.format("They have %d ms to answer\n", 10000);
 
             QuizAnswerResponse qar = ServerTransmission.receiveAnswer(client.socket.getInputStream());
 

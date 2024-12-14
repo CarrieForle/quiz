@@ -54,6 +54,7 @@ public class MultiplayerClient {
                         p.writeAns(id);
                         long timestamp = e.getWhen();
                         p.writeTimeStamp(timestamp);
+                    }
 
                     if (p.CheckEnd()) {
                         System.out.printf("sus");
