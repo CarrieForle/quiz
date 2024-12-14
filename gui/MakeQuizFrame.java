@@ -36,6 +36,7 @@ public class MakeQuizFrame extends JFrame {
         setSize(600, 600);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
+        addWindowListener(new OpenMenuOnClosing(this));
         
         this.constructButtons();
         this.editing = this.quizBuilder.get(0);
@@ -381,6 +382,20 @@ public class MakeQuizFrame extends JFrame {
 
     private String getQuestionName(PartialQuestionWithAnswer question) {
         return String.format("Q%d", this.quizBuilder.indexOf(question) + 1);
+    }
+}
+
+class OpenMenuOnClosing extends WindowAdapter {
+    private JFrame frame;
+
+    public OpenMenuOnClosing(JFrame frame) {
+        this.frame = frame;
+    }
+
+    @Override
+    public void windowClosed(WindowEvent e) {
+        this.frame.setVisible(false);
+        new MainMenu();
     }
 }
 
