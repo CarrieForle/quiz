@@ -2,6 +2,7 @@ package gui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Random;
 
 public class LoginDialog extends JDialog {
     private LoginHandler handler;
@@ -52,6 +53,14 @@ public class LoginDialog extends JDialog {
 
             handler.login(serverAddress, playerName);
         });
+
+        // TODO remove auto fields
+        String[] names = {
+            "Bob", "Jimmy", "Patrick", "Tom", "Leo", "Michael"
+        };
+
+        nameField.setText(names[new Random().nextInt(names.length)]);
+        serverField.setText("127.0.0.1");
 
         setLocationRelativeTo(getParent());
         setVisible(true);
