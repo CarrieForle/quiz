@@ -20,9 +20,9 @@ public class MainMenu {
         this.menuFrame.setResizable(false);
 
         // Single Player Mode Button
-        JButton singleplayerButton = new JButton("Single Player");
-        singleplayerButton.setBounds(130, 50, 140, 30);
-        menuFrame.add(singleplayerButton);
+        JButton singlePlayerButton = new JButton("Single Player");
+        singlePlayerButton.setBounds(130, 50, 140, 30);
+        menuFrame.add(singlePlayerButton);
         // singleplayerButton.addActionListener();
 
         // Multiplayer Mode Button

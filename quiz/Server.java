@@ -13,8 +13,8 @@ import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Queue;
+import java.util.Collections;
 import java.util.concurrent.locks.*;
-
 import java.util.List;
 
 import networking.ServerStorage;
@@ -25,7 +25,8 @@ import utils.exceptions.*;
 public class Server implements ServerEventHandler, AutoCloseable {
     private static final int CLIENT_NUM = 4;
     private ServerSocket server_socket;
-    private List<Participant> clients = new ArrayList<>(CLIENT_NUM);
+    // Thread-safe list
+    private List<Participant> clients = Collections.synchronizedList(new ArrayList<>(CLIENT_NUM));
     private Thread[] client_threads = new Thread[CLIENT_NUM];
     private Thread quiz_transmission;
     private Thread incoming = new Thread(() -> dispatch());
@@ -35,7 +36,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
     private ServerStorage storage = new ServerStorage(QUESTION_DIRECTORY);
     private QuestionSet question_set;
     private QuestionWithAnswer running_question;
-    private static final int MINIMUM_CLIENT_NUM = 1;
+    private static final int MINIMUM_CLIENT_NUM = 2;
     private EventBus eventBus = new EventBus();
     private Lock lock = new ReentrantLock();
     private Condition game_start = lock.newCondition();
@@ -81,12 +82,10 @@ public class Server implements ServerEventHandler, AutoCloseable {
                         System.out.format("Client.%d is connected and served by thread #%d.\n", client.id, thread_id);
 
                         final int client_size;
-                        synchronized (this.clients) {
-                            this.clients.add(client);
-                            this.eventBus.subscribe(client);
-                            System.out.format("Thread #%d: %d players\n", thread_id, this.clients.size());
-                            client_size = this.clients.size();
-                        }
+                        this.clients.add(client);
+                        this.eventBus.subscribe(client);
+                        System.out.format("Thread #%d: %d players\n", thread_id, this.clients.size());
+                        client_size = this.clients.size();
 
                         this.lock.lock();
                         try {
@@ -125,12 +124,15 @@ public class Server implements ServerEventHandler, AutoCloseable {
 
         System.out.format("\n\nClient.%d is disconnected. Thread #%d is about to be freed.\n", client.id, thread_id);
 
-        synchronized (this.clients) {
-            this.clients.remove(client);
-        }
+        this.clients.remove(client);
+        this.eventBus.unsubscribe(client);
 
         this.pullBackID(client.id);
         this.eventBus.try_pop();
+
+        if (this.clients.isEmpty()) {
+            
+        }
     }
 
     private Participant waitAndInitClient() throws InterruptedException {
@@ -327,12 +329,17 @@ interface ClientEventHandler {
 }
 
 class EventBus {
-    private List<ClientEventHandler> subs = new ArrayList<>();
+    // Thread-safe list
+    private List<ClientEventHandler> subs = Collections.synchronizedList(new ArrayList<>());
     private Lock lock = new ReentrantLock();
     private Condition condition = lock.newCondition();
 
     public void subscribe(ClientEventHandler participant) {
         subs.add(participant);
+    }
+
+    public void unsubscribe(ClientEventHandler participant) {
+        subs.remove(participant);
     }
 
     public void publish(ClientEvent e) throws InterruptedException {
@@ -407,12 +414,7 @@ class Participant implements ClientEventHandler {
         }
 
         this.e = null;
-
-        EventBus eventBus = this.server.getEventBus();
-
-        synchronized (eventBus) {
-            eventBus.try_pop();
-        }
+        this.server.getEventBus().try_pop();
     }
 
     @Override

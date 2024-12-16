@@ -1,6 +1,7 @@
 package gui;
 
 import javax.swing.*;
+import java.awt.event.*;
 
 import quiz.Client;
 import utils.OpenMenuOnClosing;
@@ -33,15 +34,29 @@ public class MultiplayerClient {
             frame.setSize(600, 400);
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             frame.setLayout(null);
-            frame.addWindowListener(new OpenMenuOnClosing(frame));
+            frame.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent e) {
+                    frame.dispose();
+
+                    if (!socket.isClosed()) {
+                        try {
+                            socket.close();
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                            System.exit(-1);
+                        }
+                    }
+                }
+            });
 
             JLabel questionLabel = new JLabel("Waiting for a question...");
             questionLabel.setBounds(50, 50, 500, 30);
             frame.add(questionLabel);
-            JLabel scoreLabel = new JLabel("Score : ");
+            JLabel scoreLabel = new JLabel("Score: ");
             scoreLabel.setBounds(0,300,100,50);
             frame.add(scoreLabel);
-            JLabel rankLabel = new JLabel("Rank : ");
+            JLabel rankLabel = new JLabel("Rank: ");
             rankLabel.setBounds(0,320,100,50);
             frame.add(rankLabel);
             JButton[] answerButtons = new JButton[4];
@@ -102,6 +117,16 @@ public class MultiplayerClient {
             frame.setVisible(true);
         } catch (IOException e) {
             frame.dispose();
+
+            if (!socket.isClosed()) {
+                try {
+                    socket.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    System.exit(-1);
+                }
+            }
+            
             throw e;
         }
     }
