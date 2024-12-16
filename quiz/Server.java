@@ -4,7 +4,6 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,6 +13,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Queue;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.*;
 import java.util.List;
 
@@ -29,10 +29,9 @@ public class Server implements ServerEventHandler, AutoCloseable {
     private List<Participant> clients = Collections.synchronizedList(new ArrayList<>(CLIENT_NUM));
     private Thread[] client_threads = new Thread[CLIENT_NUM];
     private Thread quiz_transmission;
-    private Thread incoming = new Thread(() -> dispatch());
+    private Thread multiplayer = new Thread(() -> runQuiz());
     private final Queue<Integer> available_ids = new ArrayDeque<>();
     private static final Path QUESTION_DIRECTORY = Path.of("quiz_questions");
-    private boolean is_in_game = false;
     private ServerStorage storage = new ServerStorage(QUESTION_DIRECTORY);
     private QuestionSet question_set;
     private QuestionWithAnswer running_question;
@@ -41,6 +40,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
     private Lock lock = new ReentrantLock();
     private Condition game_start = lock.newCondition();
     private Condition new_client = lock.newCondition();
+    private AtomicBoolean is_game_end = new AtomicBoolean(false);
     private SocketDispatcher dispatcher = new SocketDispatcher(this);
     private Object data;
 
@@ -60,12 +60,131 @@ public class Server implements ServerEventHandler, AutoCloseable {
 
     public Server(ServerSocket server_socket) throws IOException, InterruptedException {
         this.server_socket = server_socket;
-        incoming.start();
-
+        
         for (int i = 0; i < CLIENT_NUM; i++) {
             this.available_ids.add(i);
         }
+        
+        this.initMultiplayer();
+        this.multiplayer.start();
+    }
 
+    public QuestionWithAnswer getRunningQuestion() {
+        return this.running_question;
+    }
+
+    private void freeClient(Participant client, int thread_id) {
+        if (client == null) {
+            return;
+        }
+
+        System.out.format("\n\nClient.%d is disconnected. Thread #%d is about to be freed.\n", client.id, thread_id);
+
+        this.clients.remove(client);
+        this.eventBus.unsubscribe(client);
+
+        this.pullBackID(client.id);
+
+        try {
+            client.socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        this.eventBus.try_pop();
+
+        synchronized (this.clients) {
+            if (this.clients.isEmpty()) {
+                this.stopAndInitMultiplayer();
+            }
+        }
+    }
+
+    private void stopAndInitMultiplayer() {
+        this.is_game_end.set(true);
+        System.out.println("Game stopped");
+
+        try {
+            this.multiplayer.join();
+
+            for (Thread t : this.client_threads) {
+                t.join();
+            }
+            
+            initMultiplayer();
+            this.multiplayer = new Thread(() -> runQuiz());
+        } catch (InterruptedException e) {
+
+        }
+    }
+
+    private Participant waitAndInitClient() throws InterruptedException {
+        Participant res = null;
+        this.lock.lock();
+
+        try {
+            while (this.data == null) {
+                this.new_client.await();
+            }
+
+            synchronized (this.data) {
+                res = (Participant) this.data;
+                this.data = null;
+            }
+
+            res.id = assignID();
+        } finally {
+            this.lock.unlock();
+        }
+
+        return res;
+    }
+
+    private void runQuiz() {
+        for (Thread t : this.client_threads) {
+            t.start();
+        }
+
+        System.out.println("Server on!");
+
+        try {
+            this.question_set = loadQuestions(Path.of("quiz_questions/程式設計與運算思維 Programming.quiz"));
+
+            System.out.println("Quiz is loaded.");
+
+            this.lock.lock();
+
+            try {
+                this.game_start.await();
+            } finally {
+                this.lock.unlock();
+            }
+
+            this.eventBus.publish(ClientEvent.GAME_START);
+            System.out.println("Game started.");
+
+            for (QuestionWithAnswer question : this.question_set.getQuestions()) {
+                synchronized (this.is_game_end) {
+                    if (this.is_game_end.get()) {
+                        return;
+                    }
+                }
+
+                this.running_question = question;
+                System.out.println(question.question);
+                this.eventBus.publish(ClientEvent.ROUND_START);
+                System.out.println("Dispatched question");
+            }
+        } catch (CorruptedQuestionsException e) {
+            System.out.format("Failed to parse quiz: %s\n", e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            
+        }
+    }
+    
+    private void initMultiplayer() {
         for (int i = 0; i < this.client_threads.length; i++) {
             final int thread_id = i;
 
@@ -97,94 +216,16 @@ public class Server implements ServerEventHandler, AutoCloseable {
                         } finally {
                             this.lock.unlock();
                         }
-                        
+
                         this.eventLoop(client);
                         exit = true;
-                    } catch (SocketException e) {
-                        this.freeClient(client, thread_id);
                     } catch (IOException e) {
-                        e.printStackTrace();
                         this.freeClient(client, thread_id);
                     } catch (InterruptedException e) {
 
                     }
                 }
             });
-        }
-    }
-
-    public QuestionWithAnswer getRunningQuestion() {
-        return this.running_question;
-    }
-
-    private void freeClient(Participant client, int thread_id) {
-        if (client == null) {
-            return;
-        }
-
-        System.out.format("\n\nClient.%d is disconnected. Thread #%d is about to be freed.\n", client.id, thread_id);
-
-        this.clients.remove(client);
-        this.eventBus.unsubscribe(client);
-
-        this.pullBackID(client.id);
-        this.eventBus.try_pop();
-
-        if (this.clients.isEmpty()) {
-            
-        }
-    }
-
-    private Participant waitAndInitClient() throws InterruptedException {
-        Participant res = null;
-        this.lock.lock();
-
-        try {
-            while (this.data == null) {
-                this.new_client.await();
-            }
-
-            res = (Participant) data;
-            res.id = assignID();
-        } finally {
-            this.lock.unlock();
-        }
-
-        return res;
-    }
-
-    private void run() throws InterruptedException, IOException {
-        for (Thread t : this.client_threads) {
-            t.start();
-        }
-
-        System.out.println("Server on!");
-
-        try {
-            this.question_set = loadQuestions(Path.of("quiz_questions/程式設計與運算思維 Programming.quiz"));
-
-            System.out.println("Quiz is loaded.");
-            
-            this.lock.lock();
-
-            try {
-                this.game_start.await();
-            } finally {
-                this.lock.unlock();
-            }
-            
-            this.is_in_game = true;
-            this.eventBus.publish(ClientEvent.GAME_START);
-            System.out.println("Main thread: Game started.");
-            System.out.println("Start dispatching question.");
-
-            for (QuestionWithAnswer question : this.question_set.getQuestions()) {
-                this.running_question = question;
-                this.eventBus.publish(ClientEvent.ROUND_START);
-                System.out.println("Dispatched question");
-            }
-        } catch (CorruptedQuestionsException e) {
-            System.out.format("Failed to parse quiz: %s\n", e.getMessage());
         }
     }
 
@@ -205,6 +246,12 @@ public class Server implements ServerEventHandler, AutoCloseable {
         System.out.format("Client.%d: %s\n", client.id, client.name);
 
         while (true) {
+            synchronized (this.is_game_end) {
+                if (this.is_game_end.get()) {
+                    return;
+                }
+            }
+
             synchronized (client) {
                 if (client.isEventPending()) {
                     client.handleEvent();
@@ -234,7 +281,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
         return this.eventBus;
     }
     
-    private void dispatch() {
+    private void run() {
         try {
             while (true) {
                 SocketDispatcher.Data data = this.dispatcher.accept();
@@ -426,25 +473,20 @@ class Participant implements ClientEventHandler {
         QuestionWithAnswer qa = this.server.getRunningQuestion();
         Instant now = Instant.now();
 
-        System.out.format("%s\n", qa.question);
         ServerTransmission.transmitQuestion(this.socket.getOutputStream(), qa, Duration.ofMillis(10000));
-
-        System.out.format("They have %d ms to answer\n", 10000);
 
         QuizAnswerResponse qar = ServerTransmission.receiveAnswer(this.socket.getInputStream());
 
-        System.out.format("%s choice: %d\n", this.name, qar.choice_id);
-        System.out.format("Question Time: %d\n", now.toEpochMilli());
-        System.out.format("%s remainig time: %d\n", this.name, qar.send_timestamp);
+        System.out.format("%s choice: %d ", this.name, qar.choice_id);
 
         if (qar.is_correct(qa.answer)) {
-            System.out.format("Correct!\n");
+            System.out.println("O");
         } else {
-            System.out.format("Incorrect!\n");
+            System.out.println("X");
         }
 
         this.score += Server.calculateScore(qar, qa.answer, now.toEpochMilli());
-        System.out.format("Participant score: %d\n\n", this.score);
+        System.out.format("%s score: %d\n\n", this.name, this.score);
 
         ServerTransmission.sendRoundResult(this.socket.getOutputStream(), is_final, score, 1);
     }
