@@ -39,13 +39,11 @@ public class MultiplayerClient {
                 public void windowClosed(WindowEvent e) {
                     frame.dispose();
 
-                    if (!socket.isClosed()) {
-                        try {
-                            socket.close();
-                        } catch (IOException ex) {
-                            ex.printStackTrace();
-                            System.exit(-1);
-                        }
+                    try {
+                        socket.close();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                        System.exit(-1);
                     }
                 }
             });
@@ -118,13 +116,11 @@ public class MultiplayerClient {
         } catch (IOException e) {
             frame.dispose();
 
-            if (!socket.isClosed()) {
-                try {
-                    socket.close();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                    System.exit(-1);
-                }
+            try {
+                socket.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                System.exit(-1);
             }
             
             throw e;
