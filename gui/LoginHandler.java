@@ -7,5 +7,5 @@ abstract class LoginHandler {
         this.next = next;
     }
 
-    public abstract void login(String address, String name);
+    public abstract void login(LoginDialog dialog, String address, String name);
 }

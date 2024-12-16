@@ -7,6 +7,19 @@ import utils.exceptions.CorruptedQuestionsException;
 
 public class QuizBuilder {
     static public class PartialQuestionWithAnswer extends QuestionWithAnswer implements Cloneable {
+        public PartialQuestionWithAnswer() {
+
+        }
+
+        public PartialQuestionWithAnswer(QuestionWithAnswer question) {
+            this.question = question.question;
+            this.answer = question.answer;
+
+            for (int i = 0; i < question.getOptionLength(); i++) {
+                this.options[i] = question.getOption(i);
+            }
+        }
+
         // Get a list of string representation of incompleted fields separated by newline
         // Return empty list if every field is complete.
         public List<String> getIncompleteField() {
@@ -24,7 +37,6 @@ public class QuizBuilder {
 
             return res;
         }
-
         public boolean is_complete() {
             return this.getIncompleteField().isEmpty();
         }
@@ -81,54 +93,15 @@ public class QuizBuilder {
     }
 
     public QuizBuilder(String s) throws CorruptedQuestionsException {
-        StringBuilder contents = new StringBuilder(s);
-
-        this.name = popUntil(contents, "\n");
-
-        while (contents.length() > 0) {
-            if (!contents.substring(0, 1).equals("\n")) {
-                throw new CorruptedQuestionsException(String.format("Expected token `\\n`. Found `%s`", contents.substring(0, 1)));
-            }
-
-            contents.delete(0, 1);
-
-            if (!contents.substring(0, 2).equals("$$")) {
-                throw new CorruptedQuestionsException(String.format("Expected token `$$`. Found `%s`", contents.substring(0, 2)));
-            }
-
-            contents.delete(0, 2);
-
-            PartialQuestionWithAnswer question = new PartialQuestionWithAnswer();
-            question.question = popUntil(contents, "::::");
-            question.answer = Integer.parseInt(contents.substring(0, 1));
-            contents.delete(0, 1);
-
-            if (!contents.substring(0, 1).equals("\n")) {
-                throw new CorruptedQuestionsException(String.format("Expected token `\\n`. Found `%s`", contents.substring(0, 1)));
-            }
-
-            contents.delete(0, 1);
-
-            for (int i = 0; i < 4; i++) {
-                question.setOptions(i, popUntil(contents, ":::"));
-            }
-
-            if (!contents.substring(0, 1).equals("\n")) {
-                throw new CorruptedQuestionsException(String.format("Expected token `\\n`. Found `%s`", contents.substring(0, 1)));
-            }
-
-            contents.delete(0, 1);
-
-            this.questions.add(question);
-        }
+        this(new QuestionSet(s));
     }
     
-    private static String popUntil(StringBuilder sb, String delimiter) {
-        int delimiter_pos = sb.indexOf(delimiter);
-        String res = sb.substring(0, delimiter_pos);
-        sb.delete(0, delimiter_pos + delimiter.length());
+    public QuizBuilder(QuestionSet questionSet) {
+        this.name = questionSet.name;
 
-        return res;
+        for (QuestionWithAnswer question : questionSet.getQuestions()) {
+            this.questions.add(new PartialQuestionWithAnswer(question));
+        }
     }
 
     // Create a new QuizBuilder with 1 empty question
@@ -142,15 +115,7 @@ public class QuizBuilder {
 
     @Override
     public String toString() {
-        StringBuilder res = new StringBuilder();
-
-        res.append(String.format("%s\n", this.name));
-
-        for (PartialQuestionWithAnswer question : this.questions) {
-            res.append(String.format("\n%s\n", question.toString()));
-        }
-
-        return res.toString();
+        return this.toQuestionSet().toString();
     }
 
     public QuestionSet toQuestionSet() {

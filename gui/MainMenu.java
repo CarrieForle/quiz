@@ -17,6 +17,7 @@ public class MainMenu {
         this.menuFrame.setSize(400, 300);
         this.menuFrame.setLayout(null);
         this.menuFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.menuFrame.setResizable(false);
 
         // Single Player Mode Button
         JButton singleplayerButton = new JButton("Single Player");
@@ -28,7 +29,10 @@ public class MainMenu {
         JButton multiplayerButton = new JButton("Multiplayer");
         multiplayerButton.setBounds(130, 100, 140, 30);
         menuFrame.add(multiplayerButton);
-        multiplayerButton.addActionListener(e -> login(new MultiplayerLogin(menuFrame)));
+        multiplayerButton.addActionListener(e -> { 
+            LoginDialog dialog = login(new MultiplayerLogin(menuFrame));
+            dialog.setVisible(true);
+        });
 
         // Ask Question Button
         JButton askQuestionButton = new JButton("Create Quiz");
@@ -49,8 +53,8 @@ public class MainMenu {
         menuFrame.setVisible(true);
     }
 
-    private void login(LoginHandler handler) {
-        LoginDialog dialog = new LoginDialog(menuFrame, handler);
+    private LoginDialog login(LoginHandler handler) {
+        return new LoginDialog(menuFrame, handler);
     }
 }
 
@@ -62,16 +66,15 @@ class MultiplayerLogin extends LoginHandler {
     }
 
     @Override
-    public void login(String address, String name) {
+    public void login(LoginDialog dialog, String address, String name) {
         try {
             Socket socket = new Socket(address, 12345);
+            dialog.setVisible(false);
             parent.setVisible(false);
             MultiplayerClient client = new MultiplayerClient(socket, name);
-            parent.dispose();
         } catch (IOException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(parent, "Unable to connect to server", "Error", JOptionPane.ERROR_MESSAGE);
-            parent.setVisible(true);
         }
     }
 }

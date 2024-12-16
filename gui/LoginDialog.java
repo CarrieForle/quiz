@@ -5,53 +5,102 @@ import java.awt.*;
 import java.util.Random;
 
 public class LoginDialog extends JDialog {
+    private static final Font FONT = new Font("Arial", Font.PLAIN, 16);
     private LoginHandler handler;
+    private JTextArea nameField = new JTextArea();
+    private JTextArea serverField = new JTextArea();
+
+    public static void main(String[] args) {
+        LoginDialog l = new LoginDialog(null, new LoginHandler() {
+            @Override
+            public void login(LoginDialog l, String address, String name) {
+
+            }
+        });
+
+        l.setVisible(true);
+    }
 
     public LoginDialog(JFrame parent, LoginHandler handler) {
         super(parent, "刷題趣！", Dialog.ModalityType.DOCUMENT_MODAL);
-        setSize(400, 200);
-        setLayout(null);
-        setResizable(false);
+        setSize(400, 220);
+        setLayout(new BorderLayout());
 
         this.handler = handler;
 
+        JPanel fieldPanel = new JPanel(new GridBagLayout());
+        
+        // Name label and field
         JLabel nameLabel = new JLabel("Name");
-        nameLabel.setBounds(30, 30, 150, 30);
-        this.add(nameLabel);
+        nameLabel.setFont(FONT);
 
-        JTextField nameField = new JTextField();
-        nameField.setBounds(150, 30, 200, 30);
-        this.add(nameField);
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 0;
+        c.anchor = GridBagConstraints.WEST;
+        c.insets = new Insets(10, 10, 10, 10);
 
-        //Server address input label and field
+        fieldPanel.add(nameLabel, c);
+
+        this.nameField.setFont(FONT);
+        this.nameField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        c = new GridBagConstraints();
+        c.gridx = 1;
+        c.gridy = 0;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.weightx = 1;
+        c.insets = new Insets(10, 10, 10, 10);
+
+        fieldPanel.add(this.nameField, c);
+        
+        // Server address input label and field
         JLabel serverLabel = new JLabel("Server Address");
-        serverLabel.setBounds(30, 80, 150, 30);
-        this.add(serverLabel);
+        serverLabel.setFont(FONT);
 
-        JTextField serverField = new JTextField();
-        serverField.setBounds(150, 80, 200, 30);
-        this.add(serverField);
+        c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 1;
+        c.anchor = GridBagConstraints.WEST;
+        c.insets = new Insets(10, 10, 10, 10);
 
+        fieldPanel.add(serverLabel, c);
+
+        this.serverField.setFont(FONT);
+        this.serverField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        c = new GridBagConstraints();
+        c.gridx = 1;
+        c.gridy = 1;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.weightx = 1;
+        c.insets = new Insets(10, 10, 10, 10);
+
+        fieldPanel.add(this.serverField, c);
+
+        add(fieldPanel, BorderLayout.CENTER);
+        
         // Submit Button
+        JPanel submitButtonPanel = new JPanel();
         JButton submitButton = new JButton("Submit");
-        submitButton.setBounds(150, 130, 100, 30);
-        this.add(submitButton);
-
+        submitButtonPanel.add(submitButton);
+        add(submitButtonPanel, BorderLayout.SOUTH);
+        
         submitButton.addActionListener(e -> {
-            String playerName = nameField.getText();
-            String serverAddress = serverField.getText();
+            String playerName = this.nameField.getText();
+            String serverAddress = this.serverField.getText();
 
             // Validate inputs
             if (playerName == null || playerName.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Name is required.");
+                JOptionPane.showMessageDialog(this, "Name is required.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             if (serverAddress == null || serverAddress.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Server address is required.");
+                JOptionPane.showMessageDialog(this, "Server address is required.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            handler.login(serverAddress, playerName);
+            handler.login(this, serverAddress, playerName);
         });
 
         // TODO remove auto fields
@@ -59,10 +108,17 @@ public class LoginDialog extends JDialog {
             "Bob", "Jimmy", "Patrick", "Tom", "Leo", "Michael"
         };
 
-        nameField.setText(names[new Random().nextInt(names.length)]);
-        serverField.setText("127.0.0.1");
+        this.nameField.setText(names[new Random().nextInt(names.length)]);
+        this.serverField.setText("127.0.0.1");
 
         setLocationRelativeTo(getParent());
-        setVisible(true);
+    }
+
+    public void setName(String name) {
+        this.nameField.setText(name);
+    }
+
+    public void setAddress(String address) {
+        this.serverField.setText(address);
     }
 }

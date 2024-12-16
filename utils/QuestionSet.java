@@ -66,4 +66,17 @@ public class QuestionSet {
 
         return res;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder res = new StringBuilder();
+
+        res.append(String.format("%s\n", this.name));
+
+        for (QuestionWithAnswer question : this.questions) {
+            res.append(String.format("\n%s\n", question.toString()));
+        }
+
+        return res.toString();
+    }
 }

@@ -1,5 +1,6 @@
 package quiz;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -12,39 +13,43 @@ import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Queue;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.*;
 
 import java.util.List;
 
+import networking.ServerStorage;
 import networking.ServerTransmission;
 import utils.*;
 import utils.exceptions.*;
 
-public class Server implements ServerEventHandler {
+public class Server implements ServerEventHandler, AutoCloseable {
     private static final int CLIENT_NUM = 4;
     private ServerSocket server_socket;
     private List<Participant> clients = new ArrayList<>(CLIENT_NUM);
     private Thread[] client_threads = new Thread[CLIENT_NUM];
+    private Thread quiz_transmission;
+    private Thread incoming = new Thread(() -> dispatch());
     private final Queue<Integer> available_ids = new ArrayDeque<>();
     private static final Path QUESTION_DIRECTORY = Path.of("quiz_questions");
     private boolean is_in_game = false;
-    private ServerStorage storage_manager = new ServerStorage();
+    private ServerStorage storage = new ServerStorage(QUESTION_DIRECTORY);
     private QuestionSet question_set;
     private QuestionWithAnswer running_question;
-    private static final int MINIMUM_CLIENT_NUM = 2;
+    private static final int MINIMUM_CLIENT_NUM = 1;
     private EventBus eventBus = new EventBus();
     private Lock lock = new ReentrantLock();
     private Condition game_start = lock.newCondition();
+    private Condition new_client = lock.newCondition();
+    private SocketDispatcher dispatcher = new SocketDispatcher(this);
+    private Object data;
 
     public static void main(String[] args) {
         int port = 12345;
 
-        try {
-            ServerSocket socket = new ServerSocket(port);
-            Server server = new Server(socket);
-            server.run();
+        try (ServerSocket socket = new ServerSocket(port)) {
+            try (Server server = new Server(socket)) {
+                server.run();
+            }
         } catch (IOException ex) {
             ex.printStackTrace();
         } catch (InterruptedException e) {
@@ -54,13 +59,10 @@ public class Server implements ServerEventHandler {
 
     public Server(ServerSocket server_socket) throws IOException, InterruptedException {
         this.server_socket = server_socket;
+        incoming.start();
 
         for (int i = 0; i < CLIENT_NUM; i++) {
             this.available_ids.add(i);
-        }
-
-        if (Files.notExists(QUESTION_DIRECTORY)) {
-            Files.createDirectory(QUESTION_DIRECTORY);
         }
 
         for (int i = 0; i < this.client_threads.length; i++) {
@@ -73,7 +75,9 @@ public class Server implements ServerEventHandler {
                 while (!exit) {
                     try {
                         System.out.format("Thread #%d is ready to serve a client.\n", thread_id);
+
                         client = waitAndInitClient();
+
                         System.out.format("Client.%d is connected and served by thread #%d.\n", client.id, thread_id);
 
                         final int client_size;
@@ -126,14 +130,25 @@ public class Server implements ServerEventHandler {
         }
 
         this.pullBackID(client.id);
+        this.eventBus.try_pop();
     }
 
-    private Participant waitAndInitClient() throws IOException {
-        Participant client = new Participant(this);
-        client.socket = this.server_socket.accept();
-        client.id = assignID();
+    private Participant waitAndInitClient() throws InterruptedException {
+        Participant res = null;
+        this.lock.lock();
 
-        return client;
+        try {
+            while (this.data == null) {
+                this.new_client.await();
+            }
+
+            res = (Participant) data;
+            res.id = assignID();
+        } finally {
+            this.lock.unlock();
+        }
+
+        return res;
     }
 
     private void run() throws InterruptedException, IOException {
@@ -146,7 +161,7 @@ public class Server implements ServerEventHandler {
         try {
             this.question_set = loadQuestions(Path.of("quiz_questions/程式設計與運算思維 Programming.quiz"));
 
-            System.out.println("Question is loaded.");
+            System.out.println("Quiz is loaded.");
             
             this.lock.lock();
 
@@ -185,9 +200,7 @@ public class Server implements ServerEventHandler {
     }
 
     private void eventLoop(Participant client) throws IOException {
-        client.name = ServerTransmission.receiveName(client.socket.getInputStream());
-
-        System.out.format("Receive client.%d's name: %s\n", client.id, client.name);
+        System.out.format("Client.%d: %s\n", client.id, client.name);
 
         while (true) {
             synchronized (client) {
@@ -215,20 +228,79 @@ public class Server implements ServerEventHandler {
         return new QuestionSet(Files.readString(filepath, StandardCharsets.UTF_8));
     }
 
+    public EventBus getEventBus() {
+        return this.eventBus;
+    }
+    
+    private void dispatch() {
+        try {
+            while (true) {
+                SocketDispatcher.Data data = this.dispatcher.accept();
+                
+                this.data = data.data;
+                this.lock.lock();
+
+                System.out.format("A new connection of %s\n", data.type);
+
+                try {
+                    switch (data.type) {
+                        case SINGLEPLAYER:
+                            break;
+                        case MULTIPLAYER:
+                            this.new_client.signal();
+                            break;
+                        case QUIZ_UPLOAD:
+                            if (this.quiz_transmission != null) {
+                                this.quiz_transmission.join();
+                            }
+
+                            this.quiz_transmission = new Thread(() -> {
+                                try {
+                                    this.storage.saveClientDataToFile(data.socket);
+                                    System.out.println("New quiz is uploaded");
+                                } catch (IOException e) {
+                                    System.out.format("Failed to receive uploaded quiz: %s\n", e.getMessage());
+                                }
+                            });
+                            this.quiz_transmission.start();
+                            break;
+                        default:
+                            break;
+                    }
+                } finally {
+                    this.lock.unlock();
+                }
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public Socket accept() throws IOException {
+        return this.server_socket.accept();
+    }
+
     @Override
     public void handleEvent(ServerEvent e) {
         switch (e) {
-            case ServerEvent.GAME_OVER:
+            case GAME_OVER:
                 break;
-            case ServerEvent.ROUND_OVER:
+            case ROUND_OVER:
                 break;
             default:
                 break;
         }
     }
 
-    public EventBus getEventBus() {
-        return this.eventBus;
+    @Override
+    public void close() {
+        try {
+            this.quiz_transmission.join();
+        } catch (InterruptedException e) {
+
+        }
     }
 }
 
@@ -320,15 +392,14 @@ class Participant implements ClientEventHandler {
     @Override
     public void handleEvent() throws IOException {
         switch (this.e) {
-            case ClientEvent.GAME_START:
+            case GAME_START:
                 System.out.format("The game started!\n");
-
                 this.score = 0;
                 break;
-            case ClientEvent.ROUND_START:
+            case ROUND_START:
                 playRound(false);
                 break;
-            case ClientEvent.LAST_ROUND_START:
+            case LAST_ROUND_START:
                 playRound(true);
                 break;
             default:
@@ -374,5 +445,61 @@ class Participant implements ClientEventHandler {
         System.out.format("Participant score: %d\n\n", this.score);
 
         ServerTransmission.sendRoundResult(this.socket.getOutputStream(), is_final, score, 1);
+    }
+}
+
+class SocketDispatcher {
+    public enum Type {
+        MULTIPLAYER,
+        SINGLEPLAYER,
+        QUIZ_UPLOAD,
+    }
+
+    public class Data {
+        public final Type type;
+        public final Socket socket;
+        public final Object data;
+
+        private Data(Type type, Socket socket, Object data) {
+            this.type = type;
+            this.socket = socket;
+            this.data = data;
+        }
+    }
+    
+    private Server server;
+    private Data data;
+
+    public SocketDispatcher(Server server) {
+        this.server = server;
+    }
+
+    public Data accept() throws IOException {
+        Socket socket = this.server.accept();
+        DataInputStream in = new DataInputStream(socket.getInputStream());
+        String identifier = in.readUTF();
+
+        Type type;
+        Object data = null;
+
+        if (identifier.startsWith("$")) {
+            type = Type.SINGLEPLAYER;
+        } else if (identifier.startsWith("#")) {
+            type = Type.QUIZ_UPLOAD;
+        } else {
+            type = Type.MULTIPLAYER;
+            Participant p = new Participant(this.server);
+            p.name = identifier;
+            p.socket = socket;
+            data = p;
+        }
+
+        this.data = new Data(type, socket, data);
+
+        return this.data;
+    }
+
+    public Data getData() {
+        return this.data;
     }
 }

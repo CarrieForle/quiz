@@ -1,12 +1,19 @@
-package utils;
+package networking;
 
 import java.io.*;
 import java.net.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ServerStorage {
     // 用於生成遞增的檔案名稱
     private final AtomicInteger fileCounter = new AtomicInteger(1);
+    private final Path directory;
+
+    public ServerStorage(Path directory) {
+        this.directory = directory;
+    }
 
     public static void main(String[] args) {
         String host = "26.58.144.237";
@@ -15,7 +22,7 @@ public class ServerStorage {
         System.out.println("Server is starting on host: " + host + ", port: " + port);
 
         try (ServerSocket serverSocket = new ServerSocket(port)) {
-            ServerStorage ss = new ServerStorage();
+            ServerStorage ss = new ServerStorage(Path.of(""));
 
             System.out.println("Server is running...");
 
@@ -36,21 +43,18 @@ public class ServerStorage {
         }
     }
 
-    public void saveClientDataToFile(Socket clientSocket) {
+    public File saveClientDataToFile(Socket clientSocket) throws IOException {
         try (DataInputStream reader = new DataInputStream(clientSocket.getInputStream())) {
-            // 檔案名稱，例如 1.txt、2.txt
-            String fileName = fileCounter.getAndIncrement() + ".txt";
+            // 檔案名稱，例如 1.quiz、2.quiz
+            File filePath = directory.resolve(fileCounter.getAndIncrement() + ".quiz").toFile();
             String contents = reader.readUTF();
 
             // 寫入檔案
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
                 writer.write(contents, 0, contents.length());
             }
 
-            System.out.println("Data saved to file: " + fileName);
-
-        } catch (IOException e) {
-            System.out.println("Error saving data to file: " + e.getMessage());
+            return filePath;
         }
     }
 }

@@ -6,6 +6,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -14,10 +16,12 @@ import java.util.List;
 import utils.*;
 import utils.QuizBuilder.PartialQuestionWithAnswer;
 import utils.exceptions.CorruptedQuestionsException;
+import networking.*;
 
 public class MakeQuizFrame extends JFrame {
-    private File file = new File("Untitled");
-    private QuizBuilder quizBuilder = QuizBuilder.init("Untitled");
+    private static final String DEFAULT_NAME = "Untitled";
+    private File file = new File(DEFAULT_NAME);
+    private QuizBuilder quizBuilder = QuizBuilder.init(DEFAULT_NAME);
     private QuizBuilder.PartialQuestionWithAnswer editing;
     private JTextArea questionArea = new JTextArea();
     private JRadioButton[] correctAnswerButtons = new JRadioButton[4];
@@ -26,6 +30,7 @@ public class MakeQuizFrame extends JFrame {
     private List<QuestionButton> questionButtons = new ArrayList<QuestionButton>();
     private IncompleteDialog incompleteFrame = new IncompleteDialog(this);
     private JLabel status = new JLabel("Status: Editing Q1", SwingConstants.CENTER);
+    private String cached_address = null;
 
     public static void main(String[] args) {
         MakeQuizFrame f = new MakeQuizFrame();
@@ -198,7 +203,7 @@ public class MakeQuizFrame extends JFrame {
 
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8))) {
                 writer.write(quizBuilder.toString());
-
+                this.setFile(file);
                 JOptionPane.showMessageDialog(this, "Quiz saved successfully!");
             } catch (IOException e) {
                 e.printStackTrace();
@@ -222,11 +227,10 @@ public class MakeQuizFrame extends JFrame {
                 }
 
                 this.editing = this.quizBuilder.get(0);
-                this.file = file;
+                this.setFile(file);
                 this.updateQuestionUI();
                 this.updateStatusToCurrentEditing();
                 this.constructButtons();
-                this.setTitle(String.format("Quiz Builder (%s)", file.getName()));
             } catch (IOException e) {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Failed to load quiz.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -265,7 +269,38 @@ public class MakeQuizFrame extends JFrame {
         List<PartialQuestionWithAnswer> questions = this.quizBuilder.getIncompleteQuestions();
 
         if (questions.isEmpty()) {
-            // do upload work
+            MakeQuizFrame self = this;
+
+            LoginDialog dialog = new LoginDialog(this, new LoginHandler() {
+                @Override
+                public void login(LoginDialog dialog, String serverAddress, String b) {
+                    cached_address = serverAddress;
+
+                    boolean failed = true;
+                    try (Socket socket = new Socket(serverAddress, 12345)) {
+                        ClientUploadQuestion.uploadToServer(quizBuilder.toQuestionSet(), socket.getOutputStream());
+                        failed = false;
+                        JOptionPane.showMessageDialog(self, "Upload succeeded", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    } catch (UnknownHostException ex) {
+                        JOptionPane.showMessageDialog(self, String.format("Failed to resolve server address", ex.getMessage()), "Error", JOptionPane.ERROR_MESSAGE);
+                    } catch (IOException ex) {
+                        JOptionPane.showMessageDialog(self, String.format("Failed to upload quiz to server: %s", ex.getMessage()), "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                    
+                    dialog.setVisible(failed);
+                }
+            });
+
+            if (quizBuilder.getName().equals(DEFAULT_NAME)) {
+                renameQuiz();
+            }
+
+            if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(self, "Do you want to save before uploading?", "Save", JOptionPane.YES_NO_OPTION)) {
+                saveQuiz();
+            }
+            
+            dialog.setAddress(this.cached_address);
+            dialog.setVisible(true);
         } else {
             this.incompleteFrame.removeAll();
 
@@ -383,19 +418,10 @@ public class MakeQuizFrame extends JFrame {
     private String getQuestionName(PartialQuestionWithAnswer question) {
         return String.format("Q%d", this.quizBuilder.indexOf(question) + 1);
     }
-}
 
-class OpenMenuOnClosing extends WindowAdapter {
-    private JFrame frame;
-
-    public OpenMenuOnClosing(JFrame frame) {
-        this.frame = frame;
-    }
-
-    @Override
-    public void windowClosed(WindowEvent e) {
-        this.frame.setVisible(false);
-        new MainMenu();
+    private void setFile(File file) {
+        this.file = file;
+        this.setTitle(String.format("Quiz Builder (%s)", file.getName()));
     }
 }
 
