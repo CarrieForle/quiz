@@ -34,6 +34,7 @@ public class MultiplayerClient {
             frame.setSize(600, 400);
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             frame.setLayout(null);
+            frame.setIconImage(Resource.iconSmall.getImage());
             frame.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosed(WindowEvent e) {
@@ -51,6 +52,9 @@ public class MultiplayerClient {
             JLabel questionLabel = new JLabel("Waiting for a question...");
             questionLabel.setBounds(50, 50, 500, 30);
             frame.add(questionLabel);
+            JLabel timeLabel = new JLabel("Time: ");
+            timeLabel.setBounds(0, 280, 100, 50);
+            frame.add(timeLabel);
             JLabel scoreLabel = new JLabel("Score: ");
             scoreLabel.setBounds(0,300,100,50);
             frame.add(scoreLabel);
@@ -78,10 +82,10 @@ public class MultiplayerClient {
             
                         int score = p.getScore();
                         System.out.printf("分數為%d", score);
-                        scoreLabel.setText("Score : " + score);
+                        scoreLabel.setText("Score: " + score);
                         int rank = p.getRank();
                         System.out.printf("名次為%d", rank);
-                        rankLabel.setText("Rank : " + rank);
+                        rankLabel.setText("Rank: " + rank);
 
                         String question = p.getQuestion();
                         String[] options = p.getOptions();

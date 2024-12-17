@@ -7,6 +7,7 @@ import javax.swing.*;
 
 public class MainMenu {
     JFrame menuFrame;
+    private static ImageIcon icon;
 
     public static void main(String[] args) {
         new MainMenu();
@@ -18,6 +19,7 @@ public class MainMenu {
         this.menuFrame.setLayout(null);
         this.menuFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.menuFrame.setResizable(false);
+        this.menuFrame.setIconImage(Resource.iconSmall.getImage());
 
         // Single Player Mode Button
         JButton singlePlayerButton = new JButton("Single Player");

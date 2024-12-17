@@ -42,6 +42,7 @@ public class MakeQuizFrame extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
         addWindowListener(new OpenMenuOnClosing(this));
+        setIconImage(Resource.iconSmall.getImage());
         
         this.constructButtons();
         this.editing = this.quizBuilder.get(0);

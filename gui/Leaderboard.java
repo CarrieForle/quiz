@@ -6,19 +6,10 @@ import java.awt.*;
 public class Leaderboard extends JFrame {
     private static JLabel scoreLabel;
     private static JLabel rankLabel;
-    private static ImageIcon podiumIcon;
 
     public static void main(String[] args) {
         new Leaderboard();
 
-    }
-
-    // Initialize static fields
-    static {
-        ClassLoader cl = Thread.currentThread().getContextClassLoader();
-
-        podiumIcon = new ImageIcon(cl.getResource("assets/podium.png"));
-        podiumIcon = new ImageIcon(podiumIcon.getImage().getScaledInstance(250, 105, java.awt.Image.SCALE_SMOOTH));
     }
 
     public Leaderboard() {
@@ -27,6 +18,7 @@ public class Leaderboard extends JFrame {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLayout(null);
         this.setResizable(false);
+        this.setIconImage(Resource.iconSmall.getImage());
 
         // Title Label
         JLabel titleLabel = new JLabel("Leaderboard", SwingConstants.CENTER);
@@ -39,7 +31,7 @@ public class Leaderboard extends JFrame {
             @Override
             public void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                podiumIcon.paintIcon(this, g, 25, 80);
+                Resource.podium.paintIcon(this, g, 25, 80);
             }
         };
 
