@@ -1,10 +1,11 @@
 package gui;
 
 import javax.swing.*;
+
+import java.awt.*;
 import java.awt.event.*;
 
 import quiz.Client;
-import utils.OpenMenuOnClosing;
 
 import java.io.*;
 import java.net.*;
@@ -30,15 +31,14 @@ public class MultiplayerClient {
     public MultiplayerClient(Socket socket, String name) throws IOException {
         try {
             frame = new JFrame("刷題趣！");
-            frame.setSize(600, 400);
-            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            frame.setLayout(null);
-            frame.setIconImage(Resource.iconSmall.getImage());
-            Client p = new Client(socket);
-            p.setName(name);
+            frame.setSize(600, 550);
+            frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+            frame.setIconImage(Resource.icon.getImage());
+            
             frame.addWindowListener(new WindowAdapter() {
                 @Override
-                public void windowClosed(WindowEvent e) {
+                public void windowClosing(WindowEvent e) {
+                    System.out.println("w");
                     frame.dispose();
 
                     try {
@@ -47,26 +47,46 @@ public class MultiplayerClient {
                         ex.printStackTrace();
                         System.exit(-1);
                     }
+
+                    new MainMenu();
                 }
             });
-            JLabel questionLabel = new JLabel("Waiting for a question...");
-            questionLabel.setBounds(50, 50, 500, 30);
-            frame.add(questionLabel);
-            JLabel timeLabel = new JLabel("Time: ");
-            timeLabel.setBounds(0, 280, 100, 50);
-            frame.add(timeLabel);
-            JLabel scoreLabel = new JLabel("Score: ");
-            scoreLabel.setBounds(0,300,100,50);
-            frame.add(scoreLabel);
-            JLabel rankLabel = new JLabel("Rank: ");
-            rankLabel.setBounds(0,320,100,50);
-            frame.add(rankLabel);
+
+            Client p = new Client(socket);
+            p.setName(name);
+
+            JPanel questionPanel = new JPanel(new BorderLayout());
+            JPanel infoPanel = new JPanel(new BorderLayout(50, 10));
+
+            JTextArea questionArea = getJTextArea();
+            questionArea.setText("Waiting for a question...");
+            questionPanel.add(new JScrollPane(questionArea), BorderLayout.CENTER);
+
+            JProgressBar timebar = new JProgressBar();
+            timebar.setValue(100);
+            infoPanel.add(timebar, BorderLayout.CENTER);
+            JLabel scoreLabel = new JLabel("Score: 0");
+            infoPanel.add(scoreLabel, BorderLayout.WEST);
+            JLabel timeLabel = new JLabel("Time: ", JLabel.CENTER);
+            infoPanel.add(timeLabel, BorderLayout.SOUTH);
+            JLabel rankLabel = new JLabel("Rank: 1");
+            infoPanel.add(rankLabel, BorderLayout.EAST);
+
+            questionPanel.add(infoPanel, BorderLayout.SOUTH);
+            
+            JPanel buttonPanel = new JPanel();
+            JTextArea[] optionAreas = new JTextArea[4];
             JButton[] answerButtons = new JButton[4];
+            buttonPanel.setLayout(new GridLayout(2, 2, 10, 10));
+
             for (int i = 0; i < 4; i++) {
-                answerButtons[i] = new JButton();
-                int x = (i % 2 == 0) ? 100 : 300;
-                int y = 100 + (i / 2) * 60;
-                answerButtons[i].setBounds(x, y, 150, 40);
+                JPanel panel = new JPanel(new BorderLayout(0, 10));
+                optionAreas[i] = getJTextArea();
+                answerButtons[i] = new JButton(String.valueOf((char)(65 + i)));
+                panel.add(new JScrollPane(optionAreas[i]), BorderLayout.CENTER);
+                panel.add(answerButtons[i], BorderLayout.SOUTH);
+                buttonPanel.add(panel);
+
                 final int id = i;
                 answerButtons[i].addActionListener(e -> {
                     try {
@@ -80,8 +100,7 @@ public class MultiplayerClient {
                         if (p.CheckEnd()) {
                             System.out.printf("sus");
                         }
-        
-                        
+
                         int score = p.getScore();
                         System.out.printf("分數為%d", score);
                         scoreLabel.setText("Score: " + score);
@@ -93,30 +112,36 @@ public class MultiplayerClient {
                         long clientTimestamp = p.getTimeStamp();
                         tt = sendInvalidAnswerInSecond(socket);
                         t.schedule(tt, clientTimestamp);
-                        questionLabel.setText(question);
+                        questionArea.setText(question);
 
                         for (int j = 0; j < 4; j++) {
-                            answerButtons[j].setText(options[j]);
+                            optionAreas[j].setText(options[j]);
                         }
                         timer = new Timer();
                         timer.scheduleAtFixedRate(new TimerTask() {
-                        int timeLeft = 10;
+                            int timeLeft = 10;
 
-                        @Override
-                        public void run() {
-                            timeLeft--;
-                            timeLabel.setText("Time Left: " + timeLeft);
-                            if (timeLeft <= 0) {
-                                timer.cancel();
+                            @Override
+                            public void run() {
+                                timeLabel.setText(String.valueOf(timeLeft));
+                                timeLeft--;
+                                if (timeLeft <= 0) {
+                                    timer.cancel();
+                                }
                             }
-                        }
                         }, 0, 1000);
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
                 });
-                frame.add(answerButtons[i]);
             }
+
+            JSplitPane pane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, questionPanel, buttonPanel);
+            pane.setResizeWeight(0.5);
+            pane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+            frame.add(pane);
+
             new Thread(() -> {
                 try {
                     String question = p.getQuestion();
@@ -126,26 +151,27 @@ public class MultiplayerClient {
                     t.schedule(tt, clientTimestamp);
                     timer = new Timer();
                     timer.scheduleAtFixedRate(new TimerTask() {
-                    int timeLeft = 10;
-                    @Override
-                    public void run() {
-                        timeLeft--;
-                        timeLabel.setText("Time Left: " + timeLeft);
-                        if (timeLeft <= 0) {
-                            timer.cancel();
+                        int timeLeft = 10;
+
+                        @Override
+                        public void run() {
+                            timeLabel.setText(String.valueOf(timeLeft));
+                            timeLeft--;
+                            if (timeLeft <= 0) {
+                                timer.cancel();
+                            }
                         }
-                    }
                     }, 0, 1000);
-                    questionLabel.setText(question);
-    
+                    questionArea.setText(question);
+
                     for (int j = 0; j < 4; j++) {
-                        answerButtons[j].setText(options[j]);
+                        optionAreas[j].setText(options[j]);
                     }
                 } catch (IOException e) {
-                    
+
                 }
             }).start();
-            
+
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
         } catch (IOException e) {
@@ -157,23 +183,32 @@ public class MultiplayerClient {
                 ex.printStackTrace();
                 System.exit(-1);
             }
-            
+
             throw e;
         }
     }
 
-    private static TimerTask sendInvalidAnswerInSecond(Socket socket){
+    private static TimerTask sendInvalidAnswerInSecond(Socket socket) {
         return new TimerTask() {
             public void run() {
-                try{
+                try {
                     System.out.println("task");
                     DataOutputStream out = new DataOutputStream(socket.getOutputStream());
                     out.writeInt(-1);
                     out.flush();
-                }catch(IOException e){
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         };
+    }
+
+    private JTextArea getJTextArea() {
+        JTextArea area = new JTextArea();
+        area.setLineWrap(true);
+        area.setFocusable(false);
+        area.setEditable(false);
+
+        return area;
     }
 }
