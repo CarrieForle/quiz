@@ -15,6 +15,7 @@ public class MultiplayerClient {
     private JFrame frame;
     private TimerTask tt;
     private Timer t = new Timer();
+    private Timer timer;
 
     public static void main(String[] args) {
         try {
@@ -28,13 +29,13 @@ public class MultiplayerClient {
 
     public MultiplayerClient(Socket socket, String name) throws IOException {
         try {
-            Client p = new Client(socket);
-            p.setName(name);
             frame = new JFrame("刷題趣！");
             frame.setSize(600, 400);
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             frame.setLayout(null);
             frame.setIconImage(Resource.iconSmall.getImage());
+            Client p = new Client(socket);
+            p.setName(name);
             frame.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosed(WindowEvent e) {
@@ -48,7 +49,6 @@ public class MultiplayerClient {
                     }
                 }
             });
-
             JLabel questionLabel = new JLabel("Waiting for a question...");
             questionLabel.setBounds(50, 50, 500, 30);
             frame.add(questionLabel);
@@ -70,23 +70,24 @@ public class MultiplayerClient {
                 final int id = i;
                 answerButtons[i].addActionListener(e -> {
                     try {
+                        timer.cancel();
                         if (tt.cancel()) {
+                            timer.cancel();
                             p.writeAns(id);
                             long timestamp = e.getWhen();
                             p.writeTimeStamp(timestamp);
                         }
-
                         if (p.CheckEnd()) {
                             System.out.printf("sus");
                         }
-            
+        
+                        
                         int score = p.getScore();
                         System.out.printf("分數為%d", score);
                         scoreLabel.setText("Score: " + score);
                         int rank = p.getRank();
                         System.out.printf("名次為%d", rank);
                         rankLabel.setText("Rank: " + rank);
-
                         String question = p.getQuestion();
                         String[] options = p.getOptions();
                         long clientTimestamp = p.getTimeStamp();
@@ -97,24 +98,54 @@ public class MultiplayerClient {
                         for (int j = 0; j < 4; j++) {
                             answerButtons[j].setText(options[j]);
                         }
+                        timer = new Timer();
+                        timer.scheduleAtFixedRate(new TimerTask() {
+                        int timeLeft = 10;
+
+                        @Override
+                        public void run() {
+                            timeLeft--;
+                            timeLabel.setText("Time Left: " + timeLeft);
+                            if (timeLeft <= 0) {
+                                timer.cancel();
+                            }
+                        }
+                        }, 0, 1000);
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
                 });
                 frame.add(answerButtons[i]);
             }
-            frame.setVisible(true);
-            String question = p.getQuestion();
-            String[] options = p.getOptions();
-            long clientTimestamp = p.getTimeStamp();
-            tt = sendInvalidAnswerInSecond(socket);
-            t.schedule(tt, clientTimestamp);
-
-            questionLabel.setText(question);
-
-            for (int j = 0; j < 4; j++) {
-                answerButtons[j].setText(options[j]);
-            }
+            new Thread(() -> {
+                try {
+                    String question = p.getQuestion();
+                    String[] options = p.getOptions();
+                    long clientTimestamp = p.getTimeStamp();
+                    tt = sendInvalidAnswerInSecond(socket);
+                    t.schedule(tt, clientTimestamp);
+                    timer = new Timer();
+                    timer.scheduleAtFixedRate(new TimerTask() {
+                    int timeLeft = 10;
+                    @Override
+                    public void run() {
+                        timeLeft--;
+                        timeLabel.setText("Time Left: " + timeLeft);
+                        if (timeLeft <= 0) {
+                            timer.cancel();
+                        }
+                    }
+                    }, 0, 1000);
+                    questionLabel.setText(question);
+    
+                    for (int j = 0; j < 4; j++) {
+                        answerButtons[j].setText(options[j]);
+                    }
+                } catch (IOException e) {
+                    
+                }
+            }).start();
+            
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
         } catch (IOException e) {

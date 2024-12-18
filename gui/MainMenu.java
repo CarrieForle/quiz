@@ -68,7 +68,7 @@ class MultiplayerLogin extends LoginHandler {
     }
 
     @Override
-    public void login(LoginDialog dialog, String address, String name) {
+    public void login(LoginDialog dialog, String address, String name) {  
         try {
             Socket socket = new Socket(address, 12345);
             dialog.setVisible(false);
