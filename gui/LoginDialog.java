@@ -25,7 +25,7 @@ public class LoginDialog extends JDialog {
         super(parent, "刷題趣！", Dialog.ModalityType.DOCUMENT_MODAL);
         setSize(400, 220);
         setLayout(new BorderLayout());
-        setIconImage(Resource.iconSmall.getImage());
+        setIconImage(Resource.icon.getImage());
 
         this.handler = handler;
 

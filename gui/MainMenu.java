@@ -19,7 +19,7 @@ public class MainMenu {
         this.menuFrame.setLayout(null);
         this.menuFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.menuFrame.setResizable(false);
-        this.menuFrame.setIconImage(Resource.iconSmall.getImage());
+        this.menuFrame.setIconImage(Resource.icon.getImage());
 
         // Single Player Mode Button
         JButton singlePlayerButton = new JButton("Single Player");
@@ -75,7 +75,6 @@ class MultiplayerLogin extends LoginHandler {
             parent.setVisible(false);
             MultiplayerClient client = new MultiplayerClient(socket, name);
         } catch (IOException e) {
-            e.printStackTrace();
             JOptionPane.showMessageDialog(parent, "Unable to connect to server", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }

@@ -12,6 +12,14 @@ public class QuestionSet {
         return this.questions;
     }
 
+    public QuestionWithAnswer get(int i) {
+        return this.questions.get(i);
+    }
+
+    public int size() {
+        return this.questions.size();
+    }
+
     public QuestionSet() {
         
     }

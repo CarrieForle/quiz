@@ -34,7 +34,7 @@ public class MultiplayerClient {
             frame.setSize(600, 400);
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             frame.setLayout(null);
-            frame.setIconImage(Resource.iconSmall.getImage());
+            frame.setIconImage(Resource.icon.getImage());
             frame.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosed(WindowEvent e) {

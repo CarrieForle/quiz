@@ -1,7 +1,9 @@
 package networking;
 
+import java.util.List;
 import java.io.*;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -55,6 +57,16 @@ public class ServerStorage {
             }
 
             return filePath;
+        }
+    }
+
+    public void sendClientQuiz(Socket clientSocket) throws IOException {
+        List<Path> filePaths = Files.list(directory).toList();
+        
+        String contents = Files.readString(filePaths.get(0), StandardCharsets.UTF_8);
+
+        try (DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream())) {
+            out.writeUTF(contents);
         }
     }
 }

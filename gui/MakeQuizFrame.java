@@ -42,7 +42,7 @@ public class MakeQuizFrame extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
         addWindowListener(new OpenMenuOnClosing(this));
-        setIconImage(Resource.iconSmall.getImage());
+        setIconImage(Resource.icon.getImage());
         
         this.constructButtons();
         this.editing = this.quizBuilder.get(0);
@@ -236,7 +236,6 @@ public class MakeQuizFrame extends JFrame {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Failed to load quiz.", "Error", JOptionPane.ERROR_MESSAGE);
             } catch (CorruptedQuestionsException e) {
-                e.printStackTrace();
                 JOptionPane.showMessageDialog(this, String.format("Failed to parse quiz: %s", e.getMessage()), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
