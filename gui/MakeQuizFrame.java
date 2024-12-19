@@ -268,8 +268,16 @@ public class MakeQuizFrame extends JFrame {
         this.saveQuestion();
         List<PartialQuestionWithAnswer> questions = this.quizBuilder.getIncompleteQuestions();
 
-        if (questions.isEmpty()) {
-            MakeQuizFrame self = this;
+        if (questions.isEmpty()) {       
+            if (quizBuilder.getName().equals(DEFAULT_NAME)) {
+                renameQuiz();
+            }
+
+            if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "Do you want to save before uploading?", "Save", JOptionPane.YES_NO_OPTION)) {
+                saveQuiz();
+            }
+
+            final MakeQuizFrame self = this;
 
             LoginDialog dialog = new LoginDialog(this, new LoginHandler() {
                 @Override
@@ -292,17 +300,8 @@ public class MakeQuizFrame extends JFrame {
                     }
                 }
             });
-
-            if (quizBuilder.getName().equals(DEFAULT_NAME)) {
-                renameQuiz();
-            }
-
-            if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(self, "Do you want to save before uploading?", "Save", JOptionPane.YES_NO_OPTION)) {
-                saveQuiz();
-            }
             
             dialog.setAddress(this.cached_address);
-            dialog.setVisible(true);
         } else {
             this.incompleteFrame.removeAll();
 
