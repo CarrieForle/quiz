@@ -27,14 +27,6 @@ public class SingleplayerClient extends AnswerFrame {
     private long running_timestamp = 0;
 
     public static void main(String[] args) {
-        // try {
-        //     new SingleplayerClient(Server.loadQuestions(Path.of("quiz_questions/程式設計與運算思維 Programming.quiz")));
-        // } catch (IOException e) {
-        //     e.printStackTrace();
-        // } catch (CorruptedQuestionsException e) {
-
-        // }
-
         SingleplayerClient.runQuizDialog(null);
     }
 

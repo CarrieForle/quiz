@@ -2,6 +2,7 @@ package gui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.Serializable;
 import java.util.List;
 
 public abstract class Leaderboard extends JFrame {
@@ -24,8 +25,8 @@ public abstract class Leaderboard extends JFrame {
     }
 
     public static class Player implements Serializable {
-        String name;
-        int score;
+        public String name;
+        public int score;
 
         public Player(String name, int score) {
             this.name = name;

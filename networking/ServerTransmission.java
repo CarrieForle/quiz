@@ -4,7 +4,9 @@ import java.io.*;
 import java.time.Duration;
 
 import utils.QuizAnswerResponse;
-import java.util.List;
+import java.util.ArrayList;
+
+import gui.Leaderboard;
 import utils.Question;
 
 public class ServerTransmission {
@@ -74,9 +76,8 @@ public class ServerTransmission {
         dos.writeInt(ranking);
     }
 
-
-    public static void transmitLeaderboard(OutputStream writer, int score, int ranking) throws IOException {
-        DataOutputStream dos = new DataOutputStream(writer);
-        dos.writeUTF(String.format("%d:%d", score, ranking));
+    public static void sendLeaderboard(OutputStream writer, ArrayList<Leaderboard.Player> players) throws IOException {
+        ObjectOutputStream dos = new ObjectOutputStream(writer);
+        dos.writeObject(players);
     }
 }

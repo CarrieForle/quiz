@@ -82,9 +82,10 @@ public abstract class AnswerFrame {
                     for (JButton button : answerButtons) {
                         button.setEnabled(true);
                     }
-    
+                    
                     if (question == null) {
-                        System.out.println("No more question");
+                        showLeaderboard();
+                        frame.dispose();
                     } else {
                         updateFields(question);
                         startCountDown();
@@ -151,16 +152,17 @@ public abstract class AnswerFrame {
                 timebar.setValue(timeLeft);
 
                 if (timeLeft <= 0) {
+                    cancel();
                     onTimeExceed();
 
                     Question question = getNextQuestion();
 
-                    if (question != null) {
-                        updateFields(getNextQuestion());
-                        cancel();
-                        startCountDown();
+                    if (question == null) {
+                        showLeaderboard();
+                        frame.dispose();
                     } else {
-                        System.out.println("No more question");
+                        updateFields(question);
+                        startCountDown();
                     }
                 }
 
@@ -177,6 +179,10 @@ public abstract class AnswerFrame {
     
     protected void onTimeExceed() {
 
+    }
+
+    protected void showLeaderboard() {
+        
     }
     
     protected abstract int getScore();

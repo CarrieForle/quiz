@@ -39,7 +39,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
     private ServerStorage storage = new ServerStorage(QUIZ_DIRECTORY);
     private QuestionSet question_set;
     private QuestionWithAnswer running_question;
-    private static final int MINIMUM_CLIENT_NUM = 2;
+    private static final int MINIMUM_CLIENT_NUM = 1;
     private EventBus eventBus = new EventBus();
     private Lock lock = new ReentrantLock();
     private Condition game_start = lock.newCondition();
@@ -47,6 +47,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
     private AtomicBoolean is_game_end = new AtomicBoolean(false);
     private SocketDispatcher dispatcher = new SocketDispatcher(this);
     private Object data;
+    private ArrayList<Leaderboard.Player> leaderboard;
 
     public static void main(String[] args) {
         int port = 12345;
@@ -98,11 +99,15 @@ public class Server implements ServerEventHandler, AutoCloseable {
         this.eventBus.tryPop();
 
         if (this.clients.isEmpty()) {
-            this.is_game_end.set(true);
-            // Use another thread otherwise the client thread will join itself and deadlock.
-            Thread t = new Thread(() -> this.stopAndInitMultiplayer());
-            t.start();
+            this.stopAndStartGame();
         }
+    }
+
+    private void stopAndStartGame() {
+        this.is_game_end.set(true);
+        // Use another thread otherwise the client thread will join itself and deadlock.
+        Thread t = new Thread(() -> this.stopAndInitMultiplayer());
+        t.start();
     }
 
     private void stopAndInitMultiplayer() {
@@ -156,8 +161,8 @@ public class Server implements ServerEventHandler, AutoCloseable {
 
         try {
             // this.question_set = loadRandomQuestions();
-            // this.question_set = loadQuestions(QUIZ_DIRECTORY.resolve("1.quiz"));
-            this.question_set = loadQuestions(QUIZ_DIRECTORY.resolve("程式設計與運算思維 Programming.quiz"));
+            this.question_set = loadQuestions(QUIZ_DIRECTORY.resolve("1.quiz"));
+            // this.question_set = loadQuestions(QUIZ_DIRECTORY.resolve("程式設計與運算思維 Programming.quiz"));
 
             System.out.println("Quiz is loaded.");
 
@@ -205,20 +210,23 @@ public class Server implements ServerEventHandler, AutoCloseable {
                 }
             }
 
-            ArrayList<Leaderboard.Player> players = getLeaderboard();
-
+            this.updateLeaderboard();
+            this.eventBus.publish(ClientEvent.GAME_END);
+            this.eventBus.tryWait();
         } catch (CorruptedQuestionsException e) {
             System.out.format("Failed to parse quiz: %s\n", e.getMessage());
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
 
+        } finally {
+            this.stopAndStartGame();
         }
     }
     
-    private ArrayList<Leaderboard.Player> getLeaderboard() {
+    private void updateLeaderboard() {
         synchronized (this.clients) {
-            return new ArrayList<>(
+            this.leaderboard = new ArrayList<>(
                 this.clients
                     .stream()
                     .sorted((a, b) -> a.ranking - b.ranking)
@@ -327,6 +335,10 @@ public class Server implements ServerEventHandler, AutoCloseable {
     public EventBus getEventBus() {
         return this.eventBus;
     }
+
+    public ArrayList<Leaderboard.Player> getLeaderboard() {
+        return this.leaderboard;
+    }
     
     private void run() {
         try {
@@ -424,6 +436,7 @@ enum ClientEvent {
     ROUND_START,
     ROUND_END,
     FINAL_ROUND_END,
+    GAME_END,
 }
 
 interface ServerEventHandler {
@@ -523,8 +536,10 @@ class Participant implements ClientEventHandler {
                 ServerTransmission.sendRoundResult(this.socket.getOutputStream(), false, this.score, this.ranking);
                 break;
             case FINAL_ROUND_END:
-                ServerTransmission.sendRoundResult(this.socket.getOutputStream(), false, this.score, this.ranking);
+                ServerTransmission.sendRoundResult(this.socket.getOutputStream(), true, this.score, this.ranking);
                 break;
+            case GAME_END:
+                ServerTransmission.sendLeaderboard(this.socket.getOutputStream(), this.server.getLeaderboard());
             default:
                 break;
         }
