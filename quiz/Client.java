@@ -106,4 +106,10 @@ public class Client implements AutoCloseable {
     public void close() throws IOException {
         socket.close();
     }
+
+    public String getNameResponse() throws IOException {
+        DataInputStream in = new DataInputStream(this.socket.getInputStream());
+        String response = in.readUTF();
+        return response;
+    }
 }

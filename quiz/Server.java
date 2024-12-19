@@ -16,7 +16,7 @@ import gui.Leaderboard;
 import java.util.List;
 
 import networking.ServerStorage;
-import networking.ServerTransmission;
+import networking.Transmitter;
 import utils.*;
 import utils.exceptions.*;
 
@@ -38,7 +38,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
     private Lock lock = new ReentrantLock();
     private Condition game_start = lock.newCondition();
     private Condition new_client = lock.newCondition();
-    private AtomicBoolean is_game_end = new AtomicBoolean(false);
+    private AtomicBoolean is_game_end = new AtomicBoolean(true);
     private SocketDispatcher dispatcher = new SocketDispatcher(this);
     private Object data;
     private ArrayList<Leaderboard.Player> leaderboard;
@@ -149,14 +149,12 @@ public class Server implements ServerEventHandler, AutoCloseable {
         for (Thread t : this.client_threads) {
             t.start();
         }
-
-        this.is_game_end.set(false);
+        
         System.out.println("Server on!");
 
         try {
             // this.question_set = loadRandomQuestions();
-            this.question_set = loadQuestions(QUIZ_DIRECTORY.resolve("1.quiz"));
-            // this.question_set = loadQuestions(QUIZ_DIRECTORY.resolve("程式設計與運算思維 Programming.quiz"));
+            this.question_set = loadQuestions(QUIZ_DIRECTORY.resolve("程式設計與運算思維 Programming.quiz"));
 
             System.out.println("Quiz is loaded.");
 
@@ -168,6 +166,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
                 this.lock.unlock();
             }
 
+            this.is_game_end.set(false);
             this.eventBus.publish(ClientEvent.GAME_START);
             System.out.println("Game started.");
 
@@ -176,10 +175,8 @@ public class Server implements ServerEventHandler, AutoCloseable {
             for (int i = 0; i < questions.size(); i++) {
                 QuestionWithAnswer question = questions.get(i);
 
-                synchronized (this.is_game_end) {
-                    if (this.is_game_end.get()) {
-                        return;
-                    }
+                if (this.is_game_end.get()) {
+                    return;
                 }
 
                 this.running_question = question;
@@ -310,10 +307,8 @@ public class Server implements ServerEventHandler, AutoCloseable {
         System.out.format("Client.%d: %s\n", client.id, client.name);
 
         while (true) {
-            synchronized (this.is_game_end) {
-                if (this.is_game_end.get()) {
-                    return;
-                }
+            if (this.is_game_end.get()) {
+                return;
             }
 
             if (client.isEventPending()) {
@@ -551,20 +546,20 @@ class EventBus {
 }
 
 class Participant implements ClientEventHandler {
-    Server server;
-    Socket socket;
-    String name;
+    final Server server;
+    final Socket socket;
+    final Transmitter transmitter;
+    final String name;
     int id;
     int score = 0;
     int ranking = 1;
     ClientEvent event;
 
-    public Participant(Server server) {
+    public Participant(Server server, Socket socket, String name) {
         this.server = server;
-    }
-
-    public Participant(Server server, Participant controller) {
-        this.server = server;
+        this.socket = socket;
+        this.name = name;
+        this.transmitter = new Transmitter(socket);
     }
 
     @Override
@@ -583,13 +578,13 @@ class Participant implements ClientEventHandler {
                 playRound();
                 break;
             case ROUND_END:
-                ServerTransmission.sendRoundResult(this.socket.getOutputStream(), false, this.score, this.ranking);
+                this.transmitter.sendRoundResult(false, this.score, this.ranking);
                 break;
             case FINAL_ROUND_END:
-                ServerTransmission.sendRoundResult(this.socket.getOutputStream(), true, this.score, this.ranking);
+                this.transmitter.sendRoundResult(true, this.score, this.ranking);
                 break;
             case GAME_END:
-                ServerTransmission.sendLeaderboard(this.socket.getOutputStream(), this.server.getLeaderboard());
+                this.transmitter.sendLeaderboard(this.server.getLeaderboard());
             default:
                 break;
         }
@@ -607,9 +602,9 @@ class Participant implements ClientEventHandler {
         QuestionWithAnswer qa = this.server.getRunningQuestion();
         Instant now = Instant.now();
 
-        ServerTransmission.transmitQuestion(this.socket.getOutputStream(), qa, Duration.ofMillis(10000));
+        this.transmitter.sendQuestion(qa, Duration.ofMillis(10000));
 
-        QuizAnswerResponse qar = ServerTransmission.receiveAnswer(this.socket.getInputStream());
+        QuizAnswerResponse qar = this.transmitter.getAnswer();
 
         System.out.format("%s choice: %d ", this.name, qar.choice_id);
 
@@ -660,13 +655,12 @@ class SocketDispatcher {
 
         if (identifier.startsWith("$")) {
             type = Type.SINGLEPLAYER;
+            data = identifier.substring(1);
         } else if (identifier.startsWith("#")) {
             type = Type.QUIZ_UPLOAD;
         } else {
             type = Type.MULTIPLAYER;
-            Participant p = new Participant(this.server);
-            p.name = identifier;
-            p.socket = socket;
+            Participant p = new Participant(this.server, socket, identifier);
             data = p;
         }
 
