@@ -84,8 +84,8 @@ public abstract class AnswerFrame {
                     }
                     
                     if (question == null) {
-                        showLeaderboard();
                         frame.dispose();
+                        showLeaderboard();
                     } else {
                         updateFields(question);
                         startCountDown();
