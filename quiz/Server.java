@@ -1,9 +1,11 @@
 package quiz;
 
+import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,7 +41,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
     private ServerStorage storage = new ServerStorage(QUIZ_DIRECTORY);
     private QuestionSet question_set;
     private QuestionWithAnswer running_question;
-    private static final int MINIMUM_CLIENT_NUM = 1;
+    private static final int MINIMUM_CLIENT_NUM = 2;
     private EventBus eventBus = new EventBus();
     private Lock lock = new ReentrantLock();
     private Condition game_start = lock.newCondition();
@@ -65,11 +67,11 @@ public class Server implements ServerEventHandler, AutoCloseable {
 
     public Server(ServerSocket server_socket) throws IOException, InterruptedException {
         this.server_socket = server_socket;
-        
+
         for (int i = 0; i < CLIENT_NUM; i++) {
             this.available_ids.add(i);
         }
-        
+
         this.initMultiplayer();
         this.multiplayer.start();
     }
@@ -119,7 +121,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
             for (Thread t : this.client_threads) {
                 t.interrupt();
             }
-            
+
             System.out.println("Game stopped");
 
             this.initMultiplayer();
@@ -220,21 +222,25 @@ public class Server implements ServerEventHandler, AutoCloseable {
         } catch (InterruptedException e) {
 
         } finally {
-            this.stopAndStartGame();
+            synchronized (this.clients) {
+                while (!this.clients.isEmpty()) {
+                    freeClient(this.clients.get(0));
+                }
+            }
         }
     }
-    
+
     private void updateLeaderboard() {
         synchronized (this.clients) {
             this.leaderboard = new ArrayList<>(
                 this.clients
                     .stream()
-                    .sorted((a, b) -> a.ranking - b.ranking)
+                    .sorted((a, b) -> b.ranking - a.ranking)
                     .map(x -> new Leaderboard.Player(x.name, x.score))
                     .toList());
         }
     }
-    
+
     private void initMultiplayer() {
         this.multiplayer = new Thread(() -> runQuiz());
 
@@ -247,26 +253,41 @@ public class Server implements ServerEventHandler, AutoCloseable {
                     System.out.format("Thread #%d is ready to serve a client.\n", thread_id);
 
                     client = waitAndInitClient();
+                    client.socket.setSoTimeout(1000);
 
-                    System.out.format("Client.%d is connected and served by thread #%d.\n", client.id, thread_id);
+                    System.out.format("%s is connected and served by thread #%d.\n", client.name, thread_id);
 
-                    final int client_size;
                     this.clients.add(client);
                     this.eventBus.subscribe(client);
-                    System.out.format("Thread #%d: %d players\n", thread_id, this.clients.size());
-                    client_size = this.clients.size();
 
-                    this.lock.lock();
-                    try {
-                        if (client_size < MINIMUM_CLIENT_NUM) {
-                            this.game_start.await();
-                        } else {
+                    System.out.format("Thread #%d: %d players\n", thread_id, this.clients.size());
+
+                    // Player leaving detection: If a player left by ordinary mean a read will not block, otherwise it blocks. So the one that goes quickly is the one who left.
+                    while (true) {
+                        this.lock.lock();
+
+                        try {
+                            while (this.clients.size() < MINIMUM_CLIENT_NUM) {
+                                this.game_start.await();
+                            }
+
                             this.game_start.signalAll();
+                        } finally {
+                            this.lock.unlock();
                         }
-                    } finally {
-                        this.lock.unlock();
+
+                        try {
+                            client.socket.getInputStream().read();
+                            freeClient(client);
+                        } catch (SocketTimeoutException e) {
+                            Thread.sleep(100);
+                            if (this.clients.size() >= MINIMUM_CLIENT_NUM) {
+                                break;
+                            }
+                        }
                     }
 
+                    client.socket.setSoTimeout(15000);
                     this.eventLoop(client);
                 } catch (IOException e) {
                     this.freeClient(client);
@@ -277,6 +298,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
                 System.out.format("Thread #%d ends\n", thread_id);
             });
         }
+
     }
 
     private void pullBackID(int id) {

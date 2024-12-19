@@ -10,7 +10,7 @@ public class MainMenu {
     }
 
     public MainMenu() {
-        menuFrame = new JFrame("Game Menu");
+        menuFrame = new JFrame("刷題趣！");
         menuFrame.setSize(400, 300);
         menuFrame.setLayout(null);
         menuFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

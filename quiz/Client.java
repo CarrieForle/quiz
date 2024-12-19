@@ -87,10 +87,19 @@ public class Client implements AutoCloseable {
             return null;
         }
     }
+
     public long getTimeStamp() throws IOException {
         DataInputStream in = new DataInputStream(this.socket.getInputStream());
         long timestamp = in.readLong();
         return timestamp;
+    }
+
+    public void leaveEarly() throws IOException {
+        this.socket.getOutputStream().write(-1);
+    }
+
+    public boolean isClosed() {
+        return socket.isClosed();
     }
     
     @Override

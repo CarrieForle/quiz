@@ -34,6 +34,7 @@ public class SingleplayerClient extends AnswerFrame {
         iterator = questionSet.getQuestions().iterator();
         running = iterator.next();
         start();
+        setVisible(true);
     }
 
     public static void runQuizDialog(Window parent) {

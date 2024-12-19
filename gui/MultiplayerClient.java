@@ -16,6 +16,7 @@ public class MultiplayerClient extends AnswerFrame {
     private int score = 0;
     private int rank = 1;
     private List<Leaderboard.Player> leaderboard;
+    private boolean is_in_game = false;
 
     public static void main(String[] args) {
         try {
@@ -27,12 +28,23 @@ public class MultiplayerClient extends AnswerFrame {
         }
     }
 
-    public MultiplayerClient(Socket socket, String name) throws IOException {
-        this.name = name;
-        p = new Client(socket);
-        p.setName(name);
-        setVisible(true);
-        start();
+    public MultiplayerClient(Socket socket, String name) {
+        try {
+            this.name = name;
+            p = new Client(socket);
+            p.setName(name);
+            setVisible(true);
+            
+            // UI won't display without thread.
+            Thread t = new Thread(() -> {
+                start();
+                this.is_in_game = true;
+            });
+
+            t.start();
+        } catch (IOException e) {
+            disconnect(e);
+        }
     }
 
     @Override
@@ -67,6 +79,10 @@ public class MultiplayerClient extends AnswerFrame {
     @Override
     protected void onWindowClosing(WindowEvent e) {
         try {
+            if (!is_in_game) {
+                p.leaveEarly();
+            }
+
             p.close();
         } catch (IOException ex) {
             disconnect(ex);
@@ -98,7 +114,7 @@ public class MultiplayerClient extends AnswerFrame {
     protected void showLeaderboard() {
         try {
             p.close();
-        } catch (IOException e) {
+        } catch (IOException ex) {
 
         }
 
@@ -140,8 +156,15 @@ public class MultiplayerClient extends AnswerFrame {
     }
 
     private void disconnect(IOException e) {
-        Common.errorMessage(getFrame(), "Disconnected");
-        onWindowClosing(null);
+        if (!p.isClosed()) {
+            Common.errorMessage(getFrame(), "Disconnected");
+            try {
+                p.close();
+            } catch (IOException ex) {
+
+            }
+        }
+
         getFrame().dispose();
         new MainMenu();
     }

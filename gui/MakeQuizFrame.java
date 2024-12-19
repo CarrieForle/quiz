@@ -287,7 +287,9 @@ public class MakeQuizFrame extends JFrame {
                         Common.errorMessage(self, "Failed to upload quiz to server", ex);
                     }
                     
-                    dialog.setVisible(failed);
+                    if (!failed) {
+                        dialog.dispose();
+                    }
                 }
             });
 

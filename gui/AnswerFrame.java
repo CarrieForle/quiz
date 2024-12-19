@@ -112,8 +112,6 @@ public abstract class AnswerFrame {
         for (JButton button : answerButtons) {
             button.setEnabled(true);
         }
-
-        frame.setVisible(true);
     }
 
     public void setVisible(boolean b) {
