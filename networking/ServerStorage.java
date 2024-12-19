@@ -1,6 +1,6 @@
 package networking;
 
-import java.util.List;
+import java.util.*;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
@@ -46,7 +46,7 @@ public class ServerStorage {
                 System.out.println("Connected to client: " + clientSocket.getInetAddress());
 
                 // 接收 Client 傳送的文字並存成檔案
-                ss.saveClientDataToFile(clientSocket);
+                ss.saveQuizToFile(clientSocket);
 
                 // 關閉 Client 連線
                 clientSocket.close();
@@ -56,7 +56,7 @@ public class ServerStorage {
         }
     }
 
-    public File saveClientDataToFile(Socket clientSocket) throws IOException {
+    public File saveQuizToFile(Socket clientSocket) throws IOException {
         try (DataInputStream reader = new DataInputStream(clientSocket.getInputStream())) {
             // 檔案名稱，例如 1.quiz、2.quiz
             File filePath = directory.resolve(fileCounter.getAndIncrement() + ".quiz").toFile();
@@ -71,13 +71,30 @@ public class ServerStorage {
         }
     }
 
-    public void sendClientQuiz(Socket clientSocket) throws IOException {
-        List<Path> filePaths = Files.list(directory).toList();
-        
-        String contents = Files.readString(filePaths.get(0), StandardCharsets.UTF_8);
+    public void sendQuiz(Socket clientSocket, String filename) throws IOException {
+        String contents = Files.readString(directory.resolve(filename), StandardCharsets.UTF_8);
 
         try (DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream())) {
             out.writeUTF(contents);
+        }
+    }
+    
+    public void sendClientQuizList(Socket clientSocket) throws IOException {
+        LinkedHashMap<String, String> quizNames = new LinkedHashMap<>();
+        for (Path p : Files.list(directory).toList()) {
+            String name;
+
+            try (BufferedReader reader = new BufferedReader(new FileReader(p.toFile(), StandardCharsets.UTF_8))) {
+                name = reader.readLine();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+
+            quizNames.put(p.toFile().getName(), name);
+        }
+        
+        try (ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream())) {
+            oos.writeObject(quizNames);
         }
     }
 }

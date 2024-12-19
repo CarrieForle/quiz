@@ -131,7 +131,7 @@ class GetQuizDialog extends JDialog {
         });
 
         remote.addActionListener(e -> {
-            RemoteQuizHandler handler = new RemoteQuizHandler();
+            RemoteQuizHandler handler = new RemoteQuizHandler(this);
             new LoginDialog(this, handler);
 
             if (handler.questionSet != null) {
@@ -152,20 +152,78 @@ class GetQuizDialog extends JDialog {
 
 class RemoteQuizHandler extends LoginHandler {
     public QuestionSet questionSet;
+    private Window parent;
 
+    public RemoteQuizHandler(Window parent) {
+        this.parent = parent;
+    }
+
+    @SuppressWarnings("unchecked")
     @Override
     public void login(LoginDialog dialog, String address, String name) {
         try (Socket socket = new Socket(address, 12345)) {
-            try (DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-            DataInputStream in = new DataInputStream(socket.getInputStream())) {
+            try (DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
                 out.writeUTF("$");
-                questionSet = new QuestionSet(in.readUTF());
+                LinkedHashMap<String, String> quizs;
+
+                try (ObjectInputStream ois = new ObjectInputStream(socket.getInputStream())) {
+                    quizs = (LinkedHashMap<String, String>) ois.readObject();
+                }
+
                 dialog.dispose();
+                ChooseQuizDialog chooseQuizDialog = new ChooseQuizDialog(this.parent, quizs, address);
+                this.questionSet = chooseQuizDialog.questionSet;
             }
         } catch (IOException e) {
             Common.connectionFailedMessage(dialog, e);
-        } catch (CorruptedQuestionsException e) {
-            Common.errorMessage(dialog, "Failed to parse quiz");
+        } catch (ClassNotFoundException e) {
+
         }
+    }
+}
+
+class ChooseQuizDialog extends JDialog {
+    public QuestionSet questionSet;
+
+    public ChooseQuizDialog(Window parent, LinkedHashMap<String, String> quizs, String address) {
+        super(parent, "Quiz List", JDialog.ModalityType.DOCUMENT_MODAL);
+        setSize(400, 400);
+        setLayout(new BorderLayout(0, 10));
+        setIconImage(Resource.icon.getImage());
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
+        String[] names = quizs.values().toArray(new String[0]);
+        String[] ids = quizs.keySet().toArray(new String[0]);
+
+        JList<String> list = new JList<>(names);
+        list.setSelectedIndex(0);;
+        JButton submitButton = new JButton("Submit");
+        add(new JScrollPane(list), BorderLayout.CENTER);
+
+        submitButton.addActionListener(e -> {
+            String id = ids[list.getSelectedIndex()];
+
+            try (Socket socket = new Socket(address, 12345)) {
+                try (DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+                    DataInputStream in = new DataInputStream(socket.getInputStream())) {
+                        
+                    out.writeUTF("$" + id);
+                    questionSet = new QuestionSet(in.readUTF());
+                    this.dispose();
+                }
+            } catch (IOException ex) {
+                Common.connectionFailedMessage(this, ex);
+            } catch (CorruptedQuestionsException ex) {
+                Common.errorMessage(this, "Failed to parse quiz from server");
+            }
+        });
+
+        add(new JLabel("Choose a quiz to play", JLabel.CENTER), BorderLayout.NORTH);
+        JPanel panel = new JPanel();
+        panel.add(submitButton);
+        add(panel, BorderLayout.SOUTH);
+
+        setLocationRelativeTo(getParent());
+        setVisible(true);
     }
 }

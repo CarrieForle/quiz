@@ -354,62 +354,98 @@ public class Server implements ServerEventHandler, AutoCloseable {
         return this.leaderboard;
     }
     
-    private void run() {
-        try {
-            while (true) {
-                SocketDispatcher.Data data = this.dispatcher.accept();
-                
-                this.data = data.data;
-                this.lock.lock();
+    private void run() throws IOException, InterruptedException {
+        while (true) {
+            SocketDispatcher.Data data = this.dispatcher.accept();
+            
+            this.data = data.data;
+            this.lock.lock();
 
-                System.out.format("A new connection of %s\n", data.type);
+            System.out.format("A new connection of %s\n", data.type);
 
-                try {
-                    switch (data.type) {
-                        case SINGLEPLAYER:
-                            if (this.quiz_transmission != null) {
-                                this.quiz_transmission.join();
-                            }
+            try {
+                switch (data.type) {
+                    case SINGLEPLAYER:
+                        if (this.quiz_transmission != null) {
+                            this.quiz_transmission.join();
+                        }
 
-                            this.quiz_transmission = new Thread(() -> {
-                                try {
-                                    this.storage.sendClientQuiz(data.socket);
+                        this.quiz_transmission = new Thread(() -> {
+                            String filename = (String) this.data;
+
+                            try {
+                                if (filename == null || filename.isEmpty()) {
+                                    this.storage.sendClientQuizList(data.socket);
+                                    System.out.println("Quiz list is sent");
+                                } else {
+                                    this.storage.sendQuiz(data.socket, filename);
                                     System.out.println("Quiz is sent");
-                                } catch (IOException e) {
-                                    System.out.format("Failed to send quiz: %s\n", e.getMessage());
                                 }
-                            });
-                            this.quiz_transmission.start();
+                            }  catch (IOException e) {
+                                System.out.format("Failed to send quiz: %s\n", e.getMessage());
+                            }
+                        });
+
+                        this.quiz_transmission.start();
+                        break;
+                    case MULTIPLAYER:
+                        Participant incoming = (Participant) this.data;
+                        DataOutputStream dos = new DataOutputStream(incoming.socket.getOutputStream());
+
+                        if (!is_game_end.get()) {
+                            dos.writeUTF("The game has already started");
+                            incoming.socket.close();
                             break;
-                        case MULTIPLAYER:
-                            this.new_client.signal();
+                        }
+
+                        if (this.clients.size() == CLIENT_NUM) {
+                            dos.writeUTF("The room is full");
+                            incoming.socket.close();
                             break;
-                        case QUIZ_UPLOAD:
-                            if (this.quiz_transmission != null) {
-                                this.quiz_transmission.join();
+                        }
+
+                        synchronized (this.clients) {
+                            boolean is_name_duplicated = false;
+
+                            for (Participant p : this.clients) {
+                                if (incoming.name.equals(p.name)) {
+                                    is_name_duplicated = true;
+                                    break;
+                                }
                             }
 
-                            this.quiz_transmission = new Thread(() -> {
-                                try {
-                                    this.storage.saveClientDataToFile(data.socket);
-                                    System.out.println("New quiz is uploaded");
-                                } catch (IOException e) {
-                                    System.out.format("Failed to receive uploaded quiz: %s\n", e.getMessage());
-                                }
-                            });
-                            this.quiz_transmission.start();
-                            break;
-                        default:
-                            break;
-                    }
-                } finally {
-                    this.lock.unlock();
+                            if (is_name_duplicated) {
+                                dos.writeUTF(String.format("A player named \"%s\" is already playing", incoming.name));
+                                incoming.socket.close();
+                                break;
+                            }
+                        }
+
+                        dos.writeUTF("OK");
+                        this.new_client.signal();
+                        break;
+                    case QUIZ_UPLOAD:
+                        if (this.quiz_transmission != null) {
+                            this.quiz_transmission.join();
+                        }
+
+                        this.quiz_transmission = new Thread(() -> {
+                            try {
+                                this.storage.saveQuizToFile(data.socket);
+                                System.out.println("New quiz is uploaded");
+                            } catch (IOException e) {
+                                System.out.format("Failed to receive uploaded quiz: %s\n", e.getMessage());
+                            }
+                        });
+
+                        this.quiz_transmission.start();
+                        break;
+                    default:
+                        break;
                 }
+            } finally {
+                this.lock.unlock();
             }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } catch (InterruptedException ex) {
-            ex.printStackTrace();
         }
     }
 
