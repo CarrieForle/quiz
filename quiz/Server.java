@@ -21,11 +21,11 @@ import utils.*;
 import utils.exceptions.*;
 
 public class Server implements ServerEventHandler, AutoCloseable {
-    private static final int CLIENT_NUM = 4;
+    private final int MAX_NUM;
     private ServerSocket server_socket;
     // Thread-safe list
-    private List<Participant> clients = Collections.synchronizedList(new ArrayList<>(CLIENT_NUM));
-    private Thread[] client_threads = new Thread[CLIENT_NUM];
+    private List<Participant> clients;
+    private Thread[] client_threads;
     private Thread quiz_transmission;
     private Thread multiplayer;
     private final Queue<Integer> available_ids = new ArrayDeque<>();
@@ -33,7 +33,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
     private ServerStorage storage = new ServerStorage(QUIZ_DIRECTORY);
     private QuestionSet question_set;
     private QuestionWithAnswer running_question;
-    private static final int MINIMUM_CLIENT_NUM = 2;
+    private final int MIN_NUM;
     private EventBus eventBus = new EventBus();
     private Lock lock = new ReentrantLock();
     private Condition game_start = lock.newCondition();
@@ -45,22 +45,48 @@ public class Server implements ServerEventHandler, AutoCloseable {
 
     public static void main(String[] args) {
         int port = 12345;
-
+        int min = 2;
+        int max = 4;
+        
         try (ServerSocket socket = new ServerSocket(port)) {
-            try (Server server = new Server(socket)) {
+            if (args.length >= 1) {
+                min = Integer.parseInt(args[0]);
+            }
+
+            if (args.length >= 2) {
+                max = Integer.parseInt(args[1]);
+            }
+
+            if (min > max) {
+                throw new IllegalArgumentException(String.format("min must be smaller than or equal to max, but %d > %d", min, max));
+            }
+            
+            if (min < 1) {
+                throw new IllegalArgumentException("min must be at least 1");
+            }
+
+            try (Server server = new Server(socket, min, max)) {
                 server.run();
             }
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
+        } catch (NumberFormatException e) {
+            System.out.println("Argument must be a number. The server terminated.");
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
         }
     }
 
-    public Server(ServerSocket server_socket) throws IOException, InterruptedException {
+    public Server(ServerSocket server_socket, int min_client, int max_client) throws IOException, InterruptedException {
         this.server_socket = server_socket;
+        this.MIN_NUM = min_client;
+        this.MAX_NUM = max_client;
+        this.clients = Collections.synchronizedList(new ArrayList<>(MAX_NUM));
+        this.client_threads = new Thread[MAX_NUM];
 
-        for (int i = 0; i < CLIENT_NUM; i++) {
+        for (int i = 0; i < MAX_NUM; i++) {
             this.available_ids.add(i);
         }
 
@@ -256,7 +282,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
                         this.lock.lock();
 
                         try {
-                            while (this.clients.size() < MINIMUM_CLIENT_NUM) {
+                            while (this.clients.size() < MIN_NUM) {
                                 this.game_start.await();
                             }
 
@@ -270,7 +296,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
                             freeClient(client);
                         } catch (SocketTimeoutException e) {
                             Thread.sleep(100);
-                            if (this.clients.size() >= MINIMUM_CLIENT_NUM) {
+                            if (this.clients.size() >= MIN_NUM) {
                                 break;
                             }
                         }
@@ -393,7 +419,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
                             break;
                         }
 
-                        if (this.clients.size() == CLIENT_NUM) {
+                        if (this.clients.size() == MAX_NUM) {
                             dos.writeUTF("The room is full");
                             incoming.socket.close();
                             break;
