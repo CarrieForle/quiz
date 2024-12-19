@@ -23,7 +23,7 @@ public abstract class Leaderboard extends JFrame {
         };
     }
 
-    public static class Player {
+    public static class Player implements Serializable {
         String name;
         int score;
 
