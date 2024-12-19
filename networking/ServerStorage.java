@@ -6,15 +6,26 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class ServerStorage {
     // 用於生成遞增的檔案名稱
-    private final AtomicInteger fileCounter = new AtomicInteger(1);
+    private AtomicLong fileCounter;
     private final Path directory;
 
-    public ServerStorage(Path directory) {
+    public ServerStorage(Path directory) throws IOException {
         this.directory = directory;
+
+        List<Path> paths = Files.list(directory)
+            .filter(x -> !x.toFile().isDirectory()).toList();
+
+        for (long i = 1; i < Long.MAX_VALUE; i++) {
+            final long finali = i;
+            if (!paths.stream().anyMatch(x -> x.endsWith(String.format("%d.quiz", finali)))) {
+                fileCounter = new AtomicLong(i);
+                break;
+            }
+        }
     }
 
     public static void main(String[] args) {
