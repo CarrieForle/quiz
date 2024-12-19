@@ -6,29 +6,18 @@ import gui.Leaderboard.Player;
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
-import java.util.Timer;
 
 public class Client implements AutoCloseable {
-    private static final String SERVER_ADDRESS = "26.198.51.130";
-    private static final int SERVER_PORT = 12345;
     private Socket socket;
-    private Timer t = new Timer();
 
     public Client(Socket socket){
         this.socket = socket;
     }
 
     public static void main(String[] args) {
-        MainMenu menu = new MainMenu();
+        new MainMenu();
     }
-    public void connectToServer(){
-        try {
-            Socket socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
-            Client p = new Client(socket);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+    
     public String getQuestion() throws IOException {
         DataInputStream in = new DataInputStream(this.socket.getInputStream());
         String question = in.readUTF();
@@ -65,7 +54,7 @@ public class Client implements AutoCloseable {
         out.flush();
     }
     
-    public boolean CheckEnd() throws IOException {
+    public boolean checkEnd() throws IOException {
         DataInputStream in = new DataInputStream(this.socket.getInputStream());
         boolean check = in.readBoolean();
         if(check){
@@ -86,25 +75,22 @@ public class Client implements AutoCloseable {
         int rank = in.readInt();
         return rank;
     }
-    public void Leaderborad(){
-        try{
+    
+    @SuppressWarnings("unchecked")
+    public ArrayList<Leaderboard.Player> leaderborad() throws IOException {
+        try {
             ObjectInputStream ois = new ObjectInputStream(this.socket.getInputStream());
-            @SuppressWarnings("unchecked")
-            ArrayList<Leaderboard.Player> Leaderboard = (ArrayList<Player>) ois.readObject();
-            Player firstPlayer = Leaderboard.get(0);
-            System.out.println(firstPlayer.name);
-        }catch(Exception e){
-            e.printStackTrace();
+            
+            return (ArrayList<Player>) ois.readObject();
+        } catch (ClassNotFoundException e) {
+            // Impossible
+            return null;
         }
-
     }
     public long getTimeStamp() throws IOException {
         DataInputStream in = new DataInputStream(this.socket.getInputStream());
         long timestamp = in.readLong();
         return timestamp;
-    }
-    public Timer getTimer() {
-        return t;
     }
     
     @Override

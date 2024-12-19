@@ -120,6 +120,10 @@ public abstract class AnswerFrame {
         frame.setVisible(b);
     }
 
+    public JFrame getFrame() {
+        return frame;
+    }
+
     private JTextArea getJTextArea() {
         JTextArea area = new JTextArea();
         area.setLineWrap(true);
@@ -181,10 +185,7 @@ public abstract class AnswerFrame {
 
     }
 
-    protected void showLeaderboard() {
-        
-    }
-    
+    protected abstract void showLeaderboard();
     protected abstract int getScore();
     protected abstract int getRank();
     protected abstract Question getNextQuestion();

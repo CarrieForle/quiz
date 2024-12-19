@@ -5,15 +5,14 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import quiz.Server;
 
-import java.awt.BorderLayout;
-import java.awt.Window;
+import java.awt.*;
 import java.awt.event.*;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.Iterator;
-
+import java.util.*;
+import java.util.List;
 import java.net.Socket;
 
 import utils.*;
@@ -79,8 +78,14 @@ public class SingleplayerClient extends AnswerFrame {
     }
 
     @Override
-    protected void onTimeExceed() {
-        
+    protected void showLeaderboard() {
+        Leaderboard.Player me = new Leaderboard.Player("You", score);
+        new Leaderboard(new ArrayList<Leaderboard.Player>(List.of(me)), me) {
+            @Override
+            protected void onContinue() {
+                SingleplayerClient.runQuizDialog(new MainMenu().getFrame());
+            }
+        };
     }
 }
 

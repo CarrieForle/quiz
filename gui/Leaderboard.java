@@ -16,7 +16,7 @@ public abstract class Leaderboard extends JFrame {
             new Player("Tom", 6)
         };
 
-        new Leaderboard(List.of(players), players[3]) {
+        new Leaderboard(List.of(players), players[1]) {
             @Override
             protected void onContinue() {
                 
@@ -86,31 +86,42 @@ public abstract class Leaderboard extends JFrame {
         scores[0].setBounds(120, 50, 60, 20);
 
         // Second place
-        names[1].setBounds(40, 60, 60, 20);
-        scores[1].setBounds(40, 80, 60, 20);
+        names[1].setBounds(35, 60, 60, 20);
+        scores[1].setBounds(35, 80, 60, 20);
 
         // Third place
-        names[2].setBounds(200, 80, 60, 20);
-        scores[2].setBounds(200, 100, 60, 20);
+        names[2].setBounds(205, 80, 60, 20);
+        scores[2].setBounds(205, 100, 60, 20);
 
         this.add(podiumPanel);
 
-        boolean in_top_three = false;
-        for (int i = 0; i < 3; i++) {
-            if (me == players.get(i)) {
-                in_top_three = true;
-                break;
-            }
-        }
+        int rank = players.indexOf(me) + 1;
 
-        // Score and Rank (Dynamic)
-        if (!in_top_three) {
+        if (rank == 1) {
+            JLabel winner = new JLabel("YOU WIN!");
+            Color nameColor = new Color(228, 94, 16);
+            names[rank - 1].setForeground(nameColor);
+            scores[rank - 1].setForeground(nameColor);
+            winner.setFont(winner.getFont().deriveFont(20f));
+            winner.setForeground(nameColor);
+            winner.setBounds(145, 240, 200, 30);
+            this.add(winner);
+        }
+        else if (rank <= 3) {
+            JLabel goodJob = new JLabel("You are in the TOP 3");
+            names[rank - 1].setForeground(Color.RED);
+            scores[rank - 1].setForeground(Color.RED);
+            goodJob.setFont(goodJob.getFont().deriveFont(16f));
+            goodJob.setForeground(Color.RED);
+            goodJob.setBounds(110, 240, 200, 30);
+            this.add(goodJob);
+        } else {
             JLabel scoreLabel = new JLabel("Score: " + me.score);
-            scoreLabel.setBounds(140, 220, 200, 30);
+            scoreLabel.setBounds(160, 230, 200, 30);
             this.add(scoreLabel);
 
             JLabel rankLabel = new JLabel("Rank: " + (players.indexOf(me) + 1));
-            rankLabel.setBounds(140, 250, 200, 30);
+            rankLabel.setBounds(160, 250, 200, 30);
             this.add(rankLabel);
         }
 

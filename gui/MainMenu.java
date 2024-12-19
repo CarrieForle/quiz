@@ -1,14 +1,9 @@
 package gui;
 
-import java.io.IOException;
-import java.net.Socket;
-
 import javax.swing.*;
 
-import utils.Common;
-
 public class MainMenu {
-    JFrame menuFrame;
+    private JFrame menuFrame;
 
     public static void main(String[] args) {
         new MainMenu();
@@ -34,8 +29,8 @@ public class MainMenu {
         JButton multiplayerButton = new JButton("Multiplayer");
         multiplayerButton.setBounds(130, 100, 140, 30);
         menuFrame.add(multiplayerButton);
-        multiplayerButton.addActionListener(e -> { 
-            new LoginDialog(menuFrame, new MultiplayerLogin(menuFrame));
+        multiplayerButton.addActionListener(e -> {
+            new LoginDialog(menuFrame, new MultiplayerLoginHandler(menuFrame));
         });
 
         // Ask Question Button
@@ -56,24 +51,8 @@ public class MainMenu {
         menuFrame.setLocationRelativeTo(null);
         menuFrame.setVisible(true);
     }
-}
-
-class MultiplayerLogin extends LoginHandler {
-    private JFrame parent;
-
-    public MultiplayerLogin(JFrame parent) {
-        this.parent = parent;
-    }
-
-    @Override
-    public void login(LoginDialog dialog, String address, String name) {  
-        try {
-            Socket socket = new Socket(address, 12345);
-            parent.dispose();
-            MultiplayerClient client = new MultiplayerClient(socket, name);
-            dialog.dispose();
-        } catch (IOException e) {
-            Common.connectionFailedMessage(parent, e);
-        }
+    
+    public JFrame getFrame() {
+        return menuFrame;
     }
 }

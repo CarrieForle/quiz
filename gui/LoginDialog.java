@@ -90,8 +90,6 @@ public class LoginDialog extends JDialog {
         JButton submitButton = new JButton("Submit");
         submitButtonPanel.add(submitButton);
         add(submitButtonPanel, BorderLayout.SOUTH);
-
-        final LoginDialog self = this;
         
         submitButton.addActionListener(e -> {
             String playerName = this.nameField.getText();

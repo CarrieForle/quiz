@@ -2,17 +2,20 @@ package gui;
 
 import java.awt.event.*;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.Socket;
+import java.util.List;
 
 import quiz.Client;
+import utils.Common;
 import utils.Question;
 
 public class MultiplayerClient extends AnswerFrame {
     private Question question = new Question();
     private Client p;
+    private String name;
     private int score = 0;
     private int rank = 1;
+    private List<Leaderboard.Player> leaderboard;
 
     public static void main(String[] args) {
         try {
@@ -25,6 +28,7 @@ public class MultiplayerClient extends AnswerFrame {
     }
 
     public MultiplayerClient(Socket socket, String name) throws IOException {
+        this.name = name;
         p = new Client(socket);
         p.setName(name);
         setVisible(true);
@@ -34,11 +38,15 @@ public class MultiplayerClient extends AnswerFrame {
     @Override
     protected Question getNextQuestion() {
         try {
+            if (leaderboard != null) {
+                return null;
+            }
+            
             question.question = p.getQuestion();
             question.setOptions(p.getOptions());
             long timeLimit = p.getTimeStamp();
-        } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
+        } catch (IOException e) {
+            disconnect(e);
         }
 
         return question;
@@ -52,7 +60,7 @@ public class MultiplayerClient extends AnswerFrame {
             p.writeTimeStamp(timestamp);
             receiveData();
         } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
+            disconnect(ex);
         }
     }
 
@@ -61,7 +69,7 @@ public class MultiplayerClient extends AnswerFrame {
         try {
             p.close();
         } catch (IOException ex) {
-            ex.printStackTrace();
+            disconnect(ex);
         }
     }
 
@@ -72,7 +80,7 @@ public class MultiplayerClient extends AnswerFrame {
             p.writeTimeStamp(0);
             receiveData();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            disconnect(e);
         }
     }
 
@@ -86,8 +94,39 @@ public class MultiplayerClient extends AnswerFrame {
         return rank;
     }
 
+    @Override
+    protected void showLeaderboard() {
+        try {
+            p.close();
+        } catch (IOException e) {
+
+        }
+
+        Leaderboard.Player me = null;
+
+        for (Leaderboard.Player player : leaderboard) {
+            if (player.name.equals(name) && player.score == score) {
+                me = player;
+                break;
+            }
+        }
+
+        if (me == null) {
+            System.out.println("I am not in the leaderboard");
+            return;
+        }
+
+        new Leaderboard(leaderboard, me) {
+            @Override
+            protected void onContinue() {
+                MainMenu menu = new MainMenu();
+                new LoginDialog(menu.getFrame(), new MultiplayerLoginHandler(menu.getFrame()));
+            }
+        };
+    }
+
     private void receiveData() throws IOException {
-        boolean isEnd = p.CheckEnd();
+        boolean isEnd = p.checkEnd();
 
         score = p.getScore();
         System.out.printf("分數為%d", score);
@@ -95,8 +134,15 @@ public class MultiplayerClient extends AnswerFrame {
         System.out.printf("名次為%d", rank);
 
         if (isEnd) {
-            p.Leaderborad();
+            leaderboard = p.leaderborad();
             System.out.printf("sus");
         }
+    }
+
+    private void disconnect(IOException e) {
+        Common.errorMessage(getFrame(), "Disconnected");
+        onWindowClosing(null);
+        getFrame().dispose();
+        new MainMenu();
     }
 }
