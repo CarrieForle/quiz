@@ -87,14 +87,16 @@ public class MultiplayerClient extends AnswerFrame {
     }
 
     private void receiveData() throws IOException {
-        if (p.CheckEnd()) {
-           p.Leaderborad();
-            System.out.printf("sus");
-        }
+        boolean isEnd = p.CheckEnd();
 
         score = p.getScore();
         System.out.printf("分數為%d", score);
         rank = p.getRank();
         System.out.printf("名次為%d", rank);
+
+        if (isEnd) {
+            p.Leaderborad();
+            System.out.printf("sus");
+        }
     }
 }

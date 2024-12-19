@@ -88,8 +88,7 @@ public class Client implements AutoCloseable {
     }
     public void Leaderborad(){
         try{
-            DataInputStream in = new DataInputStream(this.socket.getInputStream());
-            ObjectInputStream ois = new ObjectInputStream(in);
+            ObjectInputStream ois = new ObjectInputStream(this.socket.getInputStream());
             @SuppressWarnings("unchecked")
             ArrayList<Leaderboard.Player> Leaderboard = (ArrayList<Player>) ois.readObject();
             Player firstPlayer = Leaderboard.get(0);
