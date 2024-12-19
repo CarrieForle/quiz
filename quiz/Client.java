@@ -5,7 +5,7 @@ import java.io.*;
 import java.net.*;
 import java.util.Timer;
 
-public class Client {
+public class Client implements AutoCloseable {
     private static final String SERVER_ADDRESS = "26.198.51.130";
     private static final int SERVER_PORT = 12345;
     private Socket socket;
@@ -22,12 +22,6 @@ public class Client {
         try {
             Socket socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
             Client p = new Client(socket);
-            // p.setName("Kuei");
-            // p.getQuestion();
-            // p.writeAns(0);
-            // p.writeTimeStamp();
-
-            
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -98,12 +92,9 @@ public class Client {
     public Timer getTimer() {
         return t;
     }
-    private void uploadToServer(File file) throws IOException {
-        try (FileInputStream fileInputStream = new FileInputStream(file)) {
-            DataOutputStream dataOutputStream = new DataOutputStream(this.socket.getOutputStream());
-
-            String contents = new String(fileInputStream.readAllBytes());
-            dataOutputStream.writeUTF(contents);
-        }
+    
+    @Override
+    public void close() throws IOException {
+        socket.close();
     }
 }

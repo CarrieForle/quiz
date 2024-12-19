@@ -33,7 +33,7 @@ public class MakeQuizFrame extends JFrame {
     private String cached_address = null;
 
     public static void main(String[] args) {
-        MakeQuizFrame f = new MakeQuizFrame();
+        new MakeQuizFrame();
     }
 
     public MakeQuizFrame() {
@@ -141,13 +141,13 @@ public class MakeQuizFrame extends JFrame {
                 index = Integer.parseInt(input);
 
                 if (index < 1 || index > this.quizBuilder.size() + 1) {
-                    JOptionPane.showMessageDialog(this, "Number is out of bound.", "Error", JOptionPane.ERROR_MESSAGE);
+                    Common.errorMessage(this, "Number is out of bound");
                     continue;
                 }
 
                 break;
             } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "You must enter a number.", "Error", JOptionPane.ERROR_MESSAGE);
+                Common.errorMessage(this, "You must enter a number");
             }
         }
 
@@ -234,9 +234,9 @@ public class MakeQuizFrame extends JFrame {
                 this.constructButtons();
             } catch (IOException e) {
                 e.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Failed to load quiz.", "Error", JOptionPane.ERROR_MESSAGE);
+                Common.errorMessage(this, "Failed to load quiz", e);
             } catch (CorruptedQuestionsException e) {
-                JOptionPane.showMessageDialog(this, String.format("Failed to parse quiz: %s", e.getMessage()), "Error", JOptionPane.ERROR_MESSAGE);
+                Common.errorMessage(this, "Failed to parse quiz", e);
             }
         }
     }
@@ -254,7 +254,7 @@ public class MakeQuizFrame extends JFrame {
             name = name.trim();
 
             if (name.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "The quiz name must not be blank", "Error", JOptionPane.ERROR_MESSAGE);
+                Common.errorMessage(this, "The quiz name must not be blank");
                 continue;
             }
 
@@ -282,9 +282,9 @@ public class MakeQuizFrame extends JFrame {
                         failed = false;
                         JOptionPane.showMessageDialog(self, "Upload succeeded", "Success", JOptionPane.INFORMATION_MESSAGE);
                     } catch (UnknownHostException ex) {
-                        JOptionPane.showMessageDialog(self, String.format("Failed to resolve server address", ex.getMessage()), "Error", JOptionPane.ERROR_MESSAGE);
+                        Common.errorMessage(self, "Failed to resolve server address", ex);
                     } catch (IOException ex) {
-                        JOptionPane.showMessageDialog(self, String.format("Failed to upload quiz to server: %s", ex.getMessage()), "Error", JOptionPane.ERROR_MESSAGE);
+                        Common.errorMessage(self, "Failed to upload quiz to server", ex);
                     }
                     
                     dialog.setVisible(failed);

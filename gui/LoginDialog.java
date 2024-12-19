@@ -1,6 +1,9 @@
 package gui;
 
 import javax.swing.*;
+
+import utils.Common;
+
 import java.awt.*;
 import java.util.Random;
 
@@ -21,11 +24,12 @@ public class LoginDialog extends JDialog {
         l.setVisible(true);
     }
 
-    public LoginDialog(JFrame parent, LoginHandler handler) {
-        super(parent, "刷題趣！", Dialog.ModalityType.DOCUMENT_MODAL);
+    public LoginDialog(Window parent, LoginHandler handler) {
+        super(parent, "Login", Dialog.ModalityType.DOCUMENT_MODAL);
         setSize(400, 220);
         setLayout(new BorderLayout());
         setIconImage(Resource.icon.getImage());
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         this.handler = handler;
 
@@ -86,6 +90,8 @@ public class LoginDialog extends JDialog {
         JButton submitButton = new JButton("Submit");
         submitButtonPanel.add(submitButton);
         add(submitButtonPanel, BorderLayout.SOUTH);
+
+        final LoginDialog self = this;
         
         submitButton.addActionListener(e -> {
             String playerName = this.nameField.getText();
@@ -93,11 +99,11 @@ public class LoginDialog extends JDialog {
 
             // Validate inputs
             if (playerName == null || playerName.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Name is required.", "Error", JOptionPane.ERROR_MESSAGE);
+                Common.errorMessage(this, "Name is required.");
                 return;
             }
             if (serverAddress == null || serverAddress.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Server address is required.", "Error", JOptionPane.ERROR_MESSAGE);
+                Common.errorMessage(this, "Server address is required.");
                 return;
             }
 
@@ -113,6 +119,7 @@ public class LoginDialog extends JDialog {
         this.serverField.setText("127.0.0.1");
 
         setLocationRelativeTo(getParent());
+        setVisible(true);
     }
 
     public void setName(String name) {

@@ -1,5 +1,9 @@
 package utils;
 
+import java.awt.Component;
+
+import javax.swing.JOptionPane;
+
 public class Common {
     public static void main(String[] args) {
         String[] test_cases = {
@@ -30,6 +34,10 @@ public class Common {
             return "Username must not be blank or contain only whitespace";
         }
 
+        if (username.startsWith("$")) {
+            return "Username must not start with '$'";
+        }
+
         username = username.trim();
 
         if (username.length() > 16) {
@@ -37,5 +45,17 @@ public class Common {
         }
 
         return null;
+    }
+
+    public static void errorMessage(Component parent, String message) {
+        JOptionPane.showMessageDialog(parent, message, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+    public static void errorMessage(Component parent, String prefix, Exception e) {
+        errorMessage(parent, String.format("%s: %s", prefix, e.getMessage()));
+    }
+
+    public static void connectionFailedMessage(Component parent, Exception e) {
+        errorMessage(parent, "Failed to connect to server", e);
     }
 }

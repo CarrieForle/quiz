@@ -2,17 +2,25 @@ package gui;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 
-public class Leaderboard extends JFrame {
-    private static JLabel scoreLabel;
-    private static JLabel rankLabel;
-    private List<Player> players;
-
+public abstract class Leaderboard extends JFrame {
     public static void main(String[] args) {
-        Player p = new Player("Bob", 1);
-        new Leaderboard(List.of(p), p);
+        Player[] players = { 
+            new Player("Bob", 1),
+            new Player("Jennifer", 2),
+            new Player("Jimmy", 3),
+            new Player("Patrick", 4),
+            new Player("Becky", 5),
+            new Player("Tom", 6)
+        };
+
+        new Leaderboard(List.of(players), players[3]) {
+            @Override
+            protected void onContinue() {
+                
+            }
+        };
     }
 
     public static class Player {
@@ -26,10 +34,9 @@ public class Leaderboard extends JFrame {
     }
 
     public Leaderboard(List<Player> players, Player me) {
-        this.players = players;
         this.setTitle("Leaderboard");
         this.setSize(400, 400);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         this.setLayout(null);
         this.setResizable(false);
         this.setIconImage(Resource.icon.getImage());
@@ -97,11 +104,11 @@ public class Leaderboard extends JFrame {
 
         // Score and Rank (Dynamic)
         if (!in_top_three) {
-            scoreLabel = new JLabel("Score: 0");
+            JLabel scoreLabel = new JLabel("Score: " + me.score);
             scoreLabel.setBounds(140, 220, 200, 30);
             this.add(scoreLabel);
-    
-            rankLabel = new JLabel("Ranking: 0");
+
+            JLabel rankLabel = new JLabel("Rank: " + (players.indexOf(me) + 1));
             rankLabel.setBounds(140, 250, 200, 30);
             this.add(rankLabel);
         }
@@ -109,12 +116,16 @@ public class Leaderboard extends JFrame {
         // Buttons
         JButton continueButton = new JButton("Continue");
         continueButton.setBounds(80, 300, 100, 30);
+        continueButton.addActionListener(e -> {
+            this.dispose();
+            onContinue();
+        });
         this.add(continueButton);
 
         JButton quitButton = new JButton("Quit");
         quitButton.setBounds(220, 300, 100, 30);
         quitButton.addActionListener(e -> {
-            dispose();
+            this.dispose();
             new MainMenu();
         });
 
@@ -123,4 +134,6 @@ public class Leaderboard extends JFrame {
         this.setLocationRelativeTo(null);
         this.setVisible(true);
     }
+    
+    protected abstract void onContinue();
 }

@@ -5,35 +5,37 @@ import java.net.Socket;
 
 import javax.swing.*;
 
+import utils.Common;
+
 public class MainMenu {
     JFrame menuFrame;
-    private static ImageIcon icon;
 
     public static void main(String[] args) {
         new MainMenu();
     }
 
     public MainMenu() {
-        this.menuFrame = new JFrame("Game Menu");
-        this.menuFrame.setSize(400, 300);
-        this.menuFrame.setLayout(null);
-        this.menuFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.menuFrame.setResizable(false);
-        this.menuFrame.setIconImage(Resource.icon.getImage());
+        menuFrame = new JFrame("Game Menu");
+        menuFrame.setSize(400, 300);
+        menuFrame.setLayout(null);
+        menuFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        menuFrame.setResizable(false);
+        menuFrame.setIconImage(Resource.icon.getImage());
 
         // Single Player Mode Button
-        JButton singlePlayerButton = new JButton("Single Player");
-        singlePlayerButton.setBounds(130, 50, 140, 30);
-        menuFrame.add(singlePlayerButton);
-        // singleplayerButton.addActionListener();
+        JButton singleplayerButton = new JButton("Singleplayer");
+        singleplayerButton.setBounds(130, 50, 140, 30);
+        menuFrame.add(singleplayerButton);
+        singleplayerButton.addActionListener(e -> {
+            SingleplayerClient.runQuizDialog(menuFrame);
+        });
 
         // Multiplayer Mode Button
         JButton multiplayerButton = new JButton("Multiplayer");
         multiplayerButton.setBounds(130, 100, 140, 30);
         menuFrame.add(multiplayerButton);
         multiplayerButton.addActionListener(e -> { 
-            LoginDialog dialog = login(new MultiplayerLogin(menuFrame));
-            dialog.setVisible(true);
+            new LoginDialog(menuFrame, new MultiplayerLogin(menuFrame));
         });
 
         // Ask Question Button
@@ -54,10 +56,6 @@ public class MainMenu {
         menuFrame.setLocationRelativeTo(null);
         menuFrame.setVisible(true);
     }
-
-    private LoginDialog login(LoginHandler handler) {
-        return new LoginDialog(menuFrame, handler);
-    }
 }
 
 class MultiplayerLogin extends LoginHandler {
@@ -71,11 +69,11 @@ class MultiplayerLogin extends LoginHandler {
     public void login(LoginDialog dialog, String address, String name) {  
         try {
             Socket socket = new Socket(address, 12345);
-            dialog.setVisible(false);
-            parent.setVisible(false);
+            parent.dispose();
             MultiplayerClient client = new MultiplayerClient(socket, name);
+            dialog.dispose();
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(parent, "Unable to connect to server", "Error", JOptionPane.ERROR_MESSAGE);
+            Common.connectionFailedMessage(parent, e);
         }
     }
 }

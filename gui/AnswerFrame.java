@@ -1,113 +1,186 @@
 package gui;
 
 import javax.swing.*;
+
+import utils.Question;
+
 import java.awt.*;
+import java.awt.event.*;
 
-public class AnswerFrame {
+import java.util.TimerTask;
+import java.util.Timer;
+
+public abstract class AnswerFrame {
     private JFrame frame;
-
-    public static void main(String[] args) {
-        AnswerFrame f = new AnswerFrame();
-    }
+    private Timer timer = new Timer();
+    private TimerTask countdownTask;
+    private JLabel scoreLabel = new JLabel("Score: 0");
+    private JLabel timeLabel = new JLabel("", JLabel.CENTER);
+    private JLabel rankLabel = new JLabel("Rank: 1");
+    private JTextArea questionArea = getJTextArea();
+    private JScrollPane questionScrollArea = new JScrollPane(questionArea);
+    private JProgressBar timebar = new JProgressBar(0, 100);
+    private JTextArea[] optionAreas = new JTextArea[4];
+    private JButton[] answerButtons = new JButton[4];
+    private JScrollPane[] optionScrollAreas = new JScrollPane[4];
+    protected int score = 0;
+    protected int ranking = 1;
 
     public AnswerFrame() {
         frame = new JFrame("刷題趣！");
-        frame.setSize(600, 400);
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setLayout(null);
-        frame.setResizable(false);
+        frame.setSize(600, 550);
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        frame.setIconImage(Resource.icon.getImage());
 
-        JTextArea questionArea = new JTextArea("便利商店因週年慶而提供折扣優惠，只要消費滿99元就可從紙盒中隨機抽一球來決定該筆消費的折扣數（每顆球被抽到的機率相等）。店家已在盒中放了9顆球，其中寫著6折和7折的各有1顆、9折2顆、95折5顆。令隨機變數X代表消費100元的顧客在折扣後需要付的金額（元），哪個程式片段可以求得X的期望值是多少？\n" + //
-        "已宣告二維陣列array2D儲存(折扣數,球數)。 \n" + //
-        "double[,] array2D = new double[4,2]{{0.6,1},{0.7,1},{0.9,2},{0.95,5}};");
-        
-        questionArea.setLineWrap(true);
-        questionArea.setEditable(false);
-        questionArea.setOpaque(false);
-        questionArea.setFocusable(false);
-        questionArea.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(questionArea);
-        scrollPane.setOpaque(false);
-        scrollPane.setBounds(50, 50, 500, 50);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        frame.add(scrollPane);
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                onWindowClosing(e);
+                frame.dispose();
+                new MainMenu();
+            }
+        });
 
-        JLabel timeLabel = new JLabel("Time: ");
-        timeLabel.setBounds(0, 280, 100, 50);
-        frame.add(timeLabel);
+        questionArea.setText("Wait for the question");
+        timebar.setValue(100);
 
-        JLabel scoreLabel = new JLabel("Score: ");
-        scoreLabel.setBounds(0,300,100,50);
-        frame.add(scoreLabel);
+        JPanel questionPanel = new JPanel(new BorderLayout());
+        JPanel infoPanel = new JPanel(new BorderLayout(50, 0));
+        questionPanel.add(questionScrollArea, BorderLayout.CENTER);
 
-        JLabel rankLabel = new JLabel("Rank: ");
-        rankLabel.setBounds(0,320,100,50);
-        frame.add(rankLabel);
+        infoPanel.add(timebar, BorderLayout.CENTER);
+        infoPanel.add(scoreLabel, BorderLayout.WEST);
+        infoPanel.add(timeLabel, BorderLayout.SOUTH);
+        infoPanel.add(rankLabel, BorderLayout.EAST);
+        questionPanel.add(infoPanel, BorderLayout.SOUTH);
 
-        JButton[] answerButtons = new JButton[4];
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new GridLayout(2, 2, 10, 10));
+
         for (int i = 0; i < 4; i++) {
-            answerButtons[i] = new JButton();
-            int x = (i % 2 == 0) ? 100 : 300;
-            int y = 200 + (i / 2) * 60;
-            answerButtons[i].setBounds(x, y, 150, 40);
-            frame.add(answerButtons[i]);
+            JPanel panel = new JPanel(new BorderLayout(0, 10));
+            optionAreas[i] = getJTextArea();
+            answerButtons[i] = new JButton(String.valueOf((char) (65 + i)));
+            answerButtons[i].setEnabled(false);
+            optionScrollAreas[i] = new JScrollPane(optionAreas[i]);
+            panel.add(optionScrollAreas[i], BorderLayout.CENTER);
+            panel.add(answerButtons[i], BorderLayout.SOUTH);
+            buttonPanel.add(panel);
+
+            final int id = i;
+            answerButtons[i].addActionListener(e -> {
+                for (JButton button : answerButtons) {
+                    button.setEnabled(false);
+                }
+                
+                countdownTask.cancel();
+
+                Thread t = new Thread(() -> {
+                    onAnswering(id, e);
+                    Question question = getNextQuestion();
+    
+                    for (JButton button : answerButtons) {
+                        button.setEnabled(true);
+                    }
+    
+                    if (question == null) {
+                        System.out.println("No more question");
+                    } else {
+                        updateFields(question);
+                        startCountDown();
+                    }
+                });
+
+                t.start();
+            });
         }
 
-        answerButtons[0].setText("double totalBalls = 0;\n" + //
-            "double x = 0;\n" + //
-            "for (int i = 0; i < array2D.Length / array2D.Rank; i++)\n" + //
-            "{\n" + //
-            "totalBalls = totalBalls + array2D[i, 1];\n" + //
-            "}\n" + //
-            "for (int i = 0; i < array2D.Length / array2D.Rank; i++)\n" + //
-            "{\n" + //
-            "if(totalBalls != 0)\n" + //
-            "x = x + array2D[i, 0] * array2D[i, 1] / totalBalls;\n" + //
-            "}\n" + //
-            "label1.Text =x.ToString(\"0.000\");");
+        JSplitPane pane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, questionPanel, buttonPanel);
+        pane.setResizeWeight(0.5);
+        pane.setDividerLocation(0.5);
+        pane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        answerButtons[1].setText("double totalBalls = 0;\n" + //
-            "double x = 0;\n" + //
-            "for (int i = 0; i < array2D.Length; i++)\n" + //
-            "{\n" + //
-            "totalBalls = totalBalls + array2D[i, 1];\n" + //
-            "}\n" + //
-            "for (int i = 0; i < array2D.Length; i++)\n" + //
-            "{\n" + //
-            "x = x + array2D[i, 0] * array2D[i, 1] / totalBalls;\n" + //
-            "}");
-        
-        answerButtons[2].setText("int i = 0;\n" + //
-            "int k = 0;\n" + //
-            "int totalBalls = 0;\n" + //
-            "double x = 0;\n" + //
-            "foreach (int j in array2D)\n" + //
-            "{\n" + //
-            "i++;\n" + //
-            "if (i % 2 == 0)\n" + //
-            "totalBalls = totalBalls + j;\n" + //
-            "}\n" + //
-            "i = 0;\n" + //
-            "foreach (int j in array2D)\n" + //
-            "{\n" + //
-            "i++;\n" + //
-            "if (i % 2 == 1)\n" + //
-            "k = j;\n" + //
-            "else\n" + //
-            "{\n" + //
-            "x = x + k * j / totalBalls;\n" + //
-            "}\n" + //
-            "}");
-
-        answerButtons[3].setText("double totalBalls = 0;\n" + //
-            "totalBalls = array2D[1, 2] + array2D[2, 2] + array2D[3, 2] + array2D[4, 2];\n" + //
-            "double x = 0;\n" + //
-            "x = x + array2D[1, 1] * array2D[1, 2] / totalBalls;\n" + //
-            "x = x + array2D[2, 1] * array2D[2, 2] / totalBalls;\n" + //
-            "x = x + array2D[3, 1] * array2D[3, 2] / totalBalls;\n" + //
-            "x = x + array2D[4, 1] * array2D[4, 2] / totalBalls;");
+        frame.add(pane);
+        frame.setLocationRelativeTo(null);
+    }
     
-        frame.setLocationRelativeTo(frame.getParent());
+    final public void start() {
+        updateFields(getNextQuestion());
+        startCountDown();
+
+        for (JButton button : answerButtons) {
+            button.setEnabled(true);
+        }
+
         frame.setVisible(true);
     }
+
+    public void setVisible(boolean b) {
+        frame.setVisible(b);
+    }
+
+    private JTextArea getJTextArea() {
+        JTextArea area = new JTextArea();
+        area.setLineWrap(true);
+        area.setFocusable(false);
+        area.setEditable(false);
+
+        return area;
+    }
+
+    private void updateFields(Question question) {
+        scoreLabel.setText("Score: " + getScore());
+        rankLabel.setText("Rank: " + getRank());
+
+        questionArea.setText(question.question);
+        questionScrollArea.getVerticalScrollBar().setValue(0);
+
+        for (int i = 0; i < 4; i++) {
+            optionAreas[i].setText(question.getOption(i));
+            optionScrollAreas[i].getVerticalScrollBar().setValue(0);
+        }
+    }
+    
+    private void startCountDown() {
+        countdownTask = new TimerTask() {
+            int timeLeft = 100;
+
+            @Override
+            public void run() {
+                timeLabel.setText(String.format("%.1f", timeLeft * 0.1));
+                timebar.setValue(timeLeft);
+
+                if (timeLeft <= 0) {
+                    onTimeExceed();
+
+                    Question question = getNextQuestion();
+
+                    if (question != null) {
+                        updateFields(getNextQuestion());
+                        cancel();
+                        startCountDown();
+                    } else {
+                        System.out.println("No more question");
+                    }
+                }
+
+                timeLeft--;
+            }
+        };
+
+        timer.scheduleAtFixedRate(countdownTask, 0, 100);
+    }
+
+    protected void onWindowClosing(WindowEvent e) {
+
+    }
+    
+    protected void onTimeExceed() {
+
+    }
+    
+    protected abstract int getScore();
+    protected abstract int getRank();
+    protected abstract Question getNextQuestion();
+    protected abstract void onAnswering(int i, ActionEvent e);
 }

@@ -16,6 +16,9 @@ import java.util.Random;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.*;
+
+import gui.Leaderboard;
+
 import java.util.List;
 
 import networking.ServerStorage;
@@ -36,7 +39,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
     private ServerStorage storage = new ServerStorage(QUIZ_DIRECTORY);
     private QuestionSet question_set;
     private QuestionWithAnswer running_question;
-    private static final int MINIMUM_CLIENT_NUM = 1;
+    private static final int MINIMUM_CLIENT_NUM = 2;
     private EventBus eventBus = new EventBus();
     private Lock lock = new ReentrantLock();
     private Condition game_start = lock.newCondition();
@@ -154,7 +157,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
         try {
             // this.question_set = loadRandomQuestions();
             // this.question_set = loadQuestions(QUIZ_DIRECTORY.resolve("1.quiz"));
-            this.question_set = loadQuestions(QUIZ_DIRECTORY.resolve("資訊網路安全.quiz"));
+            this.question_set = loadQuestions(QUIZ_DIRECTORY.resolve("程式設計與運算思維 Programming.quiz"));
 
             System.out.println("Quiz is loaded.");
 
@@ -170,6 +173,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
             System.out.println("Game started.");
 
             List<QuestionWithAnswer> questions = this.question_set.getQuestions();
+
             for (int i = 0; i < questions.size(); i++) {
                 QuestionWithAnswer question = questions.get(i);
 
@@ -183,7 +187,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
                 System.out.println(question.question);
                 this.eventBus.publish(ClientEvent.ROUND_START);
                 this.eventBus.tryWait();
-                
+
                 synchronized (this.clients) {
                     List<Participant> sorted = this.clients.stream().sorted((a, b) -> a.score - b.score).toList();
 
@@ -200,12 +204,26 @@ public class Server implements ServerEventHandler, AutoCloseable {
                     this.eventBus.publish(ClientEvent.ROUND_END);
                 }
             }
+
+            ArrayList<Leaderboard.Player> players = getLeaderboard();
+
         } catch (CorruptedQuestionsException e) {
             System.out.format("Failed to parse quiz: %s\n", e.getMessage());
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
-            
+
+        }
+    }
+    
+    private ArrayList<Leaderboard.Player> getLeaderboard() {
+        synchronized (this.clients) {
+            return new ArrayList<>(
+                this.clients
+                    .stream()
+                    .sorted((a, b) -> a.ranking - b.ranking)
+                    .map(x -> new Leaderboard.Player(x.name, x.score))
+                    .toList());
         }
     }
     
