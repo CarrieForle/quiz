@@ -33,6 +33,16 @@ public class MultiplayerClient extends AnswerFrame {
             this.name = name;
             p = new Client(socket);
             p.setName(name);
+
+            String response = p.getNameResponse();
+
+            if (!response.equals("OK")) {
+                Common.errorMessage(getFrame(), response);
+                getFrame().dispose();
+                new MainMenu();
+                return;
+            }
+
             setVisible(true);
             
             // UI won't display without thread.
