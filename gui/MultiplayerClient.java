@@ -88,6 +88,7 @@ public class MultiplayerClient extends AnswerFrame {
 
     private void receiveData() throws IOException {
         if (p.CheckEnd()) {
+           p.Leaderborad();
             System.out.printf("sus");
         }
 

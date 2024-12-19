@@ -24,7 +24,7 @@ public abstract class Leaderboard extends JFrame {
     }
 
     public static class Player {
-        String name;
+        public String name;
         int score;
 
         public Player(String name, int score) {

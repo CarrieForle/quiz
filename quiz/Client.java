@@ -1,8 +1,11 @@
 package quiz;
 
 import gui.*;
+import gui.Leaderboard.Player;
+
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
 import java.util.Timer;
 
 public class Client implements AutoCloseable {
@@ -83,7 +86,19 @@ public class Client implements AutoCloseable {
         int rank = in.readInt();
         return rank;
     }
+    public void Leaderborad(){
+        try{
+            DataInputStream in = new DataInputStream(this.socket.getInputStream());
+            ObjectInputStream ois = new ObjectInputStream(in);
+            @SuppressWarnings("unchecked")
+            ArrayList<Leaderboard.Player> Leaderboard = (ArrayList<Player>) ois.readObject();
+            Player firstPlayer = Leaderboard.get(0);
+            System.out.println(firstPlayer.name);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
 
+    }
     public long getTimeStamp() throws IOException {
         DataInputStream in = new DataInputStream(this.socket.getInputStream());
         long timestamp = in.readLong();
