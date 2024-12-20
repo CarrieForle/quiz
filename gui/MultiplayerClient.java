@@ -1,7 +1,6 @@
 package gui;
 
-import java.awt.BorderLayout;
-import java.awt.Container;
+import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -23,6 +22,8 @@ public class MultiplayerClient extends AnswerFrame {
     private String name;
     private int score = 0;
     private int rank = 1;
+    private int correctAnswer = 1;
+    private int timeLimit = 10000;
     private List<Leaderboard.Player> leaderboard;
 
     public static void main(String[] args) {
@@ -37,10 +38,11 @@ public class MultiplayerClient extends AnswerFrame {
 
     public MultiplayerClient(Socket socket, String name) {
         chat.setEditable(false);
-        chat.getCaret().setVisible(false);
+        chat.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
         JPanel chatPanel = new JPanel(new BorderLayout(0, 5));
         JPanel inputPanel = new JPanel(new BorderLayout(5, 0));
+        inputField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         inputPanel.add(inputField);
 
         JButton inputButton = new JButton("Send");
@@ -59,11 +61,11 @@ public class MultiplayerClient extends AnswerFrame {
         chatPanel.add(inputPanel, BorderLayout.SOUTH);
         chatPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JSplitPane newPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, getMainPane(), chatPanel);
+        JSplitPane newPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mainPane, chatPanel);
         newPane.setResizeWeight(0.6);
         newPane.setDividerLocation(0.1);
-        getFrame().add(newPane);
-        getFrame().setSize(800, 550);
+        frame.add(newPane);
+        frame.setSize(800, 550);
 
         try {
             this.name = name;
@@ -73,13 +75,13 @@ public class MultiplayerClient extends AnswerFrame {
             String response = p.getNameResponse();
 
             if (!response.equals("OK")) {
-                Common.errorMessage(getFrame(), response);
-                getFrame().dispose();
+                Common.errorMessage(frame, response);
+                frame.dispose();
                 new MainMenu();
                 return;
             }
 
-            setVisible(true);
+            frame.setVisible(true);
 
             // UI won't display without thread.
             Thread t = new Thread(() -> {
@@ -106,7 +108,7 @@ public class MultiplayerClient extends AnswerFrame {
             
             question.question = p.getQuestion();
             question.setOptions(p.getOptions());
-            long timeLimit = p.getTimeStamp();
+            timeLimit = p.getTimeStamp();
         } catch (IOException e) {
             disconnect(e);
         }
@@ -143,6 +145,22 @@ public class MultiplayerClient extends AnswerFrame {
             receiveData();
         } catch (IOException e) {
             disconnect(e);
+        }
+    }
+
+    @Override
+    protected int getAnswer() {
+        return correctAnswer;
+    }
+
+    @Override
+    protected void onRoundEnd() {
+        countDownTimebar(4000);
+
+        try {
+            Thread.sleep(4000);
+        } catch (InterruptedException e) {
+
         }
     }
 
@@ -187,9 +205,15 @@ public class MultiplayerClient extends AnswerFrame {
         };
     }
 
+    @Override
+    protected int getTimeLimit() {
+        return timeLimit;
+    }
+
     private void receiveData() throws IOException {
         boolean isEnd = p.checkEnd();
 
+        correctAnswer = p.getAnswer();
         score = p.getScore();
         System.out.printf("分數為%d", score);
         rank = p.getRank();
@@ -203,7 +227,7 @@ public class MultiplayerClient extends AnswerFrame {
 
     private void disconnect(IOException e) {
         if (!p.isClosed()) {
-            Common.errorMessage(getFrame(), "Disconnected");
+            Common.errorMessage(frame, "Disconnected");
             try {
                 p.close();
             } catch (IOException ex) {
@@ -211,7 +235,7 @@ public class MultiplayerClient extends AnswerFrame {
             }
         }
 
-        getFrame().dispose();
+        frame.dispose();
         new MainMenu();
     }
 }

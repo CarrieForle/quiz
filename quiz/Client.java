@@ -55,6 +55,11 @@ public class Client implements AutoCloseable {
         return check;
     }
 
+    public int getAnswer() throws IOException {
+        int score = m.readInt();
+        return score;
+    }
+
     public int getScore() throws IOException {
         int score = m.readInt();
         return score;
@@ -75,8 +80,8 @@ public class Client implements AutoCloseable {
         }
     }
 
-    public long getTimeStamp() throws IOException {
-        long timestamp = m.readLong();
+    public int getTimeStamp() throws IOException {
+        int timestamp = m.readInt();
         return timestamp;
     }
 

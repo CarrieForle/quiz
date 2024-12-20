@@ -25,7 +25,7 @@ public class Transmitter implements AutoCloseable {
             this.m.writeUTF(question.getOption(i));
         }
 
-        this.m.writeLong(duration.toMillis());
+        this.m.writeInt((int) duration.toMillis());
     }
 
     public QuizAnswerResponse getAnswer() throws IOException {
@@ -37,8 +37,9 @@ public class Transmitter implements AutoCloseable {
         return res;
     }
     
-    public void sendRoundResult(boolean is_over, int score, int ranking) throws IOException {
+    public void sendRoundResult(boolean is_over, int answer, int score, int ranking) throws IOException {
         this.m.writeBoolean(is_over);
+        this.m.writeInt(answer);
         this.m.writeInt(score);
         this.m.writeInt(ranking);
     }

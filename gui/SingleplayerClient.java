@@ -34,7 +34,7 @@ public class SingleplayerClient extends AnswerFrame {
         iterator = questionSet.getQuestions().iterator();
         running = iterator.next();
         start();
-        setVisible(true);
+        frame.setVisible(true);
     }
 
     public static void runQuizDialog(Window parent) {
@@ -87,6 +87,27 @@ public class SingleplayerClient extends AnswerFrame {
                 SingleplayerClient.runQuizDialog(new MainMenu().getFrame());
             }
         };
+    }
+
+    @Override
+    protected int getAnswer() {
+        return running.answer;
+    }
+
+    @Override
+    protected void onRoundEnd() {
+        countDownTimebar(4000);
+
+        try {
+            Thread.sleep(4000);
+        } catch (InterruptedException e) {
+
+        }
+    }
+
+    @Override
+    protected int getTimeLimit() {
+        return 10000;
     }
 }
 

@@ -40,7 +40,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
 
     public static void main(String[] args) {
         int port = 12345;
-        int min = 3;
+        int min = 1;
         int max = 4;
         
         try (ServerSocket socket = new ServerSocket(port)) {
@@ -193,6 +193,8 @@ public class Server implements ServerEventHandler, AutoCloseable {
                     return;
                 }
 
+                // Wait until participant transmit correct answer;
+                this.eventBus.tryWait();
                 this.running_question = question;
                 System.out.println(question.question);
                 this.eventBus.publish(ClientEvent.ROUND_START);
@@ -213,6 +215,8 @@ public class Server implements ServerEventHandler, AutoCloseable {
                 } else {
                     this.eventBus.publish(ClientEvent.ROUND_END);
                 }
+
+                Thread.sleep(4000);
             }
 
             this.updateLeaderboard();
@@ -566,10 +570,10 @@ class Participant implements ClientEventHandler {
                 playRound();
                 break;
             case ROUND_END:
-                this.transmitter.sendRoundResult(false, this.score, this.ranking);
+                this.transmitter.sendRoundResult(false, this.server.getRunningQuestion().answer, this.score, this.ranking);
                 break;
             case FINAL_ROUND_END:
-                this.transmitter.sendRoundResult(true, this.score, this.ranking);
+                this.transmitter.sendRoundResult(true, this.server.getRunningQuestion().answer, this.score, this.ranking);
                 break;
             case GAME_END:
                 this.transmitter.sendLeaderboard(this.server.getLeaderboard());

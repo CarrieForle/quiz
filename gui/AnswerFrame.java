@@ -1,6 +1,7 @@
 package gui;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 
 import utils.Question;
 
@@ -11,21 +12,20 @@ import java.util.TimerTask;
 import java.util.Timer;
 
 public abstract class AnswerFrame {
-    private JFrame frame;
     private Timer timer = new Timer();
     private TimerTask countdownTask;
-    private JLabel scoreLabel = new JLabel("Score: 0");
-    private JLabel timeLabel = new JLabel("", JLabel.CENTER);
-    private JLabel rankLabel = new JLabel("Rank: 1");
-    private JTextArea questionArea = getJTextArea();
-    private JScrollPane questionScrollArea = new JScrollPane(questionArea);
-    private JProgressBar timebar = new JProgressBar(0, 100);
-    private JSplitPane mainPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-    private JTextArea[] optionAreas = new JTextArea[4];
-    private JButton[] answerButtons = new JButton[4];
-    private JScrollPane[] optionScrollAreas = new JScrollPane[4];
-    protected int score = 0;
-    protected int ranking = 1;
+    protected JFrame frame;
+    protected JLabel scoreLabel = new JLabel("Score: 0");
+    protected JLabel timeLabel = new JLabel("", JLabel.CENTER);
+    protected JLabel rankLabel = new JLabel("Rank: 1");
+    protected JTextArea questionArea = getJTextArea();
+    protected JScrollPane questionScrollArea = new JScrollPane(questionArea);
+    protected JProgressBar timebar = new JProgressBar(0, 100);
+    protected JSplitPane mainPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+    protected JTextArea[] optionAreas = new JTextArea[4];
+    protected JButton[] answerButtons = new JButton[4];
+    protected JScrollPane[] optionScrollAreas = new JScrollPane[4];
+    private int score = 0;
 
     public AnswerFrame() {
         frame = new JFrame("刷題趣！");
@@ -64,33 +64,20 @@ public abstract class AnswerFrame {
             answerButtons[i] = new JButton(String.valueOf((char) (65 + i)));
             answerButtons[i].setEnabled(false);
             optionScrollAreas[i] = new JScrollPane(optionAreas[i]);
+            optionScrollAreas[i].setBorder(getNormalBorder());
+
             panel.add(optionScrollAreas[i], BorderLayout.CENTER);
             panel.add(answerButtons[i], BorderLayout.SOUTH);
             buttonPanel.add(panel);
 
             final int id = i;
             answerButtons[i].addActionListener(e -> {
-                for (JButton button : answerButtons) {
-                    button.setEnabled(false);
-                }
-
+                optionScrollAreas[id].setBorder(getHighlightBorder(Color.YELLOW));
                 countdownTask.cancel();
 
                 Thread t = new Thread(() -> {
                     onAnswering(id, e);
-                    Question question = getNextQuestion();
-
-                    for (JButton button : answerButtons) {
-                        button.setEnabled(true);
-                    }
-
-                    if (question == null) {
-                        frame.dispose();
-                        showLeaderboard();
-                    } else {
-                        updateFields(question);
-                        startCountDown();
-                    }
+                    endRound(id);
                 });
 
                 t.start();
@@ -109,27 +96,11 @@ public abstract class AnswerFrame {
     
     final public void start() {
         updateFields(getNextQuestion());
-        startCountDown();
+        countDown(getTimeLimit());
 
         for (JButton button : answerButtons) {
             button.setEnabled(true);
         }
-    }
-
-    public void setVisible(boolean b) {
-        frame.setVisible(b);
-    }
-
-    public void setSize(int width, int height) {
-        frame.setSize(width, height);
-    }
-
-    public JFrame getFrame() {
-        return frame;
-    }
-
-    public JSplitPane getMainPane() {
-        return mainPane;
     }
 
     private JTextArea getJTextArea() {
@@ -141,10 +112,87 @@ public abstract class AnswerFrame {
         return area;
     }
 
-    private void updateFields(Question question) {
-        scoreLabel.setText("Score: " + getScore());
-        rankLabel.setText("Rank: " + getRank());
+    private Border getHighlightBorder(Color color) {
+        Border inner = BorderFactory.createLineBorder(color, 5);
+        Border outer = BorderFactory.createEmptyBorder(3, 3, 3, 3);
 
+        return BorderFactory.createCompoundBorder(outer, inner);
+    }
+
+    private Border getNormalBorder() {
+        Border inner = BorderFactory.createLineBorder(Color.BLACK, 1);
+        Border outer = BorderFactory.createEmptyBorder(7, 7, 7, 7);
+
+        return BorderFactory.createCompoundBorder(outer, inner);
+    }
+
+    private void endRound(int id) {
+        for (JButton button : answerButtons) {
+            button.setEnabled(false);
+        }
+
+        int correct_answer = getAnswer();
+
+        for (int j = 0; j < 4; j++) {
+            Color color;
+
+            if (j == correct_answer) {
+                color = Color.GREEN;
+            } else {
+                color = Color.RED;
+            }
+
+            optionScrollAreas[j].setBorder(getHighlightBorder(color));
+        }
+
+        int old_score = score;
+        updateInfo();
+        int scoreOffset = score - old_score;
+
+        if (id == correct_answer) {
+            timeLabel.setText(String.format("Correct +%d", scoreOffset));
+            timeLabel.setForeground(new Color(68, 194, 61));
+        } else {
+            // Time exceeded
+            if (id == -1) {
+                timeLabel.setText("Time exceedded");
+            } else {
+                timeLabel.setText("Wrong");
+            }
+
+            timeLabel.setForeground(new Color(156, 34, 43));
+        }
+
+        onRoundEnd();
+
+        for (JScrollPane area : optionScrollAreas) {
+            area.setBorder(getNormalBorder());
+        }
+
+        timeLabel.setForeground(Color.BLACK);
+
+        Question question = getNextQuestion();
+
+        for (JButton button : answerButtons) {
+            button.setEnabled(true);
+        }
+
+        if (question == null) {
+            frame.dispose();
+            showLeaderboard();
+        } else {
+            updateFields(question);
+            countDown(getTimeLimit());
+        }
+    }
+
+    private void updateInfo() {
+        score = getScore();
+        scoreLabel.setText("Score: " + score);
+        rankLabel.setText("Rank: " + getRank());
+    }
+
+    private void updateFields(Question question) {
         questionArea.setText(question.question);
         questionScrollArea.getVerticalScrollBar().setValue(0);
 
@@ -154,31 +202,46 @@ public abstract class AnswerFrame {
         }
     }
     
-    private void startCountDown() {
+    private void countDown(int t) {
         countdownTask = new TimerTask() {
-            int timeLeft = 100;
+            int timeLeft = t;
 
             @Override
             public void run() {
-                timeLabel.setText(String.format("%.1f", timeLeft * 0.1));
-                timebar.setValue(timeLeft);
+                timeLabel.setText(String.format("%.1f", timeLeft * 0.001));
+                timebar.setValue(timeLeft * 100 / t);
 
                 if (timeLeft <= 0) {
                     cancel();
-                    onTimeExceed();
 
-                    Question question = getNextQuestion();
+                    Thread t = new Thread(() -> {
+                        onTimeExceed();
+                        endRound(-1);
+                    });
 
-                    if (question == null) {
-                        showLeaderboard();
-                        frame.dispose();
-                    } else {
-                        updateFields(question);
-                        startCountDown();
-                    }
+                    t.start();
                 }
 
-                timeLeft--;
+                timeLeft -= 100;
+            }
+        };
+
+        timer.scheduleAtFixedRate(countdownTask, 0, 100);
+    }
+
+    protected void countDownTimebar(int t) {
+        countdownTask = new TimerTask() {
+            int timeLeft = t;
+
+            @Override
+            public void run() {
+                timebar.setValue(timeLeft * 100 / t);
+
+                if (timeLeft <= 0) {
+                    cancel();
+                }
+
+                timeLeft -= 100;
             }
         };
 
@@ -193,6 +256,9 @@ public abstract class AnswerFrame {
 
     }
 
+    protected abstract int getAnswer();
+    protected abstract void onRoundEnd();
+    protected abstract int getTimeLimit();
     protected abstract void showLeaderboard();
     protected abstract int getScore();
     protected abstract int getRank();
