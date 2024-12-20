@@ -19,6 +19,7 @@ import utils.*;
 import utils.exceptions.*;
 
 public class Server implements ServerEventHandler, AutoCloseable {
+    private static final Path QUIZ_DIRECTORY = Path.of("quiz_questions");
     private final int MAX_NUM;
     private final int MIN_NUM;
     private ServerSocket server_socket;
@@ -26,7 +27,6 @@ public class Server implements ServerEventHandler, AutoCloseable {
     private Thread[] client_threads;
     private Thread quiz_transmission;
     private Thread multiplayer;
-    private static final Path QUIZ_DIRECTORY = Path.of("quiz_questions");
     private ServerStorage storage = new ServerStorage(QUIZ_DIRECTORY);
     private QuestionSet question_set;
     private QuestionWithAnswer running_question;
