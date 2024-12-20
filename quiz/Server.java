@@ -96,10 +96,13 @@ public class Server implements ServerEventHandler, AutoCloseable {
             return;
         }
 
-        System.out.format("\n\n%s is disconnected.\n", client.name);
-
-        this.clients.remove(client);
+        if (!this.clients.remove(client)) {
+            return;
+        }
+        
         this.eventBus.unsubscribe(client);
+
+        System.out.format("\n\n%s is disconnected.\n", client.name);
 
         try {
             client.transmitter.close();
