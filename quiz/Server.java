@@ -20,18 +20,16 @@ import utils.exceptions.*;
 
 public class Server implements ServerEventHandler, AutoCloseable {
     private final int MAX_NUM;
+    private final int MIN_NUM;
     private ServerSocket server_socket;
-    // Thread-safe list
     private List<Participant> clients;
     private Thread[] client_threads;
     private Thread quiz_transmission;
     private Thread multiplayer;
-    private final Queue<Integer> available_ids = new ArrayDeque<>();
     private static final Path QUIZ_DIRECTORY = Path.of("quiz_questions");
     private ServerStorage storage = new ServerStorage(QUIZ_DIRECTORY);
     private QuestionSet question_set;
     private QuestionWithAnswer running_question;
-    private final int MIN_NUM;
     private EventBus eventBus = new EventBus();
     private Object game_start = new Object();
     private Object new_client = new Object();
@@ -83,10 +81,6 @@ public class Server implements ServerEventHandler, AutoCloseable {
         this.clients = Collections.synchronizedList(new ArrayList<>(MAX_NUM));
         this.client_threads = new Thread[MAX_NUM];
 
-        for (int i = 0; i < MAX_NUM; i++) {
-            this.available_ids.add(i);
-        }
-
         this.initMultiplayer();
         this.multiplayer.start();
     }
@@ -104,8 +98,6 @@ public class Server implements ServerEventHandler, AutoCloseable {
 
         this.clients.remove(client);
         this.eventBus.unsubscribe(client);
-
-        this.pullBackID(client.id);
 
         try {
             client.transmitter.close();
@@ -160,7 +152,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
             this.data = null;
         }
 
-        res.id = assignID();
+        res.id = Thread.currentThread().threadId();
 
         return res;
     }
@@ -292,19 +284,6 @@ public class Server implements ServerEventHandler, AutoCloseable {
             });
         }
 
-    }
-
-    private void pullBackID(int id) {
-        synchronized (this.available_ids) {
-            this.available_ids.add(id);
-        }
-    }
-
-    // Return null if ran out of IDs.
-    private Integer assignID() {
-        synchronized (this.available_ids) {
-            return this.available_ids.poll();
-        }
     }
 
     private void eventLoop(Participant client) throws IOException {
@@ -547,7 +526,7 @@ class Participant implements ClientEventHandler {
     final Server server;
     final Transmitter transmitter;
     final String name;
-    int id;
+    long id;
     int score = 0;
     int ranking = 1;
     ClientEvent event;
