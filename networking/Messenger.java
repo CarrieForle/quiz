@@ -8,7 +8,7 @@ public class Messenger implements AutoCloseable {
     protected DataInputStream dis;
     protected DataOutputStream dos;
     protected Socket socket;
-    private String buffer;
+    private String buffer = "";
 
     public static void main(String[] args) {
         try {

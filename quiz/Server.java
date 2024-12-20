@@ -117,7 +117,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
 
         this.eventBus.tryPop();
 
-        if (this.clients.isEmpty()) {
+        if (!this.is_game_end.get() && this.clients.isEmpty()) {
             this.stopAndStartGame();
         }
     }
@@ -277,20 +277,23 @@ public class Server implements ServerEventHandler, AutoCloseable {
                     System.out.format("Thread #%d: %d players\n", thread_id, this.clients.size());
 
                     final Participant final_client = client;
+                    
+                    while (this.clients.size() < MIN_NUM) {
+                        final_client.transmitter.writeCommand("ping");
+                        Thread.sleep(100);
+
+                    }
+                    
+                    client.transmitter.getSocket().setSoTimeout(15000);
 
                     this.lock.lock();
 
                     try {
-                        while (this.clients.size() < MIN_NUM) {
-                            this.game_start.await();
-                        }
-
-                        this.game_start.signalAll();
+                        this.game_start.signal();
                     } finally {
                         this.lock.unlock();
                     }
 
-                    client.transmitter.getSocket().setSoTimeout(15000);
                     this.eventLoop(client);
                 } catch (IOException e) {
                     this.freeClient(client);
@@ -320,11 +323,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
     private void eventLoop(Participant client) throws IOException {
         System.out.format("Client.%d: %s\n", client.id, client.name);
 
-        while (true) {
-            if (this.is_game_end.get()) {
-                return;
-            }
-
+        while (!this.is_game_end.get()) {
             if (client.isEventPending()) {
                 client.handleEvent();
             }

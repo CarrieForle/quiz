@@ -2,11 +2,8 @@ package gui;
 
 import java.awt.event.*;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.Socket;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import networking.ClientMessenger;
 import quiz.Client;
