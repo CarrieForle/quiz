@@ -36,28 +36,29 @@ public abstract class Leaderboard extends JFrame {
 
     public Leaderboard(List<Player> players, Player me) {
         this.setTitle("Leaderboard");
-        this.setSize(400, 400);
-        this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        this.setLayout(null);
-        this.setResizable(false);
+        this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        this.getContentPane().setLayout(new BoxLayout(this.getContentPane(), BoxLayout.Y_AXIS));
+        // this.setResizable(false);
         this.setIconImage(Resource.icon.getImage());
+        this.setResizable(false);
 
         // Title Label
-        JLabel titleLabel = new JLabel("Leaderboard", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setBounds(0, 10, 400, 30);
+        JLabel titleLabel = new JLabel("LEADERBOARD");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 26));
         this.add(titleLabel);
+        titleLabel.setAlignmentX(0.5f);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
 
         // Podium Panel
         JPanel podiumPanel = new JPanel(null) {
             @Override
             public void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                Resource.podium.paintIcon(this, g, 25, 80);
+                Resource.podium.paintIcon(this, g, 25, 65);
             }
         };
 
-        podiumPanel.setBounds(40, 30, 300, 200);
+        podiumPanel.setPreferredSize(new Dimension(100, 200));
 
         JLabel[] names = new JLabel[3];
         JLabel[] scores = new JLabel[3];
@@ -68,6 +69,7 @@ public abstract class Leaderboard extends JFrame {
 
             if (i < players.size()) {
                 name = new JLabel(players.get(i).name, SwingConstants.CENTER);
+                name.setFont(name.getFont().deriveFont(16f));
                 score = new JLabel(String.valueOf(players.get(i).score), SwingConstants.CENTER);
             } else {
                 name = new JLabel();
@@ -82,17 +84,18 @@ public abstract class Leaderboard extends JFrame {
         }
 
         // First place
-        names[0].setBounds(120, 30, 60, 20);
-        scores[0].setBounds(120, 50, 60, 20);
+        names[0].setBounds(50, 15, 200, 20);
+        scores[0].setBounds(120, 35, 60, 20);
 
         // Second place
-        names[1].setBounds(35, 60, 60, 20);
-        scores[1].setBounds(35, 80, 60, 20);
+        names[1].setBounds(-35, 50, 200, 20);
+        scores[1].setBounds(35, 70, 60, 20);
 
         // Third place
-        names[2].setBounds(205, 80, 60, 20);
-        scores[2].setBounds(205, 100, 60, 20);
+        names[2].setBounds(135, 70, 200, 20);
+        scores[2].setBounds(205, 90, 60, 20);
 
+        podiumPanel.setAlignmentX(0.5f);
         this.add(podiumPanel);
 
         int rank = players.indexOf(me) + 1;
@@ -106,44 +109,52 @@ public abstract class Leaderboard extends JFrame {
             winner.setForeground(nameColor);
             winner.setBounds(145, 240, 200, 30);
             this.add(winner);
-        }
-        else if (rank <= 3) {
+        } else if (rank <= 3) {
             JLabel goodJob = new JLabel("You are in the TOP 3");
             names[rank - 1].setForeground(Color.RED);
             scores[rank - 1].setForeground(Color.RED);
             goodJob.setFont(goodJob.getFont().deriveFont(16f));
             goodJob.setForeground(Color.RED);
             goodJob.setBounds(110, 240, 200, 30);
+            goodJob.setAlignmentX(0.5f);
             this.add(goodJob);
         } else {
+            JPanel panel = new JPanel();
             JLabel scoreLabel = new JLabel("Score: " + me.score);
-            scoreLabel.setBounds(160, 230, 200, 30);
-            this.add(scoreLabel);
-
+            panel.add(scoreLabel);
+            
             JLabel rankLabel = new JLabel("Rank: " + (players.indexOf(me) + 1));
-            rankLabel.setBounds(160, 250, 200, 30);
-            this.add(rankLabel);
+            rankLabel.setAlignmentX(0.5f);
+            panel.add(rankLabel);
+            panel.setAlignmentX(0.5f);
+            this.add(panel);
         }
 
         // Buttons
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         JButton continueButton = new JButton("Continue");
-        continueButton.setBounds(80, 300, 100, 30);
         continueButton.addActionListener(e -> {
             this.dispose();
             onContinue();
         });
-        this.add(continueButton);
+        continueButton.setPreferredSize(new Dimension(100, 30));
+
+        panel.add(continueButton);
 
         JButton quitButton = new JButton("Quit");
-        quitButton.setBounds(220, 300, 100, 30);
         quitButton.addActionListener(e -> {
             this.dispose();
             new MainMenu();
         });
+        quitButton.setPreferredSize(new Dimension(100, 30));
 
-        this.add(quitButton);
+        panel.add(quitButton);
+        panel.setAlignmentX(0.5f);
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        this.add(panel);
 
         this.setLocationRelativeTo(null);
+        this.pack();
         this.setVisible(true);
     }
     
