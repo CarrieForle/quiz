@@ -40,7 +40,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
 
     public static void main(String[] args) {
         int port = 12345;
-        int min = 2;
+        int min = 3;
         int max = 4;
         
         try (ServerSocket socket = new ServerSocket(port)) {
@@ -75,6 +75,8 @@ public class Server implements ServerEventHandler, AutoCloseable {
     }
 
     public Server(ServerSocket server_socket, int min_client, int max_client) throws IOException, InterruptedException {
+        System.out.format("The minimum to start: %d\n", min_client);
+        System.out.format("The maximum: %d\n", max_client);
         this.server_socket = server_socket;
         this.MIN_NUM = min_client;
         this.MAX_NUM = max_client;
@@ -105,6 +107,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
             e.printStackTrace();
         }
 
+        this.updateMessenger(client);
         this.eventBus.tryPop();
 
         if (!this.is_game_end.get() && this.clients.isEmpty()) {
@@ -256,15 +259,16 @@ public class Server implements ServerEventHandler, AutoCloseable {
 
                     this.clients.add(client);
                     this.eventBus.subscribe(client);
+                    this.updateMessenger(client);
 
                     System.out.format("Thread #%d: %d players\n", thread_id, this.clients.size());
 
                     final Participant final_client = client;
                     
                     while (this.clients.size() < MIN_NUM) {
-                        final_client.transmitter.writeCommand("ping");
+                        final_client.transmitter.ping();
+                        client.transmitter.getMessenger().readIncoming();
                         Thread.sleep(100);
-
                     }
                     
                     client.transmitter.getSocket().setSoTimeout(15000);
@@ -425,6 +429,12 @@ public class Server implements ServerEventHandler, AutoCloseable {
         return this.server_socket.accept();
     }
 
+    public void updateMessenger(Participant client) {
+        synchronized (this.clients) {
+            client.transmitter.updateMessenger(this.clients.stream().map(x -> x.transmitter.getMessenger()).toList());
+        }
+    }
+
     @Override
     public void handleEvent(ServerEvent e) {
         switch (e) {
@@ -531,8 +541,7 @@ class Participant implements ClientEventHandler {
     int ranking = 1;
     ClientEvent event;
 
-    // TODO remove socket
-    public Participant(Server server, Messenger messenger, String name) {
+    public Participant(Server server, ServerMessenger messenger, String name) {
         this.server = server;
         this.name = name;
         this.transmitter = new Transmitter(messenger);

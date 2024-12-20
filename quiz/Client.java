@@ -84,8 +84,8 @@ public class Client implements AutoCloseable {
         this.m.getSocket().getOutputStream().write(-1);
     }
 
-    public void writeCommand(String s) throws IOException {
-        this.m.writeCommand(s);
+    public void message(String name, String contents) throws IOException {
+        this.m.writeCommand("message", new String[] { name, contents });
     }
 
     public void readIncoming() throws IOException {

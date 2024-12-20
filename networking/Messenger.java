@@ -2,13 +2,14 @@ package networking;
 
 import java.io.*;
 import java.net.*;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Queue;
 
 public class Messenger implements AutoCloseable {
     protected DataInputStream dis;
     protected DataOutputStream dos;
     protected Socket socket;
-    private String buffer = "";
+    private Queue<String> buffer = new ArrayDeque<>();
 
     public static void main(String[] args) {
         try {
@@ -45,15 +46,36 @@ public class Messenger implements AutoCloseable {
         String n = this.dis.readUTF();
 
         if (n.equals("y")) {
-            this.onCommand(this.dis.readUTF());
+            Command c = extract(this.dis.readUTF());
+            this.onCommand(c.command, c.args);
         } else {
-            buffer = n;
+            buffer.add(n);
         }
     }
 
-    public void writeCommand(String s) throws IOException {
+    private static String produceCommand(String command, String[] args) {
+        if (args.length == 0) {
+            return command;
+        }
+
+        StringBuilder sb = new StringBuilder(command + " ");
+
+        for (String arg : args) {
+            sb.append(arg + "\0");
+        }
+
+        sb.deleteCharAt(sb.length() - 1);
+
+        return sb.toString();
+    }
+
+    public void writeCommand(String command, String[] args) throws IOException {
         this.dos.writeUTF("y");
-        this.dos.writeUTF(s);
+        this.dos.writeUTF(produceCommand(command, args));
+    }
+
+    public void writeCommand(String command) throws IOException {
+        this.writeCommand(command, new String[0]);
     }
 
     public void writeUTF(String s) throws IOException {
@@ -75,11 +97,20 @@ public class Messenger implements AutoCloseable {
         this.dos.writeUTF("b");
         this.dos.writeBoolean(b);
     }
+
+    private boolean buffer_is(String s) {
+        String inc = this.buffer.peek();
+        if (inc != null && inc.equals(s)) {
+            this.buffer.poll();
+
+            return true;
+        }
+
+        return false;
+    }
     
     public Object readObject() throws IOException, ClassNotFoundException {
-        if (this.buffer.equals("o")) {
-            buffer = "";
-
+        if (this.buffer_is("o")) {
             ObjectInputStream ois = new ObjectInputStream(this.socket.getInputStream());
 
             return ois.readObject();
@@ -93,8 +124,7 @@ public class Messenger implements AutoCloseable {
     }
 
     public String readUTF() throws IOException {
-        if (this.buffer.equals("s")) {
-            buffer = "";
+        if (this.buffer_is("s")) {
             return this.dis.readUTF();
         } else if (this.rn()) {
             return this.readUTF();
@@ -104,8 +134,7 @@ public class Messenger implements AutoCloseable {
     }
 
     public long readLong() throws IOException {
-        if (this.buffer.equals("l")) {
-            buffer = "";
+        if (this.buffer_is("l")) {
             return this.dis.readLong();
         } else if (this.rn()) {
             return this.readLong();
@@ -115,7 +144,9 @@ public class Messenger implements AutoCloseable {
     }
     
     public int readInt() throws IOException {
-        if (this.rn()) {
+        if (this.buffer_is("i")) {
+            return this.dis.readInt();
+        } else if (this.rn()) {
             return this.readInt();
         } else {
             return this.dis.readInt();
@@ -130,19 +161,40 @@ public class Messenger implements AutoCloseable {
         }
     }
 
-    protected void onCommand(String s) throws IOException {
-        System.out.format("New Command %s\n", s);
+    public void onCommand(String command, String[] args) throws IOException {
+        System.out.format("New Command %s\n", command);
+    }
+
+    public void onCommand(String command) throws IOException {
+        this.onCommand(command, new String[0]);
     }
 
     private boolean rn() throws IOException {
         String n = this.dis.readUTF();
 
         if (n.equals("y")) {
-            this.onCommand(this.dis.readUTF());
+            Command c = this.extract(this.dis.readUTF());
+            
+            this.onCommand(c.command, c.args);
             return true;
         } else {
             return false;
         }
+    }
+
+    private Command extract(String s) {
+        Command c = new Command();
+
+        String[] tokens = s.split(" ");
+        c.command = tokens[0];
+
+        if (tokens.length >= 2) {
+            c.args = tokens[1].split("\0");
+        } else {
+            c.args = new String[0];
+        }
+
+        return c;
     }
 
     public void flush() throws IOException {
@@ -161,4 +213,9 @@ public class Messenger implements AutoCloseable {
     public boolean isClosed() {
         return this.socket.isClosed();
     }
+}
+
+class Command {
+    String command;
+    String[] args;
 }

@@ -20,6 +20,7 @@ public abstract class AnswerFrame {
     private JTextArea questionArea = getJTextArea();
     private JScrollPane questionScrollArea = new JScrollPane(questionArea);
     private JProgressBar timebar = new JProgressBar(0, 100);
+    private JSplitPane mainPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
     private JTextArea[] optionAreas = new JTextArea[4];
     private JButton[] answerButtons = new JButton[4];
     private JScrollPane[] optionScrollAreas = new JScrollPane[4];
@@ -72,17 +73,17 @@ public abstract class AnswerFrame {
                 for (JButton button : answerButtons) {
                     button.setEnabled(false);
                 }
-                
+
                 countdownTask.cancel();
 
                 Thread t = new Thread(() -> {
                     onAnswering(id, e);
                     Question question = getNextQuestion();
-    
+
                     for (JButton button : answerButtons) {
                         button.setEnabled(true);
                     }
-                    
+
                     if (question == null) {
                         frame.dispose();
                         showLeaderboard();
@@ -96,12 +97,13 @@ public abstract class AnswerFrame {
             });
         }
 
-        JSplitPane pane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, questionPanel, buttonPanel);
-        pane.setResizeWeight(0.5);
-        pane.setDividerLocation(0.5);
-        pane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        mainPane.add(questionPanel);
+        mainPane.add(buttonPanel);
+        mainPane.setResizeWeight(0.5);
+        mainPane.setDividerLocation(0.5);
+        mainPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        frame.add(pane);
+        frame.add(mainPane);
         frame.setLocationRelativeTo(null);
     }
     
@@ -118,8 +120,16 @@ public abstract class AnswerFrame {
         frame.setVisible(b);
     }
 
+    public void setSize(int width, int height) {
+        frame.setSize(width, height);
+    }
+
     public JFrame getFrame() {
         return frame;
+    }
+
+    public JSplitPane getMainPane() {
+        return mainPane;
     }
 
     private JTextArea getJTextArea() {

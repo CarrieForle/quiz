@@ -3,18 +3,25 @@ package networking;
 import java.io.IOException;
 import java.net.Socket;
 
+import gui.MultiplayerClient;
+
 public class ClientMessenger extends Messenger {
-    public ClientMessenger(Socket s) throws IOException {
+    MultiplayerClient client;
+
+    public ClientMessenger(Socket s, MultiplayerClient client) throws IOException {
         super(s);
+        this.client = client;
     }
 
     @Override
-    protected void onCommand(String s) throws IOException {
-        if (s.equals("ping")) {
-            System.out.println("ping");
+    public void onCommand(String command, String[] args) throws IOException {
+        if (command.equals("ping")) {
             this.writeCommand("pong");
-        } else if (s.startsWith("message ")) {
+        } else if (command.equals("message")) {
+            String name = args[0];
+            String message = args[1];
 
+            client.addChat(name, message);
         }
     }
 }

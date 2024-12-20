@@ -6,14 +6,15 @@ import java.time.Duration;
 
 import utils.QuizAnswerResponse;
 import java.util.ArrayList;
+import java.util.List;
 
 import gui.Leaderboard;
 import utils.Question;
 
 public class Transmitter implements AutoCloseable {
-    private final Messenger m;
+    private final ServerMessenger m;
 
-    public Transmitter(Messenger m) {
+    public Transmitter(ServerMessenger m) {
         this.m = m;
     }
     
@@ -46,8 +47,8 @@ public class Transmitter implements AutoCloseable {
         this.m.writeObject(players);
     }
 
-    public void writeCommand(String s) throws IOException {
-        this.m.writeCommand(s);
+    public void ping() throws IOException {
+        this.m.writeCommand("ping");
     }
 
     @Override
@@ -55,8 +56,12 @@ public class Transmitter implements AutoCloseable {
         this.m.close();
     }
 
-    public Messenger getMessenger() {
+    public ServerMessenger getMessenger() {
         return this.m;
+    }
+
+    public void updateMessenger(List<? extends Messenger> m) {
+        this.m.updateMessenger(m);
     }
 
     public Socket getSocket() {

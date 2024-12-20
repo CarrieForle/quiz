@@ -1,9 +1,14 @@
 package gui;
 
+import java.awt.BorderLayout;
+import java.awt.Container;
 import java.awt.event.*;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.Socket;
 import java.util.List;
+
+import javax.swing.*;
 
 import networking.ClientMessenger;
 import quiz.Client;
@@ -12,12 +17,13 @@ import utils.Question;
 
 public class MultiplayerClient extends AnswerFrame {
     private Question question = new Question();
+    private JTextArea chat = new JTextArea("You joined the server\n");
+    private JTextField inputField = new JTextField();
     private Client p;
     private String name;
     private int score = 0;
     private int rank = 1;
     private List<Leaderboard.Player> leaderboard;
-    private boolean is_in_game = false;
 
     public static void main(String[] args) {
         try {
@@ -30,9 +36,38 @@ public class MultiplayerClient extends AnswerFrame {
     }
 
     public MultiplayerClient(Socket socket, String name) {
+        chat.setEditable(false);
+        chat.getCaret().setVisible(false);
+
+        JPanel chatPanel = new JPanel(new BorderLayout(0, 5));
+        JPanel inputPanel = new JPanel(new BorderLayout(5, 0));
+        inputPanel.add(inputField);
+
+        JButton inputButton = new JButton("Send");
+        inputButton.addActionListener(e -> {
+            try {
+                p.message(name, inputField.getText());
+                inputField.setText("");
+            } catch (IOException ex) {
+                throw new UncheckedIOException(ex);
+            }
+        });
+
+        inputPanel.add(inputButton, BorderLayout.WEST);
+        inputPanel.add(inputField, BorderLayout.CENTER);
+        chatPanel.add(chat, BorderLayout.CENTER);
+        chatPanel.add(inputPanel, BorderLayout.SOUTH);
+        chatPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JSplitPane newPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, getMainPane(), chatPanel);
+        newPane.setResizeWeight(0.6);
+        newPane.setDividerLocation(0.1);
+        getFrame().add(newPane);
+        getFrame().setSize(800, 550);
+
         try {
             this.name = name;
-            p = new Client(new ClientMessenger(socket));
+            p = new Client(new ClientMessenger(socket, this));
             p.setName(name);
 
             String response = p.getNameResponse();
@@ -49,13 +84,17 @@ public class MultiplayerClient extends AnswerFrame {
             // UI won't display without thread.
             Thread t = new Thread(() -> {
                 start();
-                this.is_in_game = true;
             });
 
             t.start();
         } catch (IOException e) {
             disconnect(e);
         }
+    }
+    
+    public void addChat(String who, String contents) {
+        String s = chat.getText();
+        chat.setText(String.format("%s%s: %s\n", s, who, contents));
     }
 
     @Override
