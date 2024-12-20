@@ -2,16 +2,16 @@ package quiz;
 
 import gui.*;
 import gui.Leaderboard.Player;
+import networking.Messenger;
 
 import java.io.*;
-import java.net.*;
 import java.util.ArrayList;
 
 public class Client implements AutoCloseable {
-    private Socket socket;
+    private Messenger m;
 
-    public Client(Socket socket){
-        this.socket = socket;
+    public Client(Messenger m){
+        this.m = m;
     }
 
     public static void main(String[] args) {
@@ -19,69 +19,56 @@ public class Client implements AutoCloseable {
     }
     
     public String getQuestion() throws IOException {
-        DataInputStream in = new DataInputStream(this.socket.getInputStream());
-        String question = in.readUTF();
+        String question = m.readUTF();
 
         return question;
     }
-    public String[] getOptions() throws IOException {
-        DataInputStream in = new DataInputStream(this.socket.getInputStream());
-        
+    public String[] getOptions() throws IOException {  
         String[] options = new String[4];
 
         for (int i = 0; i < options.length; i++) {
-            options[i] = in.readUTF();
+            options[i] = m.readUTF();
             System.out.println(options[i]);
         }
 
         return options;
     }
+
     public void setName(String name) throws IOException {
-        DataOutputStream out = new DataOutputStream(this.socket.getOutputStream());
-        out.writeUTF(name);
-        out.flush();
+        DataOutputStream dos = new DataOutputStream(m.getSocket().getOutputStream());
+        dos.writeUTF(name);
+        dos.flush();
     }
     
     public void writeAns(int ans) throws IOException {
-        DataOutputStream out = new DataOutputStream(this.socket.getOutputStream());
-        out.writeInt(ans);
-        out.flush();
+        m.writeInt(ans);
+        m.flush();
     }
 
     public void writeTimeStamp(long a) throws IOException {
-        DataOutputStream out = new DataOutputStream(this.socket.getOutputStream());
-        out.writeLong(a);
-        out.flush();
+        m.writeLong(a);
+        m.flush();
     }
     
     public boolean checkEnd() throws IOException {
-        DataInputStream in = new DataInputStream(this.socket.getInputStream());
-        boolean check = in.readBoolean();
-        if(check){
-            return true;
-        }else{
-            return false;
-        }
+        boolean check = m.readBoolean();
+        return check;
     }
 
     public int getScore() throws IOException {
-        DataInputStream in = new DataInputStream(this.socket.getInputStream());
-        int score = in.readInt();
+        int score = m.readInt();
         return score;
     }
     
     public int getRank() throws IOException {
-        DataInputStream in = new DataInputStream(this.socket.getInputStream());
-        int rank = in.readInt();
+        int rank = m.readInt();
         return rank;
     }
     
     @SuppressWarnings("unchecked")
     public ArrayList<Leaderboard.Player> leaderborad() throws IOException {
         try {
-            ObjectInputStream ois = new ObjectInputStream(this.socket.getInputStream());
-            
-            return (ArrayList<Player>) ois.readObject();
+            return (ArrayList<Player>) m.readObject();
         } catch (ClassNotFoundException e) {
             // Impossible
             return null;
@@ -89,27 +76,33 @@ public class Client implements AutoCloseable {
     }
 
     public long getTimeStamp() throws IOException {
-        DataInputStream in = new DataInputStream(this.socket.getInputStream());
-        long timestamp = in.readLong();
+        long timestamp = m.readLong();
         return timestamp;
     }
 
     public void leaveEarly() throws IOException {
-        this.socket.getOutputStream().write(-1);
+        this.m.getSocket().getOutputStream().write(-1);
+    }
+
+    public void writeCommand(String s) throws IOException {
+        this.m.writeCommand(s);
+    }
+
+    public void readIncoming() throws IOException {
+        this.m.readIncoming();
     }
 
     public boolean isClosed() {
-        return socket.isClosed();
+        return this.m.isClosed();
     }
     
     @Override
     public void close() throws IOException {
-        socket.close();
+        this.m.close();
     }
 
     public String getNameResponse() throws IOException {
-        DataInputStream in = new DataInputStream(this.socket.getInputStream());
-        String response = in.readUTF();
+        String response = this.m.readUTF();
         return response;
     }
 }

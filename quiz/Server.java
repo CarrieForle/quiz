@@ -15,8 +15,7 @@ import gui.Leaderboard;
 
 import java.util.List;
 
-import networking.ServerStorage;
-import networking.Transmitter;
+import networking.*;
 import utils.*;
 import utils.exceptions.*;
 
@@ -111,7 +110,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
         this.pullBackID(client.id);
 
         try {
-            client.socket.close();
+            client.transmitter.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -268,7 +267,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
                     System.out.format("Thread #%d is ready to serve a client.\n", thread_id);
 
                     client = waitAndInitClient();
-                    client.socket.setSoTimeout(1000);
+                    client.transmitter.getSocket().setSoTimeout(1000);
 
                     System.out.format("%s is connected and served by thread #%d.\n", client.name, thread_id);
 
@@ -277,32 +276,21 @@ public class Server implements ServerEventHandler, AutoCloseable {
 
                     System.out.format("Thread #%d: %d players\n", thread_id, this.clients.size());
 
-                    // Player leaving detection: If a player left by ordinary mean a read will not block, otherwise it blocks. So the one that goes quickly is the one who left.
-                    while (true) {
-                        this.lock.lock();
+                    final Participant final_client = client;
 
-                        try {
-                            while (this.clients.size() < MIN_NUM) {
-                                this.game_start.await();
-                            }
+                    this.lock.lock();
 
-                            this.game_start.signalAll();
-                        } finally {
-                            this.lock.unlock();
+                    try {
+                        while (this.clients.size() < MIN_NUM) {
+                            this.game_start.await();
                         }
 
-                        try {
-                            client.socket.getInputStream().read();
-                            freeClient(client);
-                        } catch (SocketTimeoutException e) {
-                            Thread.sleep(100);
-                            if (this.clients.size() >= MIN_NUM) {
-                                break;
-                            }
-                        }
+                        this.game_start.signalAll();
+                    } finally {
+                        this.lock.unlock();
                     }
 
-                    client.socket.setSoTimeout(15000);
+                    client.transmitter.getSocket().setSoTimeout(15000);
                     this.eventLoop(client);
                 } catch (IOException e) {
                     this.freeClient(client);
@@ -411,17 +399,16 @@ public class Server implements ServerEventHandler, AutoCloseable {
                         break;
                     case MULTIPLAYER:
                         Participant incoming = (Participant) this.data;
-                        DataOutputStream dos = new DataOutputStream(incoming.socket.getOutputStream());
 
                         if (!is_game_end.get()) {
-                            dos.writeUTF("The game has already started");
-                            incoming.socket.close();
+                            incoming.transmitter.getMessenger().writeUTF("The game has already started");
+                            incoming.transmitter.close();
                             break;
                         }
 
                         if (this.clients.size() == MAX_NUM) {
-                            dos.writeUTF("The room is full");
-                            incoming.socket.close();
+                            incoming.transmitter.getMessenger().writeUTF("The room is full");
+                            incoming.transmitter.close();
                             break;
                         }
 
@@ -436,13 +423,13 @@ public class Server implements ServerEventHandler, AutoCloseable {
                             }
 
                             if (is_name_duplicated) {
-                                dos.writeUTF(String.format("A player named \"%s\" is already playing", incoming.name));
-                                incoming.socket.close();
+                                incoming.transmitter.getMessenger().writeUTF(String.format("A player named \"%s\" is already playing", incoming.name));
+                                incoming.transmitter.close();
                                 break;
                             }
                         }
 
-                        dos.writeUTF("OK");
+                        incoming.transmitter.getMessenger().writeUTF("OK");
                         this.new_client.signal();
                         break;
                     case QUIZ_UPLOAD:
@@ -573,7 +560,6 @@ class EventBus {
 
 class Participant implements ClientEventHandler {
     final Server server;
-    final Socket socket;
     final Transmitter transmitter;
     final String name;
     int id;
@@ -581,11 +567,11 @@ class Participant implements ClientEventHandler {
     int ranking = 1;
     ClientEvent event;
 
-    public Participant(Server server, Socket socket, String name) {
+    // TODO remove socket
+    public Participant(Server server, Messenger messenger, String name) {
         this.server = server;
-        this.socket = socket;
         this.name = name;
-        this.transmitter = new Transmitter(socket);
+        this.transmitter = new Transmitter(messenger);
     }
 
     @Override
@@ -686,7 +672,7 @@ class SocketDispatcher {
             type = Type.QUIZ_UPLOAD;
         } else {
             type = Type.MULTIPLAYER;
-            Participant p = new Participant(this.server, socket, identifier);
+            Participant p = new Participant(this.server, new ServerMessenger(socket), identifier);
             data = p;
         }
 

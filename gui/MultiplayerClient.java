@@ -2,9 +2,13 @@ package gui;
 
 import java.awt.event.*;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.Socket;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
+import networking.ClientMessenger;
 import quiz.Client;
 import utils.Common;
 import utils.Question;
@@ -31,7 +35,7 @@ public class MultiplayerClient extends AnswerFrame {
     public MultiplayerClient(Socket socket, String name) {
         try {
             this.name = name;
-            p = new Client(socket);
+            p = new Client(new ClientMessenger(socket));
             p.setName(name);
 
             String response = p.getNameResponse();
@@ -44,7 +48,7 @@ public class MultiplayerClient extends AnswerFrame {
             }
 
             setVisible(true);
-            
+
             // UI won't display without thread.
             Thread t = new Thread(() -> {
                 start();
@@ -89,10 +93,6 @@ public class MultiplayerClient extends AnswerFrame {
     @Override
     protected void onWindowClosing(WindowEvent e) {
         try {
-            if (!is_in_game) {
-                p.leaveEarly();
-            }
-
             p.close();
         } catch (IOException ex) {
             disconnect(ex);
