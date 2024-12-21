@@ -2,14 +2,16 @@ package networking;
 
 import java.io.*;
 import java.net.*;
-import java.util.ArrayDeque;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Messenger implements AutoCloseable {
     protected DataInputStream dis;
     protected DataOutputStream dos;
     protected Socket socket;
-    private Queue<String> buffer = new ArrayDeque<>();
+    private Queue<String> buffer = new ConcurrentLinkedQueue<>();
 
     public static void main(String[] args) {
         try {
@@ -41,6 +43,8 @@ public class Messenger implements AutoCloseable {
 
         oos.writeObject(o);
     }
+
+    // Only use it as last resort as it almost certainly will read longer than timeFrame
 
     public void readIncoming() throws IOException {
         String n = this.dis.readUTF();

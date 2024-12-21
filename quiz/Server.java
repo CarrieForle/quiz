@@ -215,8 +215,6 @@ public class Server implements ServerEventHandler, AutoCloseable {
                 } else {
                     this.eventBus.publish(ClientEvent.ROUND_END);
                 }
-
-                Thread.sleep(4000);
             }
 
             this.updateLeaderboard();
@@ -571,9 +569,11 @@ class Participant implements ClientEventHandler {
                 break;
             case ROUND_END:
                 this.transmitter.sendRoundResult(false, this.server.getRunningQuestion().answer, this.score, this.ranking);
+                this.transmitter.getMessenger().readIncomingFor(Duration.ofSeconds(4));
                 break;
             case FINAL_ROUND_END:
                 this.transmitter.sendRoundResult(true, this.server.getRunningQuestion().answer, this.score, this.ranking);
+                this.transmitter.getMessenger().readIncomingFor(Duration.ofSeconds(4));
                 break;
             case GAME_END:
                 this.transmitter.sendLeaderboard(this.server.getLeaderboard());
@@ -594,7 +594,7 @@ class Participant implements ClientEventHandler {
         QuestionWithAnswer qa = this.server.getRunningQuestion();
         Instant now = Instant.now();
 
-        this.transmitter.sendQuestion(qa, Duration.ofMillis(10000));
+        this.transmitter.sendQuestion(qa, Duration.ofSeconds(10));
 
         QuizAnswerResponse qar = this.transmitter.getAnswer();
 

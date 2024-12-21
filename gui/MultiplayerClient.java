@@ -3,7 +3,6 @@ package gui;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.Socket;
 import java.util.List;
 
@@ -15,6 +14,7 @@ import utils.Common;
 import utils.Question;
 
 public class MultiplayerClient extends AnswerFrame {
+    private Thread readIncoming = new Thread();
     private Question question = new Question();
     private JTextArea chat = new JTextArea("You joined the server\n");
     private JTextField inputField = new JTextField();
@@ -56,7 +56,7 @@ public class MultiplayerClient extends AnswerFrame {
             try {
                 p.message(name, inputField.getText());
             } catch (IOException ex) {
-                throw new UncheckedIOException(ex);
+                disconnect(ex);
             }
 
             inputField.setText("");
@@ -90,6 +90,8 @@ public class MultiplayerClient extends AnswerFrame {
 
             frame.setVisible(true);
 
+            readQuestion();
+
             // UI won't display without thread.
             Thread t = new Thread(() -> {
                 start();
@@ -108,19 +110,27 @@ public class MultiplayerClient extends AnswerFrame {
 
     @Override
     protected Question getNextQuestion() {
-        try {
-            if (leaderboard != null) {
-                return null;
-            }
-            
-            question.question = p.getQuestion();
-            question.setOptions(p.getOptions());
-            timeLimit = p.getTimeStamp();
-        } catch (IOException e) {
-            disconnect(e);
+        return question;
+    }
+
+    private void readQuestion() throws IOException {
+        if (leaderboard != null) {
+            question = null;
         }
 
-        return question;
+        question.question = p.getQuestion();
+        question.setOptions(p.getOptions());
+        timeLimit = p.getTimeStamp();
+
+        readIncoming = new Thread(() -> {
+            try {
+                receiveData();
+            } catch (IOException e) {
+                disconnect(e);
+            }
+        });
+
+        readIncoming.start();
     }
 
     @Override
@@ -129,9 +139,11 @@ public class MultiplayerClient extends AnswerFrame {
             p.writeAns(id);
             long timestamp = e.getWhen();
             p.writeTimeStamp(timestamp);
-            receiveData();
+            readIncoming.join();
         } catch (IOException ex) {
             disconnect(ex);
+        } catch (InterruptedException ex) {
+
         }
     }
 
@@ -149,9 +161,11 @@ public class MultiplayerClient extends AnswerFrame {
         try {
             p.writeAns(-1);
             p.writeTimeStamp(0);
-            receiveData();
+            readIncoming.join();
         } catch (IOException e) {
             disconnect(e);
+        } catch (InterruptedException e) {
+
         }
     }
 
@@ -163,12 +177,14 @@ public class MultiplayerClient extends AnswerFrame {
     @Override
     protected void onRoundEnd() {
         countDownTimebar(4000);
-
+        
         try {
-            Thread.sleep(4000);
-        } catch (InterruptedException e) {
-
+            readQuestion();
+        } catch (IOException e) {
+            disconnect(e);
         }
+
+        System.out.println("Question read");
     }
 
     @Override
@@ -219,7 +235,7 @@ public class MultiplayerClient extends AnswerFrame {
 
     private void receiveData() throws IOException {
         boolean isEnd = p.checkEnd();
-
+        
         correctAnswer = p.getAnswer();
         score = p.getScore();
         System.out.printf("分數為%d", score);

@@ -56,8 +56,8 @@ public class Client implements AutoCloseable {
     }
 
     public int getAnswer() throws IOException {
-        int score = m.readInt();
-        return score;
+        int answer = m.readInt();
+        return answer;
     }
 
     public int getScore() throws IOException {

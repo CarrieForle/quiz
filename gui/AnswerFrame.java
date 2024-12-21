@@ -72,8 +72,12 @@ public abstract class AnswerFrame {
 
             final int id = i;
             answerButtons[i].addActionListener(e -> {
-                optionScrollAreas[id].setBorder(getHighlightBorder(Color.YELLOW));
+                optionScrollAreas[id].setBorder(getHighlightBorder(new Color(238, 208, 82)));
                 countdownTask.cancel();
+
+                for (JButton button : answerButtons) {
+                    button.setEnabled(false);
+                }
 
                 Thread t = new Thread(() -> {
                     onAnswering(id, e);
@@ -127,10 +131,6 @@ public abstract class AnswerFrame {
     }
 
     private void endRound(int id) {
-        for (JButton button : answerButtons) {
-            button.setEnabled(false);
-        }
-
         int correct_answer = getAnswer();
 
         for (int j = 0; j < 4; j++) {
@@ -215,6 +215,10 @@ public abstract class AnswerFrame {
                     cancel();
 
                     Thread t = new Thread(() -> {
+                        for (JButton button : answerButtons) {
+                            button.setEnabled(false);
+                        }
+
                         onTimeExceed();
                         endRound(-1);
                     });
