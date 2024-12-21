@@ -16,7 +16,7 @@ public abstract class Leaderboard extends JFrame {
             new Player("Tom", 6)
         };
 
-        new Leaderboard(List.of(players), players[1]) {
+        new Leaderboard(List.of(players), players[4]) {
             @Override
             protected void onContinue() {
                 
@@ -54,11 +54,12 @@ public abstract class Leaderboard extends JFrame {
             @Override
             public void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                Resource.podium.paintIcon(this, g, 25, 65);
+                Resource.podium.paintIcon(this, g, 0, 65);
             }
         };
 
-        podiumPanel.setPreferredSize(new Dimension(100, 200));
+        podiumPanel.setPreferredSize(new Dimension(Resource.podium.getIconWidth(), 200));
+        podiumPanel.setMaximumSize(new Dimension(Resource.podium.getIconWidth(), 200));
 
         JLabel[] names = new JLabel[3];
         JLabel[] scores = new JLabel[3];
@@ -84,16 +85,16 @@ public abstract class Leaderboard extends JFrame {
         }
 
         // First place
-        names[0].setBounds(50, 15, 200, 20);
-        scores[0].setBounds(120, 35, 60, 20);
+        names[0].setBounds(25, 15, 200, 20);
+        scores[0].setBounds(95, 35, 60, 20);
 
         // Second place
-        names[1].setBounds(-35, 50, 200, 20);
-        scores[1].setBounds(35, 70, 60, 20);
+        names[1].setBounds(-60, 50, 200, 20);
+        scores[1].setBounds(10, 70, 60, 20);
 
         // Third place
-        names[2].setBounds(135, 70, 200, 20);
-        scores[2].setBounds(205, 90, 60, 20);
+        names[2].setBounds(110, 70, 200, 20);
+        scores[2].setBounds(180, 90, 60, 20);
 
         podiumPanel.setAlignmentX(0.5f);
         this.add(podiumPanel);
@@ -106,8 +107,8 @@ public abstract class Leaderboard extends JFrame {
             names[rank - 1].setForeground(nameColor);
             scores[rank - 1].setForeground(nameColor);
             winner.setFont(winner.getFont().deriveFont(20f));
+            winner.setAlignmentX(0.5f);
             winner.setForeground(nameColor);
-            winner.setBounds(145, 240, 200, 30);
             this.add(winner);
         } else if (rank <= 3) {
             JLabel goodJob = new JLabel("You are in the TOP 3");
@@ -115,19 +116,12 @@ public abstract class Leaderboard extends JFrame {
             scores[rank - 1].setForeground(Color.RED);
             goodJob.setFont(goodJob.getFont().deriveFont(16f));
             goodJob.setForeground(Color.RED);
-            goodJob.setBounds(110, 240, 200, 30);
             goodJob.setAlignmentX(0.5f);
             this.add(goodJob);
         } else {
-            JPanel panel = new JPanel();
-            JLabel scoreLabel = new JLabel("Score: " + me.score);
-            panel.add(scoreLabel);
-            
-            JLabel rankLabel = new JLabel("Rank: " + (players.indexOf(me) + 1));
-            rankLabel.setAlignmentX(0.5f);
-            panel.add(rankLabel);
-            panel.setAlignmentX(0.5f);
-            this.add(panel);
+            JLabel infoLabel = new JLabel(String.format("Score: %d         Rank: %d", me.score, rank));
+            infoLabel.setAlignmentX(0.5f);
+            this.add(infoLabel);
         }
 
         // Buttons
@@ -153,8 +147,8 @@ public abstract class Leaderboard extends JFrame {
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         this.add(panel);
 
-        this.setLocationRelativeTo(null);
         this.pack();
+        this.setLocationRelativeTo(null);
         this.setVisible(true);
     }
     
