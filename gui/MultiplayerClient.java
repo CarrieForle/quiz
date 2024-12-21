@@ -47,12 +47,19 @@ public class MultiplayerClient extends AnswerFrame {
 
         JButton inputButton = new JButton("Send");
         inputButton.addActionListener(e -> {
+            String message = inputField.getText().trim();
+
+            if (message.isEmpty()) {
+                return;
+            }
+
             try {
                 p.message(name, inputField.getText());
-                inputField.setText("");
             } catch (IOException ex) {
                 throw new UncheckedIOException(ex);
             }
+
+            inputField.setText("");
         });
 
         inputPanel.add(inputButton, BorderLayout.WEST);
