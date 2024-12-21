@@ -8,7 +8,7 @@ import java.awt.*;
 import java.util.Random;
 
 public class LoginDialog extends JDialog {
-    private static final Font FONT = new Font("Arial", Font.PLAIN, 16);
+    private static final int fontSize = 16;
     private LoginHandler handler;
     private JTextArea nameField = new JTextArea();
     private JTextArea serverField = new JTextArea();
@@ -37,7 +37,7 @@ public class LoginDialog extends JDialog {
         
         // Name label and field
         JLabel nameLabel = new JLabel("Name");
-        nameLabel.setFont(FONT);
+        nameLabel.setFont(nameLabel.getFont().deriveFont(fontSize));
 
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
@@ -47,7 +47,7 @@ public class LoginDialog extends JDialog {
 
         fieldPanel.add(nameLabel, c);
 
-        this.nameField.setFont(FONT);
+        this.nameField.setFont(nameField.getFont().deriveFont(fontSize));
         this.nameField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
         c = new GridBagConstraints();
@@ -61,7 +61,7 @@ public class LoginDialog extends JDialog {
         
         // Server address input label and field
         JLabel serverLabel = new JLabel("Server Address");
-        serverLabel.setFont(FONT);
+        serverLabel.setFont(serverLabel.getFont().deriveFont(fontSize));
 
         c = new GridBagConstraints();
         c.gridx = 0;
@@ -71,7 +71,7 @@ public class LoginDialog extends JDialog {
 
         fieldPanel.add(serverLabel, c);
 
-        this.serverField.setFont(FONT);
+        this.serverField.setFont(this.serverField.getFont().deriveFont(fontSize));
         this.serverField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
         c = new GridBagConstraints();
@@ -96,8 +96,9 @@ public class LoginDialog extends JDialog {
             String serverAddress = this.serverField.getText();
 
             // Validate inputs
-            if (playerName == null || playerName.isEmpty()) {
-                Common.errorMessage(this, "Name is required.");
+            String reason = validate_username(playerName);
+            if (reason != null) {
+                Common.errorMessage(this, reason);
                 return;
             }
             if (serverAddress == null || serverAddress.isEmpty()) {
@@ -108,9 +109,8 @@ public class LoginDialog extends JDialog {
             handler.login(this, serverAddress, playerName);
         });
 
-        // TODO remove auto fields
         String[] names = {
-            "Bob", "Jimmy", "Patrick", "Tom", "Leo", "Michael"
+            "Bob", "Jimmy", "Patrick", "Tom", "Leo", "Michael", "Rick Astley", "大谷翔平"
         };
 
         this.nameField.setText(names[new Random().nextInt(names.length)]);
@@ -126,5 +126,27 @@ public class LoginDialog extends JDialog {
 
     public void setAddress(String address) {
         this.serverField.setText(address);
+    }
+
+    private static String validate_username(String username) {
+        username = username.trim();
+
+        if (username == null) {
+            return "Username must not be null";
+        }
+
+        if (username.isBlank()) {
+            return "Username must not be blank";
+        }
+
+        if (username.contains("$#\0")) {
+            return "User name must not contain illegal character";
+        }
+
+        if (username.length() > 16) {
+            return "Username must not exceed 16 letters";
+        }
+
+        return null;
     }
 }

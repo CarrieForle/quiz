@@ -22,6 +22,12 @@ public class ClientMessenger extends Messenger {
             String message = args[1];
 
             client.addChat(name, message);
+        } else if (command.equals("join")) {
+            String name = args[0];
+            client.joinChat(name);
+        } else if (command.equals("leave")) {
+            String name = args[0];
+            client.leaveChat(name);
         }
     }
 }

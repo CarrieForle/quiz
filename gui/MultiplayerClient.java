@@ -89,12 +89,15 @@ public class MultiplayerClient extends AnswerFrame {
             }
 
             frame.setVisible(true);
-
-            readQuestion();
-
+            
             // UI won't display without thread.
             Thread t = new Thread(() -> {
-                start();
+                try {
+                    readQuestion();
+                    start();
+                } catch (IOException e) {
+                    disconnect(e);
+                }
             });
 
             t.start();
@@ -102,10 +105,22 @@ public class MultiplayerClient extends AnswerFrame {
             disconnect(e);
         }
     }
+
+    private void addChat(String contents) {
+        String s = chat.getText();
+        chat.setText(String.format("%s%s\n", s, contents));
+    }
     
     public void addChat(String who, String contents) {
-        String s = chat.getText();
-        chat.setText(String.format("%s%s: %s\n", s, who, contents));
+        this.addChat(String.format("%s: %s", who, contents));
+    }
+
+    public void joinChat(String who) {
+        this.addChat(String.format("%s join the game", who));
+    }
+
+    public void leaveChat(String who) {
+        this.addChat(String.format("%s left the game", who));
     }
 
     @Override

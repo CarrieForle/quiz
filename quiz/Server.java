@@ -40,7 +40,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
 
     public static void main(String[] args) {
         int port = 12345;
-        int min = 1;
+        int min = 3;
         int max = 4;
         
         try (ServerSocket socket = new ServerSocket(port)) {
@@ -104,13 +104,21 @@ public class Server implements ServerEventHandler, AutoCloseable {
 
         System.out.format("\n\n%s is disconnected.\n", client.name);
 
+        this.updateMessenger(client);
+
         try {
             client.transmitter.close();
+
+            synchronized (this.clients) {
+                for (Participant p : this.clients) {
+                    p.transmitter.leave(client.name);
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        this.updateMessenger(client);
+
         this.eventBus.tryPop();
 
         if (!this.is_game_end.get() && this.clients.isEmpty()) {
@@ -261,6 +269,12 @@ public class Server implements ServerEventHandler, AutoCloseable {
                     client.transmitter.getSocket().setSoTimeout(1000);
 
                     System.out.format("%s is connected and served by thread #%d.\n", client.name, thread_id);
+                    
+                    synchronized (this.clients) {
+                        for (Participant p : this.clients) {
+                            p.transmitter.join(client.name);
+                        }
+                    }
 
                     this.clients.add(client);
                     this.eventBus.subscribe(client);
