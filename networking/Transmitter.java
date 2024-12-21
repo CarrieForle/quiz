@@ -52,6 +52,14 @@ public class Transmitter implements AutoCloseable {
         this.m.writeCommand("ping");
     }
 
+    public void join(String s) throws IOException {
+        this.m.writeCommand("join", new String[] { s });
+    }
+    
+    public void leave(String s) throws IOException {
+        this.m.writeCommand("leave", new String[] { s });
+    }
+
     @Override
     public void close() throws IOException {
         this.m.close();

@@ -21,16 +21,20 @@ public class ServerMessenger extends Messenger {
         }
     }
 
+    private void executeBroadcast(String command, String[] args) throws IOException {
+        synchronized (this.messengers) {
+            for (Messenger m : this.messengers) {
+                m.onCommand("transmit_message", args);
+            }
+        }
+    }
+
     @Override
     public void onCommand(String command, String[] args) throws IOException {
         System.out.format("Server got command: %s\n", command);
 
         if (command.equals("message")) {
-            synchronized (this.messengers) {
-                for (Messenger m : this.messengers) {
-                    m.onCommand("transmit_message", args);
-                }
-            }
+            this.executeBroadcast("transmit_message", args);
         } else if (command.equals("transmit_message")) {
             this.writeCommand("message", args);
         }

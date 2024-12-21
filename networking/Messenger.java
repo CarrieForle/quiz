@@ -2,8 +2,6 @@ package networking;
 
 import java.io.*;
 import java.net.*;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -62,13 +60,11 @@ public class Messenger implements AutoCloseable {
             return command;
         }
 
-        StringBuilder sb = new StringBuilder(command + " ");
+        StringBuilder sb = new StringBuilder(command);
 
         for (String arg : args) {
-            sb.append(arg + "\0");
+            sb.append("\0" + arg);
         }
-
-        sb.deleteCharAt(sb.length() - 1);
 
         return sb.toString();
     }
@@ -189,7 +185,7 @@ public class Messenger implements AutoCloseable {
     private Command extract(String s) {
         Command c = new Command();
 
-        String[] tokens = s.split(" ");
+        String[] tokens = s.split("\0", 2);
         c.command = tokens[0];
 
         if (tokens.length >= 2) {
