@@ -2,6 +2,9 @@ package networking;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
@@ -30,6 +33,29 @@ public class ServerMessenger extends Messenger {
             }
         } else if (command.equals("transmit_message")) {
             this.writeCommand("message", args);
+        }
+    }
+
+    public void readIncomingFor(Duration timeFrame) throws IOException {
+        Instant startTime = Instant.now();
+        int oldTimeout = this.socket.getSoTimeout();
+        
+        try {
+            this.socket.setSoTimeout(1050);
+            Duration duration = Duration.ZERO;
+
+            while (duration.compareTo(timeFrame) < 0) {
+                try {
+                    this.readIncoming();
+                } catch (SocketTimeoutException e) {
+                    System.out.println("Time out");
+                }
+
+                duration = Duration.between(startTime, Instant.now());
+                System.out.println(duration.getSeconds());
+            }
+        } finally {
+            this.socket.setSoTimeout(oldTimeout);
         }
     }
 }

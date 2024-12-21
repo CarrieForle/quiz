@@ -1,7 +1,6 @@
 package gui;
 
 import java.awt.*;
-import java.io.IOException;
 import java.net.URI;
 
 import javax.swing.*;
