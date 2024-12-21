@@ -12,17 +12,16 @@ public class Messenger implements AutoCloseable {
     private Queue<String> buffer = new ConcurrentLinkedQueue<>();
 
     public static void main(String[] args) {
-        try {
-            ServerSocket server = new ServerSocket(54432);
-            Socket sa = new Socket("127.0.0.1", 54432) ;
+        try (ServerSocket server = new ServerSocket(54432)) {
+            Socket sa = new Socket("127.0.0.1", 54432);
             Socket sb = server.accept();
 
-            Messenger a = new Messenger(sa);
-            Messenger b = new Messenger(sb);
-            
-            a.writeUTF("LOL");
-            b.readIncoming();
-            System.out.println(b.readUTF());
+            try (Messenger a = new Messenger(sa);
+            Messenger b = new Messenger(sb)) {
+                a.writeUTF("LOL");
+                b.readIncoming();
+                System.out.println(b.readUTF());
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -41,8 +40,6 @@ public class Messenger implements AutoCloseable {
 
         oos.writeObject(o);
     }
-
-    // Only use it as last resort as it almost certainly will read longer than timeFrame
 
     public void readIncoming() throws IOException {
         String n = this.dis.readUTF();

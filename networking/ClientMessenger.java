@@ -28,6 +28,12 @@ public class ClientMessenger extends Messenger {
         } else if (command.equals("leave")) {
             String name = args[0];
             client.leaveChat(name);
+        } else if (command.equals("notenough")) {
+            int minimum = Integer.parseInt(args[0]);
+            client.notEnoughPlayer();
+        } else if (command.equals("start")) {
+            int start_in = Integer.parseInt(args[0]);
+            client.startIn(start_in);
         }
     }
 }

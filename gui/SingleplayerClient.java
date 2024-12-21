@@ -96,7 +96,7 @@ public class SingleplayerClient extends AnswerFrame {
 
     @Override
     protected void onRoundEnd() {
-        countDownTimebar(4000);
+        countDownTimebar(4000, false);
 
         try {
             Thread.sleep(4000);

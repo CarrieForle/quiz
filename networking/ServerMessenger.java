@@ -31,8 +31,6 @@ public class ServerMessenger extends Messenger {
 
     @Override
     public void onCommand(String command, String[] args) throws IOException {
-        System.out.format("Server got command: %s\n", command);
-
         if (command.equals("message")) {
             this.executeBroadcast("transmit_message", args);
         } else if (command.equals("transmit_message")) {
@@ -40,6 +38,7 @@ public class ServerMessenger extends Messenger {
         }
     }
 
+    // Only use it as last resort as it almost certainly will read longer than Frame
     public void readIncomingFor(Duration timeFrame) throws IOException {
         Instant startTime = Instant.now();
         int oldTimeout = this.socket.getSoTimeout();
@@ -52,11 +51,10 @@ public class ServerMessenger extends Messenger {
                 try {
                     this.readIncoming();
                 } catch (SocketTimeoutException e) {
-                    System.out.println("Time out");
+
                 }
 
                 duration = Duration.between(startTime, Instant.now());
-                System.out.println(duration.getSeconds());
             }
         } finally {
             this.socket.setSoTimeout(oldTimeout);
