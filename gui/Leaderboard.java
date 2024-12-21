@@ -44,7 +44,7 @@ public abstract class Leaderboard extends JFrame {
 
         // Title Label
         JLabel titleLabel = new JLabel("LEADERBOARD");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 26));
+        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 26f));
         this.add(titleLabel);
         titleLabel.setAlignmentX(0.5f);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
@@ -135,7 +135,7 @@ public abstract class Leaderboard extends JFrame {
 
         panel.add(continueButton);
 
-        JButton quitButton = new JButton("Quit");
+        JButton quitButton = new JButton("Menu");
         quitButton.addActionListener(e -> {
             this.dispose();
             new MainMenu();

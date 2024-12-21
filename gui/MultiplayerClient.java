@@ -16,13 +16,14 @@ import utils.Question;
 public class MultiplayerClient extends AnswerFrame {
     private Thread readIncoming = new Thread();
     private Question question = new Question();
-    private JTextArea chat = new JTextArea("You joined the server\n");
+    private JTextArea chat = new JTextArea("You joined the game\n");
     private JTextField inputField = new JTextField();
     private Client p;
     private String name;
     private int score = 0;
     private int rank = 1;
     private int correctAnswer = 1;
+    private boolean isEnd = false;
     private int timeLimit = 10000;
     private List<Leaderboard.Player> leaderboard;
 
@@ -38,33 +39,52 @@ public class MultiplayerClient extends AnswerFrame {
 
     public MultiplayerClient(Socket socket, String name) {
         chat.setEditable(false);
-        chat.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        chat.getCaret().setSelectionVisible(false);
+        chat.getCaret().setVisible(false);
+        chat.setLineWrap(true);
+
+        chat.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                chat.getCaret().setVisible(false);
+            }
+        });
+
+        JScrollPane chatPane = new JScrollPane(chat);
 
         JPanel chatPanel = new JPanel(new BorderLayout(0, 5));
         JPanel inputPanel = new JPanel(new BorderLayout(5, 0));
         inputField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         inputPanel.add(inputField);
 
+        AbstractAction sendTextAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String message = inputField.getText().trim();
+
+                if (message.isEmpty()) {
+                    return;
+                }
+
+                try {
+                    p.message(name, inputField.getText());
+                } catch (IOException ex) {
+                    disconnect(ex);
+                }
+
+                inputField.setText("");
+            }
+        };
+
+        inputField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "send");
+        inputField.getActionMap().put("send", sendTextAction);
+
         JButton inputButton = new JButton("Send");
-        inputButton.addActionListener(e -> {
-            String message = inputField.getText().trim();
-
-            if (message.isEmpty()) {
-                return;
-            }
-
-            try {
-                p.message(name, inputField.getText());
-            } catch (IOException ex) {
-                disconnect(ex);
-            }
-
-            inputField.setText("");
-        });
+        inputButton.addActionListener(sendTextAction);
 
         inputPanel.add(inputButton, BorderLayout.WEST);
         inputPanel.add(inputField, BorderLayout.CENTER);
-        chatPanel.add(chat, BorderLayout.CENTER);
+        chatPanel.add(chatPane, BorderLayout.CENTER);
         chatPanel.add(inputPanel, BorderLayout.SOUTH);
         chatPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -116,11 +136,21 @@ public class MultiplayerClient extends AnswerFrame {
     }
 
     public void joinChat(String who) {
-        this.addChat(String.format("%s join the game", who));
+        this.addChat(String.format("%s joined the game", who));
     }
 
     public void leaveChat(String who) {
         this.addChat(String.format("%s left the game", who));
+    }
+
+    public void startIn(int start_in) {
+        this.addChat(String.format("Start in %d seconds", start_in / 1000));
+        countDownTimebar(start_in, true);
+    }
+
+    public void notEnoughPlayer() {
+        this.addChat("Wait for more players...");
+        cancelCountDown("0.0", 100);
     }
 
     @Override
@@ -129,8 +159,11 @@ public class MultiplayerClient extends AnswerFrame {
     }
 
     private void readQuestion() throws IOException {
-        if (leaderboard != null) {
+        if (isEnd) {
+            leaderboard = p.leaderborad();
             question = null;
+            System.out.printf("sus");
+            return;
         }
 
         question.question = p.getQuestion();
@@ -191,15 +224,13 @@ public class MultiplayerClient extends AnswerFrame {
 
     @Override
     protected void onRoundEnd() {
-        countDownTimebar(4000);
+        countDownTimebar(4000, false);
         
         try {
             readQuestion();
         } catch (IOException e) {
             disconnect(e);
         }
-
-        System.out.println("Question read");
     }
 
     @Override
@@ -249,18 +280,13 @@ public class MultiplayerClient extends AnswerFrame {
     }
 
     private void receiveData() throws IOException {
-        boolean isEnd = p.checkEnd();
+        isEnd = p.checkEnd();
         
         correctAnswer = p.getAnswer();
         score = p.getScore();
         System.out.printf("分數為%d", score);
         rank = p.getRank();
         System.out.printf("名次為%d", rank);
-
-        if (isEnd) {
-            leaderboard = p.leaderborad();
-            System.out.printf("sus");
-        }
     }
 
     private void disconnect(IOException e) {

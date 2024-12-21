@@ -13,14 +13,21 @@ import java.util.Timer;
 
 public abstract class AnswerFrame {
     private Timer timer = new Timer();
-    private TimerTask countdownTask;
+    private TimerTask countdownTask = new TimerTask() {
+        @Override
+        public void run() {
+
+        }
+    };
+
+    private int countdown = 0;
     protected JFrame frame;
     protected JLabel scoreLabel = new JLabel("Score: 0");
-    protected JLabel timeLabel = new JLabel("", JLabel.CENTER);
+    protected JLabel timeLabel = new JLabel("0.0", JLabel.CENTER);
     protected JLabel rankLabel = new JLabel("Rank: 1");
     protected JTextArea questionArea = getJTextArea();
     protected JScrollPane questionScrollArea = new JScrollPane(questionArea);
-    protected JProgressBar timebar = new JProgressBar(0, 100);
+    private JProgressBar timebar = new JProgressBar(0, 100);
     protected JSplitPane mainPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
     protected JTextArea[] optionAreas = new JTextArea[4];
     protected JButton[] answerButtons = new JButton[4];
@@ -203,6 +210,9 @@ public abstract class AnswerFrame {
     }
     
     private void countDown(int t) {
+        countdownTask.cancel();
+        countdown = t;
+
         countdownTask = new TimerTask() {
             int timeLeft = t;
 
@@ -227,25 +237,44 @@ public abstract class AnswerFrame {
                 }
 
                 timeLeft -= 100;
+                countdown = timeLeft;
             }
         };
 
         timer.scheduleAtFixedRate(countdownTask, 0, 100);
     }
 
-    protected void countDownTimebar(int t) {
+    protected void cancelCountDown(String s, int progress) {
+        countdownTask.cancel();
+        timeLabel.setText(s);
+        timebar.setValue(progress);
+    }
+
+    protected int getTimebarTime() {
+        return countdown;
+    }
+
+    protected void countDownTimebar(int fromTime, boolean onLabel) {
+        countdownTask.cancel();
+        countdown = fromTime;
+
         countdownTask = new TimerTask() {
-            int timeLeft = t;
+            int timeLeft = fromTime;
 
             @Override
             public void run() {
-                timebar.setValue(timeLeft * 100 / t);
+                timebar.setValue(timeLeft * 100 / fromTime);
+
+                if (onLabel) {
+                    timeLabel.setText(String.format("%.1f", timeLeft * 0.001));
+                }
 
                 if (timeLeft <= 0) {
                     cancel();
                 }
 
                 timeLeft -= 100;
+                countdown = timeLeft;
             }
         };
 

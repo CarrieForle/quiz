@@ -27,6 +27,12 @@ cd quiz
 .\run-server
 ```
 
+You can apply 2 optional arguments to constrain min and max number of players. For example to run a server with minimum 2 player and maximum 6.
+
+```powershell
+.\run-server 2 6
+```
+
 #### Footnotes
 
 This is a project for college in Taiwan. We do not accept any contribution **to this repo**.

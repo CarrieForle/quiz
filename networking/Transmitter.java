@@ -49,7 +49,11 @@ public class Transmitter implements AutoCloseable {
     }
 
     public void ping() throws IOException {
+        int oldTimeout = this.m.getSocket().getSoTimeout();
+
+        this.m.getSocket().setSoTimeout(1000);
         this.m.writeCommand("ping");
+        this.m.getSocket().setSoTimeout(oldTimeout);
     }
 
     public void join(String s) throws IOException {
@@ -58,6 +62,10 @@ public class Transmitter implements AutoCloseable {
     
     public void leave(String s) throws IOException {
         this.m.writeCommand("leave", new String[] { s });
+    }
+
+    public void notEnough(int min) throws IOException {
+        this.m.writeCommand("notenough", new String[] { String.valueOf(min) });
     }
 
     @Override
@@ -75,5 +83,9 @@ public class Transmitter implements AutoCloseable {
 
     public Socket getSocket() {
         return this.m.getSocket();
+    }
+
+    public void startIn(Duration countDown) throws IOException {
+        this.m.writeCommand("start", new String[] { String.valueOf(countDown.toMillis()) });
     }
 }

@@ -18,7 +18,7 @@ public class MainMenu {
         menuFrame = new JFrame("刷題趣！");
         menuFrame.setPreferredSize(new Dimension(300, 430));
         menuFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        // menuFrame.setResizable(false);
+        menuFrame.setResizable(false);
         menuFrame.setIconImage(Resource.icon.getImage());
         Box box = Box.createVerticalBox();
         JLabel icon = new JLabel(new ImageIcon(Resource.icon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH)));
