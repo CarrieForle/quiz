@@ -1,10 +1,31 @@
 package utils;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+
+import quiz.Server;
 import utils.exceptions.*;
 
 public class QuestionSet {
+    public static void main(String[] args) {
+        try {
+            QuestionSet qs = Server.loadQuestions(Path.of("quiz_questions/lol.quiz"));
+
+            for (QuestionWithAnswer q : qs.questions) {
+                System.out.println(q.question);
+
+                for (int i = 0; i < 4; i++) {
+                    System.out.println(q.getOption(i));
+                }
+
+                System.out.println(q.answer);
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }
+
     public String name;
     protected List<QuestionWithAnswer> questions = new ArrayList<>();
 
@@ -27,41 +48,36 @@ public class QuestionSet {
     public QuestionSet(String s) throws CorruptedQuestionsException {
         StringBuilder contents = new StringBuilder(s);
 
-        this.name = popUntil(contents, "\n");
+        this.name = popUntilNewLine(contents);
 
         while (contents.length() > 0) {
-            if (!contents.substring(0, 1).equals("\n")) {
-                throw new CorruptedQuestionsException(String.format("Expected token `\\n`. Found `%s`", contents.substring(0, 1)));
+            String read = "";
+
+            if (!(read = popUntilNewLine(contents)).isEmpty()) {
+                throw new CorruptedQuestionsException(String.format("Expected newline. Found `%s`", read));
             }
 
-            contents.delete(0, 1);
-
-            if (!contents.substring(0, 2).equals("$$")) {
+            if (!(read = popUntil(contents, "$$")).isEmpty()) {
                 throw new CorruptedQuestionsException(String.format("Expected token `$$`. Found `%s`", contents.substring(0, 2)));
             }
 
-            contents.delete(0, 2);
-
             QuestionWithAnswer question = new QuestionWithAnswer();
             question.question = popUntil(contents, "::::");
-            question.answer = Integer.parseInt(contents.substring(0, 1));
-            contents.delete(0, 1);
+            read = popUntilNewLine(contents);
 
-            if (!contents.substring(0, 1).equals("\n")) {
-                throw new CorruptedQuestionsException(String.format("Expected token `\\n`. Found `%s`", contents.substring(0, 1)));
+            try {
+                question.answer = Integer.parseInt(read);
+            } catch (NumberFormatException e) {
+                throw new CorruptedQuestionsException(String.format("Expected integer. Found `%s`", read));
             }
-
-            contents.delete(0, 1);
 
             for (int i = 0; i < 4; i++) {
                 question.setOptions(i, popUntil(contents, ":::"));
             }
 
-            if (!contents.substring(0, 1).equals("\n")) {
-                throw new CorruptedQuestionsException(String.format("Expected token `\\n`. Found `%s`", contents.substring(0, 1)));
+            if (!(read = popUntilNewLine(contents)).isEmpty()) {
+                throw new CorruptedQuestionsException(String.format("Expected newline. Found `%s`", read));
             }
-
-            contents.delete(0, 1);
 
             this.questions.add(question);
         }
@@ -71,6 +87,18 @@ public class QuestionSet {
         int delimiter_pos = sb.indexOf(delimiter);
         String res = sb.substring(0, delimiter_pos);
         sb.delete(0, delimiter_pos + delimiter.length());
+
+        return res;
+    }
+
+    private static String popUntilNewLine(StringBuilder sb) {
+        int delimiter_pos = sb.indexOf("\n");
+        String res = sb.substring(0, delimiter_pos);
+        sb.delete(0, delimiter_pos + 1);
+
+        if (res.endsWith("\r")) {
+            res = res.substring(0, res.length() - 1);
+        }
 
         return res;
     }
