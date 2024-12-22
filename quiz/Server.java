@@ -386,7 +386,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
                                 System.out.println("Quiz list is sent");
                             } else {
                                 this.storage.sendQuiz(data.socket, filename);
-                                System.out.println("Quiz is sent");
+                                System.out.format("%s is sent", filename);
                             }
                         } catch (IOException e) {
                             System.out.format("Failed to send quiz: %s\n", e.getMessage());
