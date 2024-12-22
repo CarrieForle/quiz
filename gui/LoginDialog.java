@@ -5,14 +5,16 @@ import javax.swing.*;
 import utils.Common;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.net.InetSocketAddress;
 import java.util.Random;
 
 public class LoginDialog extends JDialog {
     private static final float fontSize = 16f;
     private LoginHandler handler;
-    private JTextArea nameField = new JTextArea();
-    private JTextArea serverField = new JTextArea();
+    private JTextField nameField = new JTextField();
+    private JTextField serverField = new JTextField();
 
     public static void main(String[] args) {
         LoginDialog l = new LoginDialog(null, new LoginHandler() {
@@ -125,26 +127,38 @@ public class LoginDialog extends JDialog {
         JButton submitButton = new JButton("Submit");
         submitButtonPanel.add(submitButton);
         add(submitButtonPanel, BorderLayout.SOUTH);
+
+        final LoginDialog self = this;
+
+        Action loginAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String playerName = nameField.getText();
+                String serverAddress = serverField.getText();
+
+                // Validate inputs
+                String reason = validateUsername(playerName);
+
+                if (reason != null) {
+                    Common.errorMessage(self, reason);
+                    return;
+                }
+
+                try {
+                    InetSocketAddress address = validateAddress(serverAddress);
+                    handler.login(self, address, playerName);
+                } catch (IllegalArgumentException ex) {
+                    Common.errorMessage(self, ex.getMessage());
+                }
+            }
+        };
+
+        nameField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "login");
+        nameField.getActionMap().put("login", loginAction);
+        serverField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "login");
+        serverField.getActionMap().put("login", loginAction);
         
-        submitButton.addActionListener(e -> {
-            String playerName = this.nameField.getText();
-            String serverAddress = this.serverField.getText();
-
-            // Validate inputs
-            String reason = validateUsername(playerName);
-
-            if (reason != null) {
-                Common.errorMessage(this, reason);
-                return;
-            }
-
-            try {
-                InetSocketAddress address = validateAddress(serverAddress);
-                handler.login(this, address, playerName);
-            } catch (IllegalArgumentException ex) {
-                Common.errorMessage(this, ex.getMessage());
-            }
-        });
+        submitButton.addActionListener(loginAction);
 
         String[] names = {
             "Patrick", "Michael", "Rick Astley", "大谷翔平", "李白", "Lebron James", "劉在石", "春日影", "YOUR MOM"
