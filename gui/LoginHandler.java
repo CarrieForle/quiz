@@ -1,5 +1,7 @@
 package gui;
 
+import java.net.InetSocketAddress;
+
 abstract class LoginHandler {
     protected LoginHandler next;
 
@@ -7,5 +9,5 @@ abstract class LoginHandler {
         this.next = next;
     }
 
-    public abstract void login(LoginDialog dialog, String address, String name);
+    protected abstract void login(LoginDialog dialog, InetSocketAddress address, String name);
 }

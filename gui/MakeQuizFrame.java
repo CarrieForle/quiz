@@ -6,6 +6,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
@@ -30,7 +31,7 @@ public class MakeQuizFrame extends JFrame {
     private List<QuestionButton> questionButtons = new ArrayList<QuestionButton>();
     private IncompleteDialog incompleteFrame = new IncompleteDialog(this);
     private JLabel status = new JLabel("Status: Editing Q1", SwingConstants.CENTER);
-    private String cached_address = null;
+    private LoginDialog.Info loginInfo;
 
     public static void main(String[] args) {
         new MakeQuizFrame();
@@ -277,31 +278,7 @@ public class MakeQuizFrame extends JFrame {
                 saveQuiz();
             }
 
-            final MakeQuizFrame self = this;
-
-            LoginDialog dialog = new LoginDialog(this, new LoginHandler() {
-                @Override
-                public void login(LoginDialog dialog, String serverAddress, String b) {
-                    cached_address = serverAddress;
-
-                    boolean failed = true;
-                    try (Socket socket = new Socket(serverAddress, 12345)) {
-                        ClientUploadQuestion.uploadToServer(quizBuilder.toQuestionSet(), socket.getOutputStream());
-                        failed = false;
-                        JOptionPane.showMessageDialog(self, "Upload succeeded", "Success", JOptionPane.INFORMATION_MESSAGE);
-                    } catch (UnknownHostException ex) {
-                        Common.errorMessage(self, "Failed to resolve server address", ex);
-                    } catch (IOException ex) {
-                        Common.errorMessage(self, "Failed to upload quiz to server", ex);
-                    }
-                    
-                    if (!failed) {
-                        dialog.dispose();
-                    }
-                }
-            });
-            
-            dialog.setAddress(this.cached_address);
+            loginInfo = LoginDialog.get(this, new QuizUploadHandler(this), loginInfo);
         } else {
             this.incompleteFrame.removeAll();
 
@@ -424,6 +401,10 @@ public class MakeQuizFrame extends JFrame {
         this.file = file;
         this.setTitle(String.format("Quiz Builder (%s)", file.getName()));
     }
+
+    QuizBuilder getQuizBuilder() {
+        return this.quizBuilder;
+    }
 }
 
 class IncompleteDialog extends JDialog {
@@ -479,6 +460,27 @@ class SelectAsAnswer implements ActionListener {
         }
 
         this.component.setBorder(BorderFactory.createLineBorder(Color.RED));
+    }
+}
+
+class QuizUploadHandler extends LoginHandler {
+    private MakeQuizFrame frame;
+
+    public QuizUploadHandler(MakeQuizFrame frame) {
+        this.frame = frame;
+    }
+
+    @Override
+    public void login(LoginDialog dialog, InetSocketAddress address, String b) {
+        try (Socket socket = new Socket(address.getHostString(), address.getPort())) {
+            ClientUploadQuestion.uploadToServer(this.frame.getQuizBuilder().toQuestionSet(), socket.getOutputStream());
+            dialog.dispose();
+            JOptionPane.showMessageDialog(this.frame, "Upload succeeded", "Success",JOptionPane.INFORMATION_MESSAGE);
+        } catch (UnknownHostException ex) {
+            Common.errorMessage(this.frame, "Failed to resolve server address", ex);
+        } catch (IOException ex) {
+            Common.errorMessage(this.frame, "Failed to upload quiz to server", ex);
+        }
     }
 }
 

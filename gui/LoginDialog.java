@@ -5,10 +5,11 @@ import javax.swing.*;
 import utils.Common;
 
 import java.awt.*;
+import java.net.InetSocketAddress;
 import java.util.Random;
 
 public class LoginDialog extends JDialog {
-    private static final int fontSize = 16;
+    private static final float fontSize = 16f;
     private LoginHandler handler;
     private JTextArea nameField = new JTextArea();
     private JTextArea serverField = new JTextArea();
@@ -16,7 +17,7 @@ public class LoginDialog extends JDialog {
     public static void main(String[] args) {
         LoginDialog l = new LoginDialog(null, new LoginHandler() {
             @Override
-            public void login(LoginDialog l, String address, String name) {
+            public void login(LoginDialog l, InetSocketAddress address, String name) {
 
             }
         });
@@ -24,7 +25,41 @@ public class LoginDialog extends JDialog {
         l.setVisible(true);
     }
 
+    public static class Info {
+        public String name;
+        public String address;
+
+        public Info(String name, String address) {
+            this.name = name;
+            this.address = address;
+        }
+
+        public Info() {
+
+        }
+    }
+
+    public static Info get(Window parent, LoginHandler handler, Info info) {
+        LoginDialog dialog = new LoginDialog(parent, handler, info);
+        info = dialog.getInfo();
+        dialog.dispose();
+
+        return info;
+    }
+
+    public static Info get(Window parent, LoginHandler handler) {
+        LoginDialog dialog = new LoginDialog(parent, handler);
+        Info info = dialog.getInfo();
+        dialog.dispose();
+
+        return info;
+    }
+
     public LoginDialog(Window parent, LoginHandler handler) {
+        this(parent, handler, null);
+    }
+
+    public LoginDialog(Window parent, LoginHandler handler, Info info) {
         super(parent, "Login", Dialog.ModalityType.DOCUMENT_MODAL);
         setSize(400, 220);
         setLayout(new BorderLayout());
@@ -96,17 +131,19 @@ public class LoginDialog extends JDialog {
             String serverAddress = this.serverField.getText();
 
             // Validate inputs
-            String reason = validate_username(playerName);
+            String reason = validateUsername(playerName);
+
             if (reason != null) {
                 Common.errorMessage(this, reason);
                 return;
             }
-            if (serverAddress == null || serverAddress.isEmpty()) {
-                Common.errorMessage(this, "Server address is required.");
-                return;
-            }
 
-            handler.login(this, serverAddress, playerName);
+            try {
+                InetSocketAddress address = validateAddress(serverAddress);
+                handler.login(this, address, playerName);
+            } catch (IllegalArgumentException ex) {
+                Common.errorMessage(this, ex.getMessage());
+            }
         });
 
         String[] names = {
@@ -116,30 +153,42 @@ public class LoginDialog extends JDialog {
         this.nameField.setText(names[new Random().nextInt(names.length)]);
         this.serverField.setText("127.0.0.1");
 
+        if (info != null) {
+            this.nameField.setText(info.name);
+            this.serverField.setText(info.address);
+        }
+
         setLocationRelativeTo(getParent());
         setVisible(true);
+    }
+
+    public void setAddress(String socketAddress) {
+        this.serverField.setText(socketAddress);
     }
 
     public void setName(String name) {
         this.nameField.setText(name);
     }
 
-    public void setAddress(String address) {
-        this.serverField.setText(address);
+    private Info getInfo() {
+        String name = this.nameField.getText();
+        String address = this.serverField.getText();
+        
+        return new Info(name, address);
     }
 
-    private static String validate_username(String username) {
-        username = username.trim();
+    private static String validateUsername(String username) {
+        final String name = username.trim();
 
-        if (username == null) {
+        if (name == null) {
             return "Username must not be null";
         }
 
-        if (username.isBlank()) {
+        if (name.isBlank()) {
             return "Username must not be blank";
         }
 
-        if (username.contains("$#\0")) {
+        if ("$#\0".chars().anyMatch(x -> name.indexOf(x) != -1)) {
             return "User name must not contain illegal character";
         }
 
@@ -148,5 +197,25 @@ public class LoginDialog extends JDialog {
         }
 
         return null;
+    }
+
+    private static InetSocketAddress validateAddress(String address) {
+        int portDelimiter = address.lastIndexOf(":");
+        int port = 0;
+
+        if (portDelimiter == -1) {
+            port = 12345;
+        } else {
+            address = address.substring(0, portDelimiter);
+
+            try {
+                port = Integer.parseInt(address.substring(portDelimiter + 1));
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Invalid address");
+            }
+
+        }
+        
+        return new InetSocketAddress(address, port);
     }
 }
