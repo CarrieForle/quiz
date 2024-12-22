@@ -31,7 +31,7 @@ public class MakeQuizFrame extends JFrame {
     private List<QuestionButton> questionButtons = new ArrayList<QuestionButton>();
     private IncompleteDialog incompleteFrame = new IncompleteDialog(this);
     private JLabel status = new JLabel("Status: Editing Q1", SwingConstants.CENTER);
-    private LoginDialog.Info loginInfo;
+    private static LoginDialog.Info loginInfo;
 
     public static void main(String[] args) {
         new MakeQuizFrame();

@@ -33,7 +33,6 @@ public class SingleplayerClient extends AnswerFrame {
     public SingleplayerClient(QuestionSet questionSet) {
         this.questionSet = questionSet;
         iterator = questionSet.getQuestions().iterator();
-        running = iterator.next();
         start();
         frame.setVisible(true);
     }
@@ -211,7 +210,7 @@ class ChooseQuizDialog extends JDialog {
     public ChooseQuizDialog(Window parent, LinkedHashMap<String, String> quizs, InetSocketAddress address) {
         super(parent, "Quiz List", JDialog.ModalityType.DOCUMENT_MODAL);
         setSize(400, 400);
-        setLayout(new BorderLayout(0, 10));
+        setLayout(new BorderLayout());
         setIconImage(Resource.icon.getImage());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -220,7 +219,7 @@ class ChooseQuizDialog extends JDialog {
 
         JList<String> list = new JList<>(names);
         list.setSelectedIndex(0);;
-        JButton submitButton = new JButton("Submit");
+        JButton submitButton = new JButton("Play");
         add(new JScrollPane(list), BorderLayout.CENTER);
 
         submitButton.addActionListener(e -> {
@@ -232,6 +231,7 @@ class ChooseQuizDialog extends JDialog {
                         
                     out.writeUTF("$" + id);
                     questionSet = new QuestionSet(in.readUTF());
+
                     this.dispose();
                 }
             } catch (IOException ex) {

@@ -63,7 +63,7 @@ public class ServerStorage {
             String contents = reader.readUTF();
 
             // 寫入檔案
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, StandardCharsets.UTF_8))) {
                 writer.write(contents, 0, contents.length());
             }
 
