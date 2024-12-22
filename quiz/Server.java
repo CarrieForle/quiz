@@ -57,6 +57,10 @@ public class Server implements ServerEventHandler, AutoCloseable {
                 max = Integer.parseInt(args[1]);
             }
 
+            if (args.length >= 3) {
+                port = Integer.parseInt(args[2]);
+            }
+
             if (min > max) {
                 throw new IllegalArgumentException(String.format("min must be smaller than or equal to max, but %d > %d", min, max));
             }
@@ -82,6 +86,10 @@ public class Server implements ServerEventHandler, AutoCloseable {
     public Server(ServerSocket server_socket, int min_client, int max_client) throws IOException, InterruptedException {
         System.out.format("Minimum player count: %d\n", min_client);
         System.out.format("Maximum player count: %d\n", max_client);
+<<<<<<< HEAD
+=======
+        System.out.format("Running on port: %d\n", server_socket.getLocalPort());
+>>>>>>> c3dc075b1f70e063d4980de9b44debb600b48683
         this.server_socket = server_socket;
         this.MIN_NUM = min_client;
         this.MAX_NUM = max_client;
@@ -381,7 +389,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
                                 System.out.println("Quiz list is sent");
                             } else {
                                 this.storage.sendQuiz(data.socket, filename);
-                                System.out.println("Quiz is sent");
+                                System.out.format("%s is sent", filename);
                             }
                         } catch (IOException e) {
                             System.out.format("Failed to send quiz: %s\n", e.getMessage());

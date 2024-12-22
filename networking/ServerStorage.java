@@ -59,11 +59,14 @@ public class ServerStorage {
     public File saveQuizToFile(Socket clientSocket) throws IOException {
         try (DataInputStream reader = new DataInputStream(clientSocket.getInputStream())) {
             // 檔案名稱，例如 1.quiz、2.quiz
-            File filePath = directory.resolve(fileCounter.getAndIncrement() + ".quiz").toFile();
+            File filePath;
+
+            while ((filePath = directory.resolve(fileCounter.getAndIncrement() + ".quiz").toFile()).exists());
+
             String contents = reader.readUTF();
 
             // 寫入檔案
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, StandardCharsets.UTF_8))) {
                 writer.write(contents, 0, contents.length());
             }
 

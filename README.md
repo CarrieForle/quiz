@@ -33,6 +33,14 @@ You can apply 2 optional arguments to constrain min and max number of players. F
 .\run-server 2 6
 ```
 
+### Docker
+
+The server can be ran as a docker service.
+
+```bash
+docker compose up -d
+```
+
 #### Footnotes
 
-這是我們組員的高雄大學資管系的期末專題，所以不接受Contribution。
+This is a project for college in Taiwan. We do not accept any contribution **to this repo**.

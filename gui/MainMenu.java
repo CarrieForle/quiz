@@ -8,6 +8,7 @@ import javax.swing.*;
 public class MainMenu {
     private JFrame menuFrame;
     private Desktop desktop;
+    private static LoginDialog.Info loginInfo;
 
     public static void main(String[] args) {
         new MainMenu();
@@ -20,6 +21,7 @@ public class MainMenu {
         menuFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         menuFrame.setResizable(false);
         menuFrame.setIconImage(Resource.icon.getImage());
+
         Box box = Box.createVerticalBox();
         JLabel icon = new JLabel(new ImageIcon(Resource.icon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH)));
         icon.setAlignmentX(0.5f);
@@ -47,7 +49,7 @@ public class MainMenu {
         multiplayerButton.setAlignmentX(0.5f);
         box.add(multiplayerButton);
         multiplayerButton.addActionListener(e -> {
-            new LoginDialog(menuFrame, new MultiplayerLoginHandler(menuFrame));
+            loginInfo = LoginDialog.get(menuFrame, new MultiplayerLoginHandler(menuFrame), loginInfo);
         });
 
         box.add(Box.createVerticalStrut(fillerHeight));

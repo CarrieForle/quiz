@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.List;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import utils.*;
@@ -32,7 +33,6 @@ public class SingleplayerClient extends AnswerFrame {
     public SingleplayerClient(QuestionSet questionSet) {
         this.questionSet = questionSet;
         iterator = questionSet.getQuestions().iterator();
-        running = iterator.next();
         start();
         frame.setVisible(true);
     }
@@ -112,6 +112,7 @@ public class SingleplayerClient extends AnswerFrame {
 }
 
 class GetQuizDialog extends JDialog {
+    private static LoginDialog.Info loginInfo;
     public QuestionSet res;
 
     public static QuestionSet get(Window parent) {
@@ -153,7 +154,7 @@ class GetQuizDialog extends JDialog {
 
         remote.addActionListener(e -> {
             RemoteQuizHandler handler = new RemoteQuizHandler(this);
-            new LoginDialog(this, handler);
+            loginInfo = LoginDialog.get(this, handler, loginInfo);
 
             if (handler.questionSet != null) {
                 res = handler.questionSet;
@@ -181,8 +182,8 @@ class RemoteQuizHandler extends LoginHandler {
 
     @SuppressWarnings("unchecked")
     @Override
-    public void login(LoginDialog dialog, String address, String name) {
-        try (Socket socket = new Socket(address, 12345)) {
+    public void login(LoginDialog dialog, InetSocketAddress address, String name) {
+        try (Socket socket = new Socket(address.getHostString(), address.getPort())) {
             try (DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
                 out.writeUTF("$");
                 LinkedHashMap<String, String> quizs;
@@ -206,10 +207,10 @@ class RemoteQuizHandler extends LoginHandler {
 class ChooseQuizDialog extends JDialog {
     public QuestionSet questionSet;
 
-    public ChooseQuizDialog(Window parent, LinkedHashMap<String, String> quizs, String address) {
+    public ChooseQuizDialog(Window parent, LinkedHashMap<String, String> quizs, InetSocketAddress address) {
         super(parent, "Quiz List", JDialog.ModalityType.DOCUMENT_MODAL);
         setSize(400, 400);
-        setLayout(new BorderLayout(0, 10));
+        setLayout(new BorderLayout());
         setIconImage(Resource.icon.getImage());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -218,18 +219,19 @@ class ChooseQuizDialog extends JDialog {
 
         JList<String> list = new JList<>(names);
         list.setSelectedIndex(0);;
-        JButton submitButton = new JButton("Submit");
+        JButton submitButton = new JButton("Play");
         add(new JScrollPane(list), BorderLayout.CENTER);
 
         submitButton.addActionListener(e -> {
             String id = ids[list.getSelectedIndex()];
 
-            try (Socket socket = new Socket(address, 12345)) {
+            try (Socket socket = new Socket(address.getHostString(), address.getPort())) {
                 try (DataOutputStream out = new DataOutputStream(socket.getOutputStream());
                     DataInputStream in = new DataInputStream(socket.getInputStream())) {
                         
                     out.writeUTF("$" + id);
                     questionSet = new QuestionSet(in.readUTF());
+
                     this.dispose();
                 }
             } catch (IOException ex) {
