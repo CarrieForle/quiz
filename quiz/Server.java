@@ -86,10 +86,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
     public Server(ServerSocket server_socket, int min_client, int max_client) throws IOException, InterruptedException {
         System.out.format("Minimum player count: %d\n", min_client);
         System.out.format("Maximum player count: %d\n", max_client);
-<<<<<<< HEAD
-=======
         System.out.format("Running on port: %d\n", server_socket.getLocalPort());
->>>>>>> c3dc075b1f70e063d4980de9b44debb600b48683
         this.server_socket = server_socket;
         this.MIN_NUM = min_client;
         this.MAX_NUM = max_client;
@@ -215,7 +212,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
                 this.eventBus.tryWait();
 
                 synchronized (this.clients) {
-                    List<Participant> sorted = this.clients.stream().sorted((a, b) -> a.score - b.score).toList();
+                    List<Participant> sorted = this.clients.stream().sorted((a, b) -> b.score - a.score).toList();
 
                     for (int j = 0; j < sorted.size(); j++) {
                         synchronized (sorted.get(j)) {
@@ -256,7 +253,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
             this.leaderboard.set(new ArrayList<>(
                 this.clients
                     .stream()
-                    .sorted((a, b) -> b.ranking - a.ranking)
+                    .sorted((a, b) -> b.score - a.score)
                     .map(x -> new Leaderboard.Player(x.name, x.score))
                     .toList()));
         }
