@@ -147,7 +147,7 @@ public class LoginDialog extends JDialog {
         });
 
         String[] names = {
-            "Bob", "Jimmy", "Patrick", "Tom", "Leo", "Michael", "Rick Astley", "大谷翔平"
+            "Patrick", "Michael", "Rick Astley", "大谷翔平", "李白", "Lebron James", "劉在石", "春日影", "YOUR MOM"
         };
 
         this.nameField.setText(names[new Random().nextInt(names.length)]);
@@ -199,21 +199,21 @@ public class LoginDialog extends JDialog {
         return null;
     }
 
-    private static InetSocketAddress validateAddress(String address) {
-        int portDelimiter = address.lastIndexOf(":");
+    private static InetSocketAddress validateAddress(String socketAddress) {
+        String address = socketAddress;
+        int portDelimiter = socketAddress.lastIndexOf(":");
         int port = 0;
 
         if (portDelimiter == -1) {
             port = 12345;
         } else {
-            address = address.substring(0, portDelimiter);
+            address = socketAddress.substring(0, portDelimiter);
 
             try {
-                port = Integer.parseInt(address.substring(portDelimiter + 1));
+                port = Integer.parseInt(socketAddress.substring(portDelimiter + 1));
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Invalid address");
+                throw new IllegalArgumentException("Invalid port number");
             }
-
         }
         
         return new InetSocketAddress(address, port);

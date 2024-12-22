@@ -8,7 +8,7 @@ import javax.swing.*;
 public class MainMenu {
     private JFrame menuFrame;
     private Desktop desktop;
-    private LoginDialog.Info loginInfo;
+    private static LoginDialog.Info loginInfo;
 
     public static void main(String[] args) {
         new MainMenu();
