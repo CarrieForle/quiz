@@ -1,0 +1,11 @@
+services:
+  server:
+    build: .
+    ports:
+    - 12345:12345
+    volumes:
+    - data:/quiz
+
+volumes:
+  data:
+    
