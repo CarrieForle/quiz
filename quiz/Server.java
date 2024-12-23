@@ -49,15 +49,15 @@ public class Server implements ServerEventHandler, AutoCloseable {
         int max = 4;
 
         try (ServerSocket socket = new ServerSocket(port)) {
-            if (args.length >= 1) {
+            if (args.length >= 1 && !args[0].isEmpty()) {
                 min = Integer.parseInt(args[0]);
             }
 
-            if (args.length >= 2) {
+            if (args.length >= 2 && !args[1].isEmpty()) {
                 max = Integer.parseInt(args[1]);
             }
 
-            if (args.length >= 3) {
+            if (args.length >= 3 && !args[2].isEmpty()) {
                 port = Integer.parseInt(args[2]);
             }
 
