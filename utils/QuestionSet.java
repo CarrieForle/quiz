@@ -107,7 +107,7 @@ public class QuestionSet {
 
             return res;
         } catch (StringIndexOutOfBoundsException e) {
-            throw new CorruptedQuestionsException(String.format("Unexpected end of file while locating newline"));
+            throw new CorruptedQuestionsException("Unexpected end of file while locating newline");
         }
     }
 
