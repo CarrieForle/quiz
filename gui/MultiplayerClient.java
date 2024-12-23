@@ -256,18 +256,7 @@ public class MultiplayerClient extends AnswerFrame {
         }
 
         Leaderboard.CorrectPlayer me = null;
-
-        for (Leaderboard.Player player : leaderboard) {
-            if (player.name.equals(name) && player.score == score) {
-                me = new Leaderboard.CorrectPlayer(player, getCorrectAnswerCount(), questionCount);
-                break;
-            }
-        }
-
-        if (me == null) {
-            System.out.println("I am not in the leaderboard");
-            return;
-        }
+        me = new Leaderboard.CorrectPlayer(name, score, getCorrectAnswerCount(), questionCount);
 
         new Leaderboard(leaderboard, me) {
             @Override
