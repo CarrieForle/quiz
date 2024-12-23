@@ -23,7 +23,7 @@ public class HistoryGame {
                 new Play(2300, 0, 498)
             );
 
-            HistoryGame game = new HistoryGame(quiz, data, new Metadata(Instant.now(), "Lebron James", "127.0.0.1"));
+            HistoryGame game = new HistoryGame(quiz, data, new Metadata(Instant.now(), "Lebron James", "127.0.0.1", 100, 1));
             game.export(Path.of("lol.quih"));
             new HistoryBoard(null, new HistoryGame(Files.readString(Path.of("lol.quih"), StandardCharsets.UTF_8)));
             System.out.println("lol");
@@ -49,30 +49,57 @@ public class HistoryGame {
     }
 
     public static class Play {
-        public final int timeSpent;
-        public final int choiceId;
-        public final int scoreOffset;
+        public int timeRemained;
+        public int choiceId;
+        public int scoreOffset;
 
-        public Play(int timeSpent,int choiceId, int scoreOffset){
-            this.timeSpent = timeSpent;
+        public static final Play TIME_EXCEEDED = new Play(0, -1, 0);
+
+        public Play(int timeRemained, int choiceId, int scoreOffset) {
+            this.timeRemained = timeRemained;
             this.choiceId = choiceId;
             this.scoreOffset = scoreOffset;
         }
+
+        public boolean isTimeExceed() {
+            return this.timeRemained == TIME_EXCEEDED.timeRemained &&
+                this.choiceId == TIME_EXCEEDED.choiceId &&
+                this.scoreOffset == TIME_EXCEEDED.scoreOffset;
+        }
+
+        public Play() {
+            
+        }
+
+        public static void fill(List<Play> plays, QuestionSet quiz) {
+            while (plays.size() < quiz.size()) {
+                plays.add(null);
+            }
+        }
+        
         @Override
         public String toString() {
-            return String.format("%d,%d,%d", this.timeSpent, this.choiceId, this.scoreOffset);
+            return String.format("%d,%d,%d", this.timeRemained, this.choiceId, this.scoreOffset);
         }
     }
 
     public static class Metadata {
-        public Instant when;
-        public String name;
-        public String address;
+        public final Instant when;
+        public final String name;
+        public final String address;
+        public final int score;
+        public final int rank;
 
-        public Metadata(Instant when, String name, String address) {
+        public Metadata(Instant when, String name, String address, int score, int rank) {
             this.when = when;
             this.name = name;
             this.address = address;
+            this.score = score;
+            this.rank = rank;
+        }
+
+        public static Metadata local(int score) {
+            return new Metadata(Instant.now(), null, null, score, 1);
         }
 
         @Override
@@ -82,6 +109,8 @@ public class HistoryGame {
             sb.append(String.format("when=%d\n", when.toEpochMilli()));
             sb.append(String.format("name=%s\n", name));
             sb.append(String.format("address=%s\n", address));
+            sb.append(String.format("score=%d\n", score));
+            sb.append(String.format("rank=%d\n", rank));
 
             return sb.toString();
         }
@@ -103,10 +132,14 @@ public class HistoryGame {
         Instant when = null;
         String name = null;
         String address = null;
+        int score = 0;
+        int rank = 0;
         
         keys.add("when");
         keys.add("name");
         keys.add("address");
+        keys.add("score");
+        keys.add("rank");
 
         while (!keys.isEmpty()) {
             String key = popUntil(sb, "=");
@@ -123,10 +156,14 @@ public class HistoryGame {
                 name = value;
             } else if (key.equals("address")) {
                 address = value;
+            } else if (key.equals("score")) {
+                score = Integer.parseInt(value);
+            } else if (key.equals("rank")) {
+                rank = Integer.parseInt(value);
             }
         }
 
-        this.metadata = new Metadata(when, name, address);
+        this.metadata = new Metadata(when, name, address, score, rank);
 
         String token = "_";
         List<Play> plays = new ArrayList<>();

@@ -3,7 +3,6 @@ package utils;
 import java.awt.*;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -15,13 +14,14 @@ import utils.exceptions.CorruptedHistoryException;
 import gui.HistoryBoard;
 
 public class HistoryDashboard extends JDialog {
+    private static final JLabel NONE_LABEL1;
+    private static final JLabel NONE_LABEL2;
+    private static final JPanel NONE_PANEL;
     private JList<String> list;
     private DefaultListModel<String> listModel = new DefaultListModel<>();
     private JScrollPane listScrollPane;
     private Window parent;
-    private static final JLabel NONE_LABEL = new JLabel("Start playing to see something here!", JLabel.CENTER);
     private List<Path> historyPaths;
-    private static final Path DIRECTORY = Path.of("quiz_history");
 
     public static void main(String[] args) {
         try {
@@ -29,6 +29,21 @@ public class HistoryDashboard extends JDialog {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    static {
+        NONE_LABEL1 = new JLabel("Wow. So empty.", JLabel.CENTER);
+        NONE_LABEL1.setAlignmentX(0.5f);
+        NONE_LABEL1.setAlignmentY(0.5f);
+        NONE_LABEL2 = new JLabel("Start playing to see something here!", JLabel.CENTER);
+        NONE_LABEL2.setAlignmentX(0.5f);
+        NONE_LABEL2.setAlignmentY(0.5f);
+        NONE_PANEL = new JPanel();
+        NONE_PANEL.setLayout(new BoxLayout(NONE_PANEL, BoxLayout.Y_AXIS));
+        NONE_PANEL.add(Box.createVerticalGlue());
+        NONE_PANEL.add(NONE_LABEL1);
+        NONE_PANEL.add(NONE_LABEL2);
+        NONE_PANEL.add(Box.createVerticalGlue());
     }
 
     public HistoryDashboard(Window parent) throws IOException {
@@ -53,7 +68,7 @@ public class HistoryDashboard extends JDialog {
             }
 
             try {
-                HistoryGame game = load(this.historyPaths.get(this.list.getSelectedIndex()));
+                HistoryGame game = HistoryStorage.load(this.historyPaths.get(this.list.getSelectedIndex()));
 
                 dispose();
                 new HistoryBoard((Window) getParent(), game);
@@ -94,7 +109,7 @@ public class HistoryDashboard extends JDialog {
             }
 
             try {
-                HistoryGame game = load(fileChooser.getSelectedFile().toPath());
+                HistoryGame game = HistoryStorage.load(fileChooser.getSelectedFile().toPath());
 
                 dispose();
                 new HistoryBoard(this.parent, game);
@@ -114,11 +129,11 @@ public class HistoryDashboard extends JDialog {
     }
     
     private void updateUI() throws IOException {
-        this.historyPaths = scanHistory();
+        this.historyPaths = HistoryStorage.list();
 
         if (this.historyPaths.isEmpty()) {
             this.getContentPane().remove(this.listScrollPane);
-            add(NONE_LABEL, BorderLayout.CENTER);
+            add(NONE_PANEL, BorderLayout.CENTER);
         } else {
             this.listModel.clear();
 
@@ -128,20 +143,11 @@ public class HistoryDashboard extends JDialog {
 
             this.list.setSelectedIndex(0);
 
-            this.getContentPane().remove(NONE_LABEL);
+            this.getContentPane().remove(NONE_PANEL);
             add(this.listScrollPane, BorderLayout.CENTER);
         }
-    }
 
-    private static List<Path> scanHistory() throws IOException {
-        if (!DIRECTORY.toFile().exists()) {
-            Files.createDirectory(DIRECTORY);
-        }
-
-        return Files.list(DIRECTORY).toList();
-    }
-
-    private static HistoryGame load(Path path) throws IOException, CorruptedHistoryException {
-        return new HistoryGame(Files.readString(path, StandardCharsets.UTF_8));
+        revalidate();
+        repaint();
     }
 }

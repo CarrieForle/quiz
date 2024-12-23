@@ -197,6 +197,7 @@ public abstract class AnswerFrame {
         }
 
         if (question == null) {
+            saveHistory();
             frame.dispose();
             showLeaderboard();
         } else {
@@ -311,6 +312,7 @@ public abstract class AnswerFrame {
 
     }
 
+    protected abstract void saveHistory();
     protected abstract int getQuestionCount();
     protected abstract int getAnswer();
     protected abstract void onRoundEnd();

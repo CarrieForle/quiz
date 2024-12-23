@@ -18,12 +18,16 @@ import java.net.Socket;
 
 import utils.*;
 import utils.exceptions.CorruptedQuestionsException;
+import utils.HistoryGame.Metadata;
+import utils.HistoryGame.Play;
 
 public class SingleplayerClient extends AnswerFrame {
     private int score = 0;
     private QuestionSet questionSet;
     private QuestionWithAnswer running;
     private Iterator<QuestionWithAnswer> iterator;
+    private List<Play> plays = new ArrayList<>();
+    private Play currentPlay = new Play();
     private long running_timestamp = 0;
 
     public static void main(String[] args) {
@@ -37,6 +41,7 @@ public class SingleplayerClient extends AnswerFrame {
         JButton endGameButton = new JButton("End Game");
 
         endGameButton.addActionListener(e -> {
+            saveHistory();
             frame.dispose();
             showLeaderboard();
         });
@@ -87,8 +92,11 @@ public class SingleplayerClient extends AnswerFrame {
         QuizAnswerResponse qar = new QuizAnswerResponse();
         qar.choice_id = id;
         qar.send_timestamp = e.getWhen();
+        currentPlay.timeRemained = (int) (qar.send_timestamp - running_timestamp);
+        currentPlay.choiceId = id;
+        currentPlay.scoreOffset = Server.calculateScore(qar, running.answer, running_timestamp);
 
-        score += Server.calculateScore(qar, running.answer, running_timestamp);
+        score += currentPlay.scoreOffset;
     }
 
     @Override
@@ -102,6 +110,19 @@ public class SingleplayerClient extends AnswerFrame {
             }
         };
     }
+    
+    @Override
+    protected void saveHistory() {
+        while (plays.size() < questionSet.size()) {
+            plays.add(null);
+        }
+
+        try {
+            HistoryStorage.save(new HistoryGame(questionSet, plays, Metadata.local(score)));
+        } catch (IOException e) {
+            Common.errorMessage(frame, "Failed to save this game into history", e);
+        }
+    }
 
     @Override
     protected int getAnswer() {
@@ -110,6 +131,8 @@ public class SingleplayerClient extends AnswerFrame {
 
     @Override
     protected void onRoundEnd() {
+        plays.add(currentPlay);
+        currentPlay = new Play();
         countDownTimebar(4000, false);
 
         try {
@@ -117,6 +140,11 @@ public class SingleplayerClient extends AnswerFrame {
         } catch (InterruptedException e) {
 
         }
+    }
+
+    @Override
+    protected void onTimeExceed() {
+        currentPlay = Play.TIME_EXCEEDED;
     }
 
     @Override

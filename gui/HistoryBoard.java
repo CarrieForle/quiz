@@ -6,12 +6,13 @@ import javax.swing.border.Border;
 import quiz.Server;
 import utils.*;
 import utils.HistoryGame.Metadata;
+import utils.HistoryGame.Play;
+import utils.exceptions.CorruptedHistoryException;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
 import java.nio.file.Path;
-import java.time.Instant;
-import java.util.List;
 
 public class HistoryBoard extends JDialog {
     private HistoryGame game;
@@ -29,29 +30,24 @@ public class HistoryBoard extends JDialog {
 
     public static void main(String[] args) {
         try {
-            QuestionSet quiz = Server.loadQuestions(Path.of("quiz_questions/lol.quiz"));
-
-            List<HistoryGame.Play> data = List.of(
-                new HistoryGame.Play(5000, 1, 300),
-                new HistoryGame.Play(3400, 1, 0),
-                new HistoryGame.Play(2300, 0, 498)
-            );
-
-            HistoryGame game = new HistoryGame(quiz, data, new Metadata(Instant.now(), "Lebron James", "127.0.0.1"));
+            HistoryGame game = HistoryStorage.load(Path.of("quiz_history/2024-12-24T00_17_03-程式設計與運算思維 Programming.quih"));
             new HistoryBoard(null, game);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+        } catch (IOException e) {
+            System.out.println(e);
+        } catch (CorruptedHistoryException e) {
+            System.out.println(e);
         }
     }
 
     public HistoryBoard(Window parent, HistoryGame game) {
         super(parent, "複習趣！", Dialog.ModalityType.DOCUMENT_MODAL);
-        this.game = game;
-        this.current = game.get(0);
         setSize(600, 550);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setIconImage(Resource.icon.getImage());
         setLayout(new BorderLayout());
+
+        this.game = game;
+        this.current = game.get(0);
 
         JPanel titlePanel = new JPanel();
         JLabel titleLabel = new JLabel(game.quiz.name);
@@ -60,6 +56,8 @@ public class HistoryBoard extends JDialog {
 
         this.questionArea.setText("Review Question");
         this.timebar.setValue(100);
+        this.scoreLabel.setText("Score: " + game.metadata.score);
+        this.rankLabel.setText("Rank: " + game.metadata.rank);
 
         JPanel questionPanel = new JPanel(new BorderLayout());
         JPanel infoPanel = new JPanel(new BorderLayout(50, 0));
@@ -104,6 +102,8 @@ public class HistoryBoard extends JDialog {
         toolButtonPanel.add(downloadHistoryButton);
         JButton dashboardButton = new JButton("Dashboard");
         toolButtonPanel.add(dashboardButton);
+        JButton infoButton = new JButton("Info");
+        toolButtonPanel.add(infoButton);
 
         JPanel navigatePanel = new JPanel();
         JScrollPane navigateScrollPane = new JScrollPane(navigatePanel, JScrollPane.VERTICAL_SCROLLBAR_NEVER,JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -183,7 +183,15 @@ public class HistoryBoard extends JDialog {
             return;
         }
 
-        this.timeLabel.setText(String.format("%.1fs", play.timeSpent * 0.001));
+        if (play.isTimeExceed()) {
+            this.timeLabel.setText("Time exceeded");
+            this.timeLabel.setForeground(new Color(156, 34, 43));
+            this.correctnessLabel.setText("");
+            this.timebar.setValue(0);
+            return;
+        }
+
+        this.timeLabel.setText(String.format("%.1fs", play.timeRemained * 0.001));
 
         if (play.choiceId == question.answer) {
             this.correctnessLabel.setText("Correct +" + this.current.play.scoreOffset);
@@ -194,6 +202,6 @@ public class HistoryBoard extends JDialog {
             this.correctnessLabel.setForeground(new Color(156, 34, 43));
         }
 
-        this.timebar.setValue((int) (play.timeSpent * 0.01));
+        this.timebar.setValue((int) (play.timeRemained * 0.01));
     }
 }

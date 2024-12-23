@@ -20,6 +20,7 @@ public class MultiplayerClient extends AnswerFrame {
     private JTextArea chat = new JTextArea("You joined the game\n");
     private JTextField inputField = new JTextField();
     private Client p;
+    private String quizName;
     private String name;
     private int questionCount = 0;
     private int score = 0;
