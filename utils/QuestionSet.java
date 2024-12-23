@@ -83,24 +83,32 @@ public class QuestionSet {
         }
     }
 
-    private static String popUntil(StringBuilder sb, String delimiter) {
-        int delimiter_pos = sb.indexOf(delimiter);
-        String res = sb.substring(0, delimiter_pos);
-        sb.delete(0, delimiter_pos + delimiter.length());
-
-        return res;
+    private static String popUntil(StringBuilder sb, String delimiter) throws CorruptedQuestionsException {
+        try {
+            int delimiter_pos = sb.indexOf(delimiter);
+            String res = sb.substring(0, delimiter_pos);
+            sb.delete(0, delimiter_pos + delimiter.length());
+    
+            return res;
+        } catch (StringIndexOutOfBoundsException e) {
+            throw new CorruptedQuestionsException(String.format("Unexpected end of file while locating %s", delimiter));
+        }
     }
 
-    private static String popUntilNewLine(StringBuilder sb) {
-        int delimiter_pos = sb.indexOf("\n");
-        String res = sb.substring(0, delimiter_pos);
-        sb.delete(0, delimiter_pos + 1);
+    private static String popUntilNewLine(StringBuilder sb) throws CorruptedQuestionsException {
+        try {
+            int delimiter_pos = sb.indexOf("\n");
+            String res = sb.substring(0, delimiter_pos);
+            sb.delete(0, delimiter_pos + 1);
 
-        if (res.endsWith("\r")) {
-            res = res.substring(0, res.length() - 1);
+            if (res.endsWith("\r")) {
+                res = res.substring(0, res.length() - 1);
+            }
+
+            return res;
+        } catch (StringIndexOutOfBoundsException e) {
+            throw new CorruptedQuestionsException(String.format("Unexpected end of file while locating newline"));
         }
-
-        return res;
     }
 
     @Override
