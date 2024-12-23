@@ -42,8 +42,6 @@ public class MultiplayerClient extends AnswerFrame {
 
     public MultiplayerClient(Socket socket, String name) {
         chat.setEditable(false);
-        chat.getCaret().setSelectionVisible(false);
-        chat.getCaret().setVisible(false);
         chat.setLineWrap(true);
 
         chat.addFocusListener(new FocusAdapter() {
