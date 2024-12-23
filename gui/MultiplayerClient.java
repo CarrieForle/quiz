@@ -5,6 +5,7 @@ import java.awt.event.*;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.*;
 
@@ -20,9 +21,11 @@ public class MultiplayerClient extends AnswerFrame {
     private JTextField inputField = new JTextField();
     private Client p;
     private String name;
+    private int questionCount = 0;
     private int score = 0;
     private int rank = 1;
-    private int correctAnswer = 1;
+    private AtomicInteger myAnswer = new AtomicInteger(-1);
+    private int correctAnswer = -1;
     private boolean isEnd = false;
     private int timeLimit = 10000;
     private List<Leaderboard.Player> leaderboard;
@@ -113,6 +116,7 @@ public class MultiplayerClient extends AnswerFrame {
             // UI won't display without thread.
             Thread t = new Thread(() -> {
                 try {
+                    questionCount = p.getQuestionCount();
                     readQuestion();
                     start();
                 } catch (IOException e) {
@@ -185,6 +189,7 @@ public class MultiplayerClient extends AnswerFrame {
     protected void onAnswering(int id, ActionEvent e) {
         try {
             p.writeAns(id);
+            myAnswer.set(id);
             long timestamp = e.getWhen();
             p.writeTimeStamp(timestamp);
             readIncoming.join();
@@ -208,6 +213,7 @@ public class MultiplayerClient extends AnswerFrame {
     protected void onTimeExceed() {
         try {
             p.writeAns(-1);
+            myAnswer.set(-1);
             p.writeTimeStamp(0);
             readIncoming.join();
         } catch (IOException e) {
@@ -251,11 +257,11 @@ public class MultiplayerClient extends AnswerFrame {
 
         }
 
-        Leaderboard.Player me = null;
+        Leaderboard.CorrectPlayer me = null;
 
         for (Leaderboard.Player player : leaderboard) {
             if (player.name.equals(name) && player.score == score) {
-                me = player;
+                me = new Leaderboard.CorrectPlayer(player, getCorrectAnswerCount(), questionCount);
                 break;
             }
         }
@@ -277,6 +283,11 @@ public class MultiplayerClient extends AnswerFrame {
     @Override
     protected int getTimeLimit() {
         return timeLimit;
+    }
+
+    @Override
+    protected int getQuestionCount() {
+        return questionCount;
     }
 
     private void receiveData() throws IOException {

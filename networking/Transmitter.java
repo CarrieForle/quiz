@@ -10,6 +10,7 @@ import java.util.List;
 
 import gui.Leaderboard;
 import utils.Question;
+import utils.QuestionSet;
 
 public class Transmitter implements AutoCloseable {
     private final ServerMessenger m;
@@ -87,5 +88,9 @@ public class Transmitter implements AutoCloseable {
 
     public void startIn(Duration countDown) throws IOException {
         this.m.writeCommand("start", new String[] { String.valueOf(countDown.toMillis()) });
+    }
+
+    public void sendQuizInfo(QuestionSet quiz) throws IOException {
+        this.m.writeInt(quiz.getQuestions().size());
     }
 }

@@ -34,7 +34,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
     private Thread quiz_transmission;
     private Thread multiplayer;
     private ServerStorage storage = new ServerStorage(QUIZ_DIRECTORY);
-    private QuestionSet question_set;
+    private QuestionSet quiz;
     private AtomicReference<QuestionWithAnswer> running_question = new AtomicReference<>();
     private EventBus eventBus = new EventBus();
     private AtomicBoolean is_before_game = new AtomicBoolean(true);
@@ -97,7 +97,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
         this.multiplayer.start();
     }
 
-    public QuestionWithAnswer getRunningQuestion() {
+    QuestionWithAnswer getRunningQuestion() {
         return this.running_question.get();
     }
 
@@ -187,7 +187,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
 
         try {
             // this.question_set = loadRandomQuestions();
-            this.question_set = loadQuestions(QUIZ_DIRECTORY.resolve("lol.quiz"));
+            this.quiz = loadQuestions(QUIZ_DIRECTORY.resolve("lol.quiz"));
 
             System.out.println("Quiz is loaded.");
             this.waitForEnoughPlayer();
@@ -195,7 +195,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
             this.eventBus.publish(ClientEvent.GAME_START);
             System.out.println("Game started.");
 
-            List<QuestionWithAnswer> questions = this.question_set.getQuestions();
+            List<QuestionWithAnswer> questions = this.quiz.getQuestions();
 
             for (int i = 0; i < questions.size(); i++) {
                 QuestionWithAnswer question = questions.get(i);
@@ -355,11 +355,11 @@ public class Server implements ServerEventHandler, AutoCloseable {
         return loadQuestions(paths.get(random.nextInt(paths.size())));
     }
 
-    public EventBus getEventBus() {
+    EventBus getEventBus() {
         return this.eventBus;
     }
 
-    public ArrayList<Leaderboard.Player> getLeaderboard() {
+    ArrayList<Leaderboard.Player> getLeaderboard() {
         return this.leaderboard.get();
     }
     
@@ -529,14 +529,18 @@ public class Server implements ServerEventHandler, AutoCloseable {
         }
     }
 
-    public Socket accept() throws IOException {
+    Socket accept() throws IOException {
         return this.server_socket.accept();
     }
 
-    public void updateMessenger(Participant client) {
+    void updateMessenger(Participant client) {
         synchronized (this.clients) {
             client.transmitter.updateMessenger(this.clients.stream().map(x -> x.transmitter.getMessenger()).toList());
         }
+    }
+
+    QuestionSet getQuiz() {
+        return this.quiz;
     }
 
     @Override
@@ -673,6 +677,7 @@ class Participant implements ClientEventHandler {
                 this.transmitter.notEnough(server.MIN_NUM);
                 break;
             case GAME_START:
+                this.transmitter.sendQuizInfo(server.getQuiz());
                 break;
             case ROUND_START:
                 playRound();

@@ -10,12 +10,18 @@ import java.util.ArrayList;
 public class Client implements AutoCloseable {
     private Messenger m;
 
-    public Client(Messenger m){
+    public Client(Messenger m) {
         this.m = m;
     }
 
     public static void main(String[] args) {
         new MainMenu();
+    }
+
+    public int getQuestionCount() throws IOException {
+        int questionCount = m.readInt();
+        
+        return questionCount;
     }
     
     public String getQuestion() throws IOException {
@@ -23,6 +29,7 @@ public class Client implements AutoCloseable {
 
         return question;
     }
+
     public String[] getOptions() throws IOException {  
         String[] options = new String[4];
 
@@ -83,10 +90,6 @@ public class Client implements AutoCloseable {
     public int getTimeStamp() throws IOException {
         int timestamp = m.readInt();
         return timestamp;
-    }
-
-    public void leaveEarly() throws IOException {
-        this.m.getSocket().getOutputStream().write(-1);
     }
 
     public void message(String name, String contents) throws IOException {

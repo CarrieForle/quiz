@@ -21,6 +21,8 @@ public abstract class AnswerFrame {
     };
 
     private int countdown = 0;
+    private int questionNum = 1;
+    private int correctAnswerNum = 0;
     protected JFrame frame;
     protected JLabel scoreLabel = new JLabel("Score: 0");
     protected JLabel timeLabel = new JLabel("0.0", JLabel.CENTER);
@@ -107,6 +109,7 @@ public abstract class AnswerFrame {
     
     final public void start() {
         updateFields(getNextQuestion());
+        updateTitle();
         countDown(getTimeLimit());
 
         for (JButton button : answerButtons) {
@@ -139,6 +142,7 @@ public abstract class AnswerFrame {
 
     private void endRound(int id) {
         int correct_answer = getAnswer();
+        updateTitle();
 
         for (int j = 0; j < 4; j++) {
             Color color;
@@ -157,6 +161,7 @@ public abstract class AnswerFrame {
         int scoreOffset = score - old_score;
 
         if (id == correct_answer) {
+            correctAnswerNum++;
             timeLabel.setText(String.format("Correct +%d", scoreOffset));
             timeLabel.setForeground(new Color(68, 194, 61));
         } else {
@@ -189,6 +194,8 @@ public abstract class AnswerFrame {
             showLeaderboard();
         } else {
             updateFields(question);
+            questionNum++;
+            updateTitle();
             countDown(getTimeLimit());
         }
     }
@@ -244,6 +251,10 @@ public abstract class AnswerFrame {
         timer.scheduleAtFixedRate(countdownTask, 0, 100);
     }
 
+    private void updateTitle() {
+        frame.setTitle(String.format("刷題趣！ (%d/%d)", questionNum, getQuestionCount()));
+    }
+
     protected void cancelCountDown(String s, int progress) {
         countdownTask.cancel();
         timeLabel.setText(s);
@@ -281,6 +292,10 @@ public abstract class AnswerFrame {
         timer.scheduleAtFixedRate(countdownTask, 0, 100);
     }
 
+    protected int getCorrectAnswerCount() {
+        return correctAnswerNum;
+    }
+
     protected void onWindowClosing(WindowEvent e) {
 
     }
@@ -289,6 +304,7 @@ public abstract class AnswerFrame {
 
     }
 
+    protected abstract int getQuestionCount();
     protected abstract int getAnswer();
     protected abstract void onRoundEnd();
     protected abstract int getTimeLimit();

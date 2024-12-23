@@ -81,7 +81,8 @@ public class SingleplayerClient extends AnswerFrame {
     @Override
     protected void showLeaderboard() {
         Leaderboard.Player me = new Leaderboard.Player("You", score);
-        new Leaderboard(new ArrayList<Leaderboard.Player>(List.of(me)), me) {
+        Leaderboard.CorrectPlayer alsoMe = new Leaderboard.CorrectPlayer(me, getCorrectAnswerCount(), questionSet.getQuestions().size());
+        new Leaderboard(new ArrayList<Leaderboard.Player>(List.of(me)), alsoMe) {
             @Override
             protected void onContinue() {
                 SingleplayerClient.runQuizDialog(new MainMenu().getFrame());
@@ -108,6 +109,11 @@ public class SingleplayerClient extends AnswerFrame {
     @Override
     protected int getTimeLimit() {
         return 10000;
+    }
+
+    @Override
+    protected int getQuestionCount() {
+        return questionSet.getQuestions().size();
     }
 }
 
