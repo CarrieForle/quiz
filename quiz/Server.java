@@ -186,10 +186,10 @@ public class Server implements ServerEventHandler, AutoCloseable {
         System.out.println("Server on!");
 
         try {
-            // this.question_set = loadRandomQuestions();
+            // this.quiz = loadRandomQuestions();
+            
             this.quiz = loadQuestions(QUIZ_DIRECTORY.resolve("lol.quiz"));
-
-            System.out.println("Quiz is loaded.");
+            System.out.format("lol.quiz is loaded");
             this.waitForEnoughPlayer();
             this.is_before_game.set(false);
             this.eventBus.publish(ClientEvent.GAME_START);
@@ -351,8 +351,10 @@ public class Server implements ServerEventHandler, AutoCloseable {
     public static QuestionSet loadRandomQuestions() throws IOException, CorruptedQuestionsException {
         Random random = new Random();
         List<Path> paths = Files.list(QUIZ_DIRECTORY).toList();
+        Path path = paths.get(random.nextInt(paths.size()));
+        System.out.format("Load random quiz: %s\n", path.toFile().getName());
 
-        return loadQuestions(paths.get(random.nextInt(paths.size())));
+        return loadQuestions(path);
     }
 
     EventBus getEventBus() {
