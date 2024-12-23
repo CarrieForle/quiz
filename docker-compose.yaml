@@ -3,9 +3,4 @@ services:
     build: .
     ports:
     - 25565:12345
-    volumes:
-    - data:/quiz
-
-volumes:
-  data:
-    
+    command: [ "${MIN}", "${MAX}"]
