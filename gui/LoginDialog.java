@@ -124,7 +124,7 @@ public class LoginDialog extends JDialog {
         
         // Submit Button
         JPanel submitButtonPanel = new JPanel();
-        JButton submitButton = new JButton("Submit");
+        JButton submitButton = new JButton("Login");
         submitButtonPanel.add(submitButton);
         add(submitButtonPanel, BorderLayout.SOUTH);
 
