@@ -174,7 +174,7 @@ public abstract class AnswerFrame {
         } else {
             // Time exceeded
             if (id == -1) {
-                timeLabel.setText("Time exceedded");
+                timeLabel.setText("Time exceeded");
             } else {
                 timeLabel.setText("Wrong");
             }
