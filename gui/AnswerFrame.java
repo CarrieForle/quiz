@@ -37,7 +37,14 @@ public abstract class AnswerFrame {
     private int score = 0;
 
     public AnswerFrame() {
-        frame = new JFrame("刷題趣！");
+        frame = new JFrame("刷題趣！") {
+            @Override
+            public void dispose() {
+                super.dispose();
+                timer.cancel();
+            }
+        };
+
         frame.setSize(600, 550);
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         frame.setIconImage(Resource.icon.getImage());

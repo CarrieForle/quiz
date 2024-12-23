@@ -30,10 +30,23 @@ public class SingleplayerClient extends AnswerFrame {
         SingleplayerClient.runQuizDialog(null);
     }
 
+    // TODO pause button
     public SingleplayerClient(QuestionSet questionSet) {
+        frame.setLayout(new BorderLayout());
+        JPanel buttonPanel = new JPanel();
+        JButton endGameButton = new JButton("End Game");
+
+        endGameButton.addActionListener(e -> {
+            frame.dispose();
+            showLeaderboard();
+        });
+
+        buttonPanel.add(endGameButton);
         this.questionSet = questionSet;
         iterator = questionSet.getQuestions().iterator();
         start();
+        frame.add(mainPane, BorderLayout.CENTER);
+        frame.add(buttonPanel, BorderLayout.SOUTH);
         frame.setVisible(true);
     }
 
