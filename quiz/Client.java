@@ -18,6 +18,12 @@ public class Client implements AutoCloseable {
         new MainMenu();
     }
 
+    public String getQuizName() throws IOException {
+        String name = m.readUTF();
+
+        return name;
+    }
+
     public int getQuestionCount() throws IOException {
         int questionCount = m.readInt();
         

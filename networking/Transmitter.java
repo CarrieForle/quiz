@@ -91,6 +91,7 @@ public class Transmitter implements AutoCloseable {
     }
 
     public void sendQuizInfo(QuestionSet quiz) throws IOException {
+        this.m.writeUTF(quiz.name);
         this.m.writeInt(quiz.getQuestions().size());
     }
 }

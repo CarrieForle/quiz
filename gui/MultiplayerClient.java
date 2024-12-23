@@ -115,6 +115,7 @@ public class MultiplayerClient extends AnswerFrame {
             Thread t = new Thread(() -> {
                 try {
                     questionCount = p.getQuestionCount();
+                    quizName = p.getQuizName();
                     readQuestion();
                     start();
                 } catch (IOException e) {
