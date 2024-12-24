@@ -195,7 +195,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
         }
     }
 
-    private Participant waitAndInitClient() throws InterruptedException {
+    private Participant waitAndGetClient() throws InterruptedException {
         while (this.data.get() == null) {
             synchronized (this.new_client) {
                 this.new_client.wait();
