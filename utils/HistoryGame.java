@@ -155,7 +155,7 @@ public class HistoryGame {
             String value = popUntilNewLine(sb);
 
             if (key.equals("when")) {
-                when = Instant.ofEpochSecond(Long.parseLong(value));
+                when = Instant.ofEpochMilli(Long.parseLong(value));
             } else if (key.equals("name")) {
                 name = value;
             } else if (key.equals("address")) {
