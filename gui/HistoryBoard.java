@@ -3,10 +3,7 @@ package gui;
 import javax.swing.*;
 import javax.swing.border.Border;
 
-import quiz.Server;
 import utils.*;
-import utils.HistoryGame.Metadata;
-import utils.HistoryGame.Play;
 import utils.exceptions.CorruptedHistoryException;
 
 import java.awt.*;
@@ -17,16 +14,16 @@ import java.nio.file.Path;
 public class HistoryBoard extends JDialog {
     private HistoryGame game;
     private HistoryGame.Snapshot current;
-    protected JLabel scoreLabel = new JLabel("Score: 0");
-    protected JLabel timeLabel = new JLabel(" ", JLabel.CENTER);
-    protected JLabel correctnessLabel = new JLabel("", JLabel.CENTER);
-    protected JLabel rankLabel = new JLabel("Rank: 1");
-    protected JTextArea questionArea = getJTextArea();
-    protected JScrollPane questionScrollArea = new JScrollPane(questionArea);
+    private JLabel scoreLabel = new JLabel("Score: 0");
+    private JLabel timeLabel = new JLabel(" ", JLabel.CENTER);
+    private JLabel correctnessLabel = new JLabel("", JLabel.CENTER);
+    private JLabel rankLabel = new JLabel("Rank: 1");
+    private JTextArea questionArea = getJTextArea();
+    private JScrollPane questionScrollArea = new JScrollPane(questionArea);
     private JProgressBar timebar = new JProgressBar(0, 100);
-    protected JSplitPane mainPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-    protected JTextArea[] optionAreas = new JTextArea[4];
-    protected JScrollPane[] optionScrollAreas = new JScrollPane[4];
+    private JSplitPane mainPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+    private JTextArea[] optionAreas = new JTextArea[4];
+    private JScrollPane[] optionScrollAreas = new JScrollPane[4];
 
     public static void main(String[] args) {
         try {
