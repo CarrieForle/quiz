@@ -17,7 +17,7 @@ public class QuizStorage {
     }
 
     public static void save(Path path, QuestionSet quiz) throws IOException {
-        if (!path.endsWith(".quiz")) {
+        if (!path.toString().endsWith(".quiz")) {
             path = Path.of(path.toString() + ".quiz");
         }
 
@@ -25,7 +25,7 @@ public class QuizStorage {
     }
 
     public static Path save(Path path, QuizBuilder quiz) throws IOException {
-        if (!path.endsWith(".quiz")) {
+        if (!path.toString().endsWith(".quiz")) {
             path = Path.of(path.toString() + ".quiz");
         }
         

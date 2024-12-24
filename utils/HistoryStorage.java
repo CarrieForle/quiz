@@ -20,7 +20,7 @@ public class HistoryStorage {
     public static void save(Path path, HistoryGame game) throws IOException {
         checkDirectory();
 
-        if (!path.endsWith(".quih")) {
+        if (!path.toString().endsWith(".quih")) {
             path = Path.of(path.toString() + ".quih");
         }
 
