@@ -547,6 +547,8 @@ public class Server implements ServerEventHandler, AutoCloseable {
             }
         } else {
             while (true) {
+                boolean cached_full_player = false;
+
                 if (this.clients.size() >= MIN_NUM) {
                     this.countDown = TIME_FRAME;
                     this.eventBus.publish(ClientEvent.ENOUGH_PLAYER);
@@ -554,22 +556,18 @@ public class Server implements ServerEventHandler, AutoCloseable {
                     Instant t = Instant.now();
 
                     boolean is_player_enough = true;
-                    boolean published_full_player = false;
 
                     while (this.countDown.compareTo(Duration.ZERO) > 0) {
                         if (this.clients.size() < MIN_NUM) {
                             is_player_enough = false;
                             break;
-                        } else if (this.clients.size() >= MAX_NUM) {
-                            if (!published_full_player) {
-                                if (this.countDown.compareTo(FULL_TIME_FRAME) >= 0) {
-                                    this.countDown = FULL_TIME_FRAME;
-                                    this.eventBus.publish(ClientEvent.FULL_PLAYER);
-                                    published_full_player = true;
-                                }
+                        } else if (!cached_full_player && this.clients.size() >= MAX_NUM) {
+                            if (this.countDown.compareTo(FULL_TIME_FRAME) >= 0) {
+                                this.countDown = FULL_TIME_FRAME;
+                                this.eventBus.publish(ClientEvent.FULL_PLAYER);
                             }
-                        } else {
-                            published_full_player = false;
+
+                            cached_full_player = true;
                         }
 
                         this.countDown = this.countDown.minus(Duration.between(t, Instant.now()));
