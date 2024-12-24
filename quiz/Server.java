@@ -345,12 +345,12 @@ public class Server implements ServerEventHandler, AutoCloseable {
     }
 
     private void eventLoop(Participant client) throws IOException, InterruptedException {
-        while (!this.is_game_end.get() || this.is_before_game.get()) {
+        while (!this.is_game_end.get()) {
             if (client.isEventPending()) {
                 synchronized (this.clients) {
                     synchronized (this.is_ready) {
                         if (this.clients.stream().allMatch(x -> x.isReady())) {
-                            this.is_ready.wait();       
+                            this.is_ready.wait();
                         } else {
                             this.is_ready.notifyAll();
                         }
@@ -364,6 +364,8 @@ public class Server implements ServerEventHandler, AutoCloseable {
                 Thread.sleep(100);
             }
         }
+        
+        System.out.format("Thread #%d: Event Loop end", Thread.currentThread().threadId());
     }
 
     public static int calculateScore(QuizAnswerResponse qar, int answer, long question_sending_time) {
