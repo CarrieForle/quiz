@@ -15,6 +15,10 @@ public class OpenMenuOnClosing extends WindowAdapter {
     @Override
     public void windowClosing(WindowEvent e) {
         this.frame.dispose();
+    }
+
+    @Override
+    public void windowClosed(WindowEvent e) {
         new MainMenu();
     }
 }

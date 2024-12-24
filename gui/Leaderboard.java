@@ -1,6 +1,9 @@
 package gui;
 
 import javax.swing.*;
+
+import utils.OpenMenuOnClosing;
+
 import java.awt.*;
 import java.io.Serializable;
 import java.util.List;
@@ -58,6 +61,7 @@ public abstract class Leaderboard extends JFrame {
         // this.setResizable(false);
         this.setIconImage(Resource.icon.getImage());
         this.setResizable(false);
+        this.addWindowListener(new OpenMenuOnClosing(this));
 
         // Title Label
         JLabel titleLabel = new JLabel("LEADERBOARD");

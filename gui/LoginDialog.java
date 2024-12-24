@@ -10,6 +10,8 @@ import java.awt.event.KeyEvent;
 import java.net.InetSocketAddress;
 import java.util.Random;
 
+// Does not dispose after login.
+// It is up to the client to decide when to dispose it.
 public class LoginDialog extends JDialog {
     private static final float fontSize = 16f;
     private LoginHandler handler;

@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
@@ -46,9 +47,9 @@ public class Server implements ServerEventHandler, AutoCloseable {
     public static void main(String[] args) {
         int port = 12345;
         int min = 1;
-        int max = 2;
-        int waitingTimeForMorePlayer = 60;
-        int waitingTimeForFullPlayer = 30;
+        int max = 1;
+        int waitingTimeForMorePlayer = 10;
+        int waitingTimeForFullPlayer = 10;
 
         try (ServerSocket socket = new ServerSocket(port)) {
             if (args.length >= 1 && !args[0].isEmpty()) {
@@ -219,7 +220,6 @@ public class Server implements ServerEventHandler, AutoCloseable {
 
         try {
             // this.quiz = loadRandomQuestions();
-            
             this.quiz = loadQuestions(QUIZ_DIRECTORY.resolve("lol.quiz"));
             System.out.format("lol.quiz is loaded");
             this.waitForEnoughPlayer();

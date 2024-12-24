@@ -114,7 +114,6 @@ public class MultiplayerClient extends AnswerFrame {
             if (!response.equals("OK")) {
                 Common.errorMessage(frame, response);
                 frame.dispose();
-                new MainMenu();
                 return;
             }
 
@@ -285,7 +284,7 @@ public class MultiplayerClient extends AnswerFrame {
             @Override
             protected void onContinue() {
                 MainMenu menu = new MainMenu();
-                new LoginDialog(menu.getFrame(), new MultiplayerLoginHandler(menu.getFrame()));
+                LoginDialog.get(menu.getFrame(), new MultiplayerLoginHandler(menu.getFrame()));
             }
         };
     }

@@ -167,12 +167,12 @@ public class SingleplayerClient extends AnswerFrame {
 
     @Override
     protected void onWindowClosing(WindowEvent e) {
-        
+        new MainMenu();
     }
 
     @Override
     protected void onWindowClosed(WindowEvent e) {
-        new MainMenu();
+        
     }
 }
 
