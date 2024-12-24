@@ -18,7 +18,7 @@ public class HistoryStorage {
     private static final Path DIRECTORY = Path.of("quiz_history");
 
     public static void save(Path path, HistoryGame game) throws IOException {
-        checkDirectory();
+        checkAndCreateDirectory();
 
         if (!path.toString().endsWith(".quih")) {
             path = Path.of(path.toString() + ".quih");
@@ -28,7 +28,7 @@ public class HistoryStorage {
     }
 
     public static void save(HistoryGame game) throws IOException {
-        checkDirectory();
+        checkAndCreateDirectory();
         game.export(getSavePath(game));
     }
     
@@ -51,10 +51,7 @@ public class HistoryStorage {
     }
 
     public static List<Path> list() throws IOException {
-        if (!DIRECTORY.toFile().exists()) {
-            Files.createDirectory(DIRECTORY);
-        }
-
+        checkAndCreateDirectory();
         return Files.list(DIRECTORY).toList();
     }
 
@@ -69,7 +66,7 @@ public class HistoryStorage {
         return fileChooser;
     }
 
-    private static void checkDirectory() throws IOException {
+    private static void checkAndCreateDirectory() throws IOException {
         if (!Files.exists(DIRECTORY)) {
             Files.createDirectory(DIRECTORY);
         }

@@ -16,6 +16,8 @@ public class ServerStorage {
     public ServerStorage(Path directory) throws IOException {
         this.directory = directory;
 
+        checkAndCreateDirectory();
+
         List<Path> paths = Files.list(directory)
             .filter(x -> !x.toFile().isDirectory()).toList();
 
@@ -57,6 +59,8 @@ public class ServerStorage {
     }
 
     public File saveQuizToFile(Socket clientSocket) throws IOException {
+        checkAndCreateDirectory();
+
         try (DataInputStream reader = new DataInputStream(clientSocket.getInputStream())) {
             // 檔案名稱，例如 1.quiz、2.quiz
             File filePath;
@@ -75,6 +79,7 @@ public class ServerStorage {
     }
 
     public void sendQuiz(Socket clientSocket, String filename) throws IOException {
+        checkAndCreateDirectory();
         String contents = Files.readString(directory.resolve(filename), StandardCharsets.UTF_8);
 
         try (DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream())) {
@@ -83,7 +88,9 @@ public class ServerStorage {
     }
     
     public void sendClientQuizList(Socket clientSocket) throws IOException {
+        checkAndCreateDirectory();
         LinkedHashMap<String, String> quizNames = new LinkedHashMap<>();
+
         for (Path p : Files.list(directory).toList()) {
             String name;
 
@@ -95,9 +102,15 @@ public class ServerStorage {
 
             quizNames.put(p.toFile().getName(), name);
         }
-        
+
         try (ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream())) {
             oos.writeObject(quizNames);
+        }
+    }
+    
+    private void checkAndCreateDirectory() throws IOException {
+        if (!Files.exists(this.directory)) {
+            Files.createDirectory(this.directory);
         }
     }
 }
