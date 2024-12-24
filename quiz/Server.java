@@ -267,6 +267,9 @@ public class Server implements ServerEventHandler, AutoCloseable {
             this.eventBus.tryWait();
         } catch (CorruptedQuestionsException e) {
             System.out.format("Failed to parse quiz: %s\n", e.getMessage());
+        } catch (NoSuchFileException e) {
+            System.out.format("Failed to load quiz: %s\n", e);
+            System.exit(-1);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -392,9 +395,14 @@ public class Server implements ServerEventHandler, AutoCloseable {
         return new QuestionSet(Files.readString(filepath, StandardCharsets.UTF_8));
     }
 
-    public static QuestionSet loadRandomQuestions() throws IOException, CorruptedQuestionsException {
+    public static QuestionSet loadRandomQuestions() throws IOException, CorruptedQuestionsException, NoSuchFileException {
         Random random = new Random();
         List<Path> paths = Files.list(QUIZ_DIRECTORY).toList();
+
+        if (paths.isEmpty()) {
+            throw new NoSuchFileException(String.format("No quiz file found. Please place some in %s directory", QUIZ_DIRECTORY));
+        }
+
         Path path = paths.get(random.nextInt(paths.size()));
         System.out.format("Load random quiz: %s\n", path.toFile().getName());
 

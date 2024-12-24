@@ -16,7 +16,9 @@ public class ServerStorage {
     public ServerStorage(Path directory) throws IOException {
         this.directory = directory;
 
-        checkAndCreateDirectory();
+        if (!checkAndCreateDirectory()) {
+            System.out.format("Created %s directory. Place quiz files to start hosting games.\n", this.directory.toString());
+        }
 
         List<Path> paths = Files.list(directory)
             .filter(x -> !x.toFile().isDirectory()).toList();
@@ -108,9 +110,13 @@ public class ServerStorage {
         }
     }
     
-    private void checkAndCreateDirectory() throws IOException {
+    private boolean checkAndCreateDirectory() throws IOException {
         if (!Files.exists(this.directory)) {
             Files.createDirectory(this.directory);
+
+            return false;
         }
+
+        return true;
     }
 }
