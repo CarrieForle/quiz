@@ -344,6 +344,18 @@ public class Server implements ServerEventHandler, AutoCloseable {
         }
     }
 
+    public static int calculateScore(QuizAnswerResponse qar, int answer, Duration duration) {
+        final int MAX_SCORE = 1000;
+        final int MAX_REMAINING_TIME = 10000; // milliseconds
+        final double RATE = MAX_SCORE / (double) MAX_REMAINING_TIME;
+
+        if (qar.is_correct(answer)) {
+            return (int) Math.ceil(RATE * (MAX_REMAINING_TIME - (duration.toMillis())));
+        } else {
+            return 0;
+        }
+    }
+
     // $$<問題>::::<正確答案數字(0, 1, 2, 3)其中一個><換行><Answer0>:::<Answer1>:::<Answer2>:::<Answer3>:::
     public static QuestionSet loadQuestions(Path filepath) throws IOException, CorruptedQuestionsException {
         return new QuestionSet(Files.readString(filepath, StandardCharsets.UTF_8));
@@ -714,11 +726,11 @@ class Participant implements ClientEventHandler {
 
     private void playRound() throws IOException {
         QuestionWithAnswer qa = this.server.getRunningQuestion();
-        Instant now = Instant.now();
-
+        Instant startAnsweringTime = Instant.now();
         this.transmitter.sendQuestion(qa, Duration.ofSeconds(10));
-
         QuizAnswerResponse qar = this.transmitter.getAnswer();
+
+        Duration timeSpentAnswering = Duration.between(startAnsweringTime, Instant.now());
 
         System.out.format("%s choice: %d ", this.name, qar.choice_id);
 
@@ -728,7 +740,7 @@ class Participant implements ClientEventHandler {
             System.out.println("X");
         }
 
-        this.score += Server.calculateScore(qar, qa.answer, now.toEpochMilli());
+        this.score += Server.calculateScore(qar, qa.answer, timeSpentAnswering);
         System.out.format("%s score: %d\n", this.name, this.score);
     }
 }
