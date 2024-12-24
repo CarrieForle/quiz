@@ -136,7 +136,6 @@ public class Server implements ServerEventHandler, AutoCloseable {
 
     private void stopAndStartGame() {
         this.is_game_end.set(true);
-        this.is_before_game.set(true);
         // Use another thread otherwise the client thread will join itself and deadlock.
         Thread t = new Thread(() -> this.stopAndInitMultiplayer());
         t.start();
@@ -153,6 +152,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
             }
 
             System.out.println("Game stopped");
+            is_before_game.set(true);
             is_game_end.set(false);
 
             this.initMultiplayer();
@@ -467,6 +467,8 @@ public class Server implements ServerEventHandler, AutoCloseable {
                     default:
                         break;
                 }
+            } catch (SocketTimeoutException e) {
+                System.out.println("Incoming connection timed out\n");
             } catch (IOException e) {
                 System.out.format("Error on handling incoming connection: %s\n", e);
             }
