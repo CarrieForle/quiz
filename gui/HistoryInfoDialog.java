@@ -21,6 +21,7 @@ public class HistoryInfoDialog extends JDialog {
         String timeString = String.format(when.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         StringBuilder sb = new StringBuilder();
 
+        sb.append("Complete datetime: ");
         sb.append(timeString);
         sb.append("\n");
         sb.append("Quiz: ");

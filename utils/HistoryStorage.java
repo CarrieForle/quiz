@@ -30,8 +30,6 @@ public class HistoryStorage {
     }
     
     public static Path getSavePath(HistoryGame game) {
-        // TODO: Datetime is wrong
-        
         LocalDateTime when = LocalDateTime.ofInstant(game.metadata.when, ZoneId.systemDefault());
         String date = when.format(DateTimeFormatter.ISO_LOCAL_DATE);
         String time = when.format(DateTimeFormatter.ofPattern("HH_mm_ss"));
