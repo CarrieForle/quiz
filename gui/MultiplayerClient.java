@@ -307,6 +307,11 @@ public class MultiplayerClient extends AnswerFrame {
         return quiz.name;
     }
 
+    @Override
+    protected void onWindowClosed(WindowEvent e) {
+        new MainMenu();
+    }
+
     private void receiveData() throws IOException {
         isEnd = p.checkEnd();
         question.answer = p.getAnswer();

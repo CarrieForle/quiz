@@ -55,7 +55,11 @@ public abstract class AnswerFrame {
             public void windowClosing(WindowEvent e) {
                 onWindowClosing(e);
                 frame.dispose();
-                new MainMenu();
+            }
+
+            @Override
+            public void windowClosed(WindowEvent e) {
+                onWindowClosed(e);
             }
         });
 
@@ -314,14 +318,9 @@ public abstract class AnswerFrame {
         return correctAnswerNum;
     }
 
-    protected void onWindowClosing(WindowEvent e) {
-
-    }
-    
-    protected void onTimeExceed() {
-
-    }
-
+    protected abstract void onWindowClosing(WindowEvent e);
+    protected abstract void onWindowClosed(WindowEvent e);
+    protected abstract void onTimeExceed();
     protected abstract String getQuizName();
     protected abstract void saveHistory() throws IOException;
     protected abstract int getQuestionCount();

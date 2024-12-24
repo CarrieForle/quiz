@@ -164,6 +164,16 @@ public class SingleplayerClient extends AnswerFrame {
     protected String getQuizName() {
         return questionSet.name;
     }
+
+    @Override
+    protected void onWindowClosing(WindowEvent e) {
+        
+    }
+
+    @Override
+    protected void onWindowClosed(WindowEvent e) {
+        new MainMenu();
+    }
 }
 
 class GetQuizDialog extends JDialog {
