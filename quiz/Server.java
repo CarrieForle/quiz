@@ -73,6 +73,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
                 server.run();
             }
         } catch (IOException e) {
+            System.out.println("An error happened during initialization");
             e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -365,93 +366,97 @@ public class Server implements ServerEventHandler, AutoCloseable {
         return this.leaderboard.get();
     }
     
-    private void run() throws IOException, InterruptedException {
+    private void run() throws InterruptedException {
         while (true) {
-            SocketDispatcher.Data data = this.dispatcher.accept();
-
-            this.data.set(data.data);
-
-            System.out.format("A new connection of %s\n", data.type);
-
-            switch (data.type) {
-                case SINGLEPLAYER:
-                    this.quiz_transmission.join();
-
-                    this.quiz_transmission = new Thread(() -> {
-                        String filename = (String) this.data.get();
-
-                        try {
-                            if (filename == null || filename.isEmpty()) {
-                                this.storage.sendClientQuizList(data.socket);
-                                System.out.println("Quiz list is sent");
-                            } else {
-                                this.storage.sendQuiz(data.socket, filename);
-                                System.out.format("%s is sent", filename);
+            try {
+                SocketDispatcher.Data data = this.dispatcher.accept();
+    
+                this.data.set(data.data);
+    
+                System.out.format("A new connection of %s\n", data.type);
+    
+                switch (data.type) {
+                    case SINGLEPLAYER:
+                        this.quiz_transmission.join();
+    
+                        this.quiz_transmission = new Thread(() -> {
+                            String filename = (String) this.data.get();
+    
+                            try {
+                                if (filename == null || filename.isEmpty()) {
+                                    this.storage.sendClientQuizList(data.socket);
+                                    System.out.println("Quiz list is sent");
+                                } else {
+                                    this.storage.sendQuiz(data.socket, filename);
+                                    System.out.format("%s is sent", filename);
+                                }
+                            } catch (IOException e) {
+                                System.out.format("Failed to send quiz: %s\n", e.getMessage());
                             }
-                        } catch (IOException e) {
-                            System.out.format("Failed to send quiz: %s\n", e.getMessage());
-                        }
-                    });
-
-                    this.quiz_transmission.start();
-                    break;
-                case MULTIPLAYER:
-                    Participant incoming = (Participant) this.data.get();
-
-                    if (!is_before_game.get()) {
-                        incoming.transmitter.getMessenger().writeUTF("The game has already started");
-                        incoming.transmitter.close();
+                        });
+    
+                        this.quiz_transmission.start();
                         break;
-                    }
-
-                    if (this.clients.size() == MAX_NUM) {
-                        incoming.transmitter.getMessenger().writeUTF("The room is full");
-                        incoming.transmitter.close();
-                        break;
-                    }
-
-                    synchronized (this.clients) {
-                        boolean is_name_duplicated = false;
-
-                        for (Participant p : this.clients) {
-                            if (incoming.name.equals(p.name)) {
-                                is_name_duplicated = true;
-                                break;
-                            }
-                        }
-
-                        if (is_name_duplicated) {
-                            incoming.transmitter.getMessenger().writeUTF(String.format("A player named \"%s\" is already playing", incoming.name));
+                    case MULTIPLAYER:
+                        Participant incoming = (Participant) this.data.get();
+    
+                        if (!is_before_game.get()) {
+                            incoming.transmitter.getMessenger().writeUTF("The game has already started");
                             incoming.transmitter.close();
                             break;
                         }
-                    }
-
-                    incoming.transmitter.getMessenger().writeUTF("OK");
-
-                    synchronized (this.new_client) {
-                        this.new_client.notify();
-                    }
-
-                    break;
-                case QUIZ_UPLOAD:
-                    if (this.quiz_transmission != null) {
-                        this.quiz_transmission.join();
-                    }
-
-                    this.quiz_transmission = new Thread(() -> {
-                        try {
-                            this.storage.saveQuizToFile(data.socket);
-                            System.out.println("New quiz is uploaded");
-                        } catch (IOException e) {
-                            System.out.format("Failed to receive uploaded quiz: %s\n", e.getMessage());
+    
+                        if (this.clients.size() == MAX_NUM) {
+                            incoming.transmitter.getMessenger().writeUTF("The room is full");
+                            incoming.transmitter.close();
+                            break;
                         }
-                    });
-
-                    this.quiz_transmission.start();
-                    break;
-                default:
-                    break;
+    
+                        synchronized (this.clients) {
+                            boolean is_name_duplicated = false;
+    
+                            for (Participant p : this.clients) {
+                                if (incoming.name.equals(p.name)) {
+                                    is_name_duplicated = true;
+                                    break;
+                                }
+                            }
+    
+                            if (is_name_duplicated) {
+                                incoming.transmitter.getMessenger().writeUTF(String.format("A player named \"%s\" is already playing", incoming.name));
+                                incoming.transmitter.close();
+                                break;
+                            }
+                        }
+    
+                        incoming.transmitter.getMessenger().writeUTF("OK");
+    
+                        synchronized (this.new_client) {
+                            this.new_client.notify();
+                        }
+    
+                        break;
+                    case QUIZ_UPLOAD:
+                        if (this.quiz_transmission != null) {
+                            this.quiz_transmission.join();
+                        }
+    
+                        this.quiz_transmission = new Thread(() -> {
+                            try {
+                                this.storage.saveQuizToFile(data.socket);
+                                System.out.println("New quiz is uploaded");
+                            } catch (IOException e) {
+                                System.out.format("Failed to receive uploaded quiz: %s\n", e.getMessage());
+                            }
+                        });
+    
+                        this.quiz_transmission.start();
+                        break;
+                    default:
+                        break;
+                }
+            } catch (IOException e) {
+                System.out.format("Error on handling incoming connection: %s\n", e);
             }
         }
     }
@@ -762,14 +767,16 @@ class SocketDispatcher {
         while (true) {
             try {
                 socket = this.server.accept();
-                int timeout = socket.getSoTimeout();
+                int oldTimeout = socket.getSoTimeout();
                 socket.setSoTimeout(10000);
                 in = new DataInputStream(socket.getInputStream());
                 identifier = in.readUTF();
-                socket.setSoTimeout(timeout);
+                socket.setSoTimeout(oldTimeout);
                 break;
             } catch (SocketTimeoutException e) {
                 System.out.println("An incoming connection timed out");
+            } catch (IOException e) {
+                System.out.format("Incoming Socket Exception: %s\n", e);
             }
         }
 
