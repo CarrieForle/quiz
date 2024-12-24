@@ -1,4 +1,4 @@
-package utils;
+package gui;
 
 import java.awt.*;
 import java.io.IOException;
@@ -9,8 +9,10 @@ import java.util.List;
 
 import javax.swing.*;
 
+import utils.Common;
+import utils.HistoryGame;
+import utils.HistoryStorage;
 import utils.exceptions.CorruptedHistoryException;
-import gui.HistoryBoard;
 
 public class HistoryDashboard extends JDialog {
     private static final JLabel NONE_LABEL1;
@@ -47,11 +49,13 @@ public class HistoryDashboard extends JDialog {
 
     public HistoryDashboard(Window parent) throws IOException {
         super(parent, "複習趣！", Dialog.ModalityType.DOCUMENT_MODAL);
-        this.parent = parent;
         setLayout(new BorderLayout());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setSize(300, 500);
         setLocationRelativeTo(parent);
+        setIconImage(Resource.icon.getImage());
+        
+        this.parent = parent;
         this.list = new JList<>(this.listModel);
         this.listScrollPane = new JScrollPane(this.list);
         this.updateUI();

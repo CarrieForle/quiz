@@ -7,7 +7,6 @@ import java.net.URI;
 import javax.swing.*;
 
 import utils.Common;
-import utils.HistoryDashboard;
 
 public class MainMenu {
     private JFrame menuFrame;

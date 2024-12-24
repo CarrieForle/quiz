@@ -24,11 +24,13 @@ public class QuizStorage {
         Files.writeString(path, quiz.toString(), StandardCharsets.UTF_8);
     }
 
-    public static void save(Path path, QuizBuilder quiz) throws IOException {
+    public static Path save(Path path, QuizBuilder quiz) throws IOException {
         if (!path.endsWith(".quiz")) {
             path = Path.of(path.toString() + ".quiz");
         }
         
         Files.writeString(path, quiz.toString(), StandardCharsets.UTF_8);
+
+        return path;
     }
 }

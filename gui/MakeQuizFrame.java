@@ -9,8 +9,8 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +38,7 @@ public class MakeQuizFrame extends JFrame {
     }
 
     public MakeQuizFrame() {
-        setTitle(String.format("Quiz Builder (%s)", this.file));
+        setTitle(String.format("出題趣！ (%s)", this.file));
         setSize(600, 600);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -200,8 +200,8 @@ public class MakeQuizFrame extends JFrame {
             File file = fileChooser.getSelectedFile();
 
             try {
-                QuizStorage.save(file.toPath(), this.quizBuilder);
-                this.setFile(file);
+                Path path = QuizStorage.save(file.toPath(), this.quizBuilder);
+                this.setFile(path.toFile());
                 JOptionPane.showMessageDialog(this, "Quiz saved successfully!");
             } catch (IOException e) {
                 e.printStackTrace();
@@ -394,7 +394,7 @@ public class MakeQuizFrame extends JFrame {
 
     private void setFile(File file) {
         this.file = file;
-        this.setTitle(String.format("Quiz Builder (%s)", file.getName()));
+        this.setTitle(String.format("出題趣！ (%s)", file.getName()));
     }
 
     QuizBuilder getQuizBuilder() {
