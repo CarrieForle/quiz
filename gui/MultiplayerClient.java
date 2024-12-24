@@ -245,6 +245,7 @@ public class MultiplayerClient extends AnswerFrame {
     @Override
     protected void onRoundEnd() {
         quiz.getQuestions().add(question);
+        question = new QuestionWithAnswer();
         plays.add(currentPlay);
         currentPlay = new Play();
         countDownTimebar(4000, false);
