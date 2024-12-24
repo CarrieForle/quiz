@@ -31,8 +31,8 @@ public class Server implements ServerEventHandler, AutoCloseable {
     private ServerSocket server_socket;
     private List<Participant> clients;
     private Thread[] client_threads;
-    private Thread quiz_transmission;
-    private Thread multiplayer;
+    private Thread quiz_transmission = new Thread();
+    private Thread multiplayer = new Thread();
     private ServerStorage storage = new ServerStorage(QUIZ_DIRECTORY);
     private QuestionSet quiz;
     private AtomicReference<QuestionWithAnswer> running_question = new AtomicReference<>();
@@ -375,8 +375,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
 
             switch (data.type) {
                 case SINGLEPLAYER:
-                    if (this.quiz_transmission != null) {
-                        this.quiz_transmission.join();
+                    this.quiz_transmission.join();
 
                     this.quiz_transmission = new Thread(() -> {
                         String filename = (String) this.data.get();
