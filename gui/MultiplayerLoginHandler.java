@@ -20,7 +20,7 @@ class MultiplayerLoginHandler extends LoginHandler {
             Socket socket = new Socket(address.getHostString(), address.getPort());
             parent.dispose();
             dialog.dispose();
-            MultiplayerClient client = new MultiplayerClient(socket, name);
+            new MultiplayerClient(socket, name, address);
         } catch (IOException e) {
             Common.connectionFailedMessage(parent, e);
         }

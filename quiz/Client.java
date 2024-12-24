@@ -120,14 +120,4 @@ public class Client implements AutoCloseable {
         String response = this.m.readUTF();
         return response;
     }
-    
-    public String getSocketAddressString() {
-        InetSocketAddress address = (InetSocketAddress) this.m.getSocket().getRemoteSocketAddress();
-
-        if (address.getPort() == 12345) {
-            return address.getHostName();
-        } else {
-            return address.getHostName() + ":" + address.getPort();
-        }
-    }
 }

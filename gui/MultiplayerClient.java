@@ -3,6 +3,7 @@ package gui;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -35,18 +36,20 @@ public class MultiplayerClient extends AnswerFrame {
     private Instant questionTimestamp = null;
     private int timeLimit = 10000;
     private List<Leaderboard.Player> leaderboard;
+    private final InetSocketAddress address;
 
     public static void main(String[] args) {
         try {
             String address = "0.0.0.0";
             String name = "Bob";
-            new MultiplayerClient(new Socket(address, 12345), name);
+            new MultiplayerClient(new Socket(address, 12345), name, new InetSocketAddress("127.0.0.1", 12345));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public MultiplayerClient(Socket socket, String name) {
+    public MultiplayerClient(Socket socket, String name, InetSocketAddress address) {
+        this.address = address;
         chat.setEditable(false);
         chat.setLineWrap(true);
 
@@ -299,7 +302,7 @@ public class MultiplayerClient extends AnswerFrame {
 
     @Override
     protected void saveHistory() throws IOException {
-        HistoryStorage.save(new HistoryGame(quiz, plays, new Metadata(name, p.getSocketAddressString(), score, rank)));
+        HistoryStorage.save(new HistoryGame(quiz, plays, new Metadata(name, address.toString(), score, rank)));
     }
 
     @Override
