@@ -377,7 +377,6 @@ public class Server implements ServerEventHandler, AutoCloseable {
                 case SINGLEPLAYER:
                     if (this.quiz_transmission != null) {
                         this.quiz_transmission.join();
-                    }
 
                     this.quiz_transmission = new Thread(() -> {
                         String filename = (String) this.data.get();

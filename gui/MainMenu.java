@@ -1,9 +1,13 @@
 package gui;
 
 import java.awt.*;
+import java.io.IOException;
 import java.net.URI;
 
 import javax.swing.*;
+
+import utils.Common;
+import utils.HistoryDashboard;
 
 public class MainMenu {
     private JFrame menuFrame;
@@ -17,7 +21,7 @@ public class MainMenu {
     public MainMenu() {
         desktop = Desktop.getDesktop();
         menuFrame = new JFrame("刷題趣！");
-        menuFrame.setPreferredSize(new Dimension(300, 430));
+        menuFrame.setPreferredSize(new Dimension(300, 500));
         menuFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         menuFrame.setResizable(false);
         menuFrame.setIconImage(Resource.icon.getImage());
@@ -30,11 +34,8 @@ public class MainMenu {
         int fillerHeight = 20;
 
         // Single Player Mode Button
-        Dimension buttonSize = new Dimension(140, 30);
         JButton singleplayerButton = new JButton("Singleplayer");
-        singleplayerButton.setMaximumSize(buttonSize);
-        singleplayerButton.setPreferredSize(buttonSize);
-        singleplayerButton.setAlignmentX(0.5f);
+        resizeButton(singleplayerButton);
         box.add(singleplayerButton);
         singleplayerButton.addActionListener(e -> {
             SingleplayerClient.runQuizDialog(menuFrame);
@@ -44,9 +45,7 @@ public class MainMenu {
 
         // Multiplayer Mode Button
         JButton multiplayerButton = new JButton("Multiplayer");
-        multiplayerButton.setMaximumSize(buttonSize);
-        multiplayerButton.setPreferredSize(buttonSize);
-        multiplayerButton.setAlignmentX(0.5f);
+        resizeButton(multiplayerButton);
         box.add(multiplayerButton);
         multiplayerButton.addActionListener(e -> {
             loginInfo = LoginDialog.get(menuFrame, new MultiplayerLoginHandler(menuFrame), loginInfo);
@@ -56,9 +55,7 @@ public class MainMenu {
 
         // Ask Question Button
         JButton askQuestionButton = new JButton("Create Quiz");
-        askQuestionButton.setMaximumSize(buttonSize);
-        askQuestionButton.setPreferredSize(buttonSize);
-        askQuestionButton.setAlignmentX(0.5f);
+        this.resizeButton(askQuestionButton);
         box.add(askQuestionButton);
         askQuestionButton.addActionListener(e -> {
             new MakeQuizFrame();
@@ -67,11 +64,22 @@ public class MainMenu {
 
         box.add(Box.createVerticalStrut(fillerHeight));
 
+        JButton reviewButton = new JButton("Review");
+        resizeButton(reviewButton);
+        box.add(reviewButton);
+        reviewButton.addActionListener(e -> {
+            try {
+                new HistoryDashboard(menuFrame);
+            } catch (IOException ex) {
+                Common.errorMessage(menuFrame, "Error", ex);
+            }
+        });
+
+        box.add(Box.createVerticalStrut(fillerHeight));
+
         // Exit Button
         JButton exitButton = new JButton("Exit");
-        exitButton.setMaximumSize(buttonSize);
-        exitButton.setPreferredSize(buttonSize);
-        exitButton.setAlignmentX(0.5f);
+        resizeButton(exitButton);
         box.add(exitButton);
         exitButton.addActionListener(e -> System.exit(0));
         box.add(Box.createVerticalStrut(20));
@@ -101,5 +109,12 @@ public class MainMenu {
     
     public JFrame getFrame() {
         return menuFrame;
+    }
+
+    private void resizeButton(JButton button) {
+        Dimension buttonSize = new Dimension(140, 30);
+        button.setMaximumSize(buttonSize);
+        button.setPreferredSize(buttonSize);
+        button.setAlignmentX(0.5f);
     }
 }
