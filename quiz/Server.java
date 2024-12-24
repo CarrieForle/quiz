@@ -298,18 +298,24 @@ public class Server implements ServerEventHandler, AutoCloseable {
         this.multiplayer = new Thread(() -> runQuiz());
 
         for (int i = 0; i < this.client_threads.length; i++) {
-            this.client_threads[i] = new Thread(() -> {
-                Participant client = null;
-                final long threadId = Thread.currentThread().threadId();
+            this.client_threads[i] = new Thread(() -> handlingClient());
+        }
+    }
 
+    private void handlingClient() {
+        Participant client = null;
+        final long threadId = Thread.currentThread().threadId();
+
+        try {
+            while (!this.is_game_end.get()) {
                 try {
                     System.out.format("Thread #%d is ready to serve a client.\n", Thread.currentThread().threadId());
 
-                    client = waitAndInitClient();
+                    client = waitAndGetClient();
                     client.transmitter.getMessenger().getSocket().setSoTimeout(15000);
 
                     System.out.format("%s is connected and served by thread #%d.\n", client.name, threadId);
-                    
+
                     synchronized (this.clients) {
                         for (Participant p : this.clients) {
                             p.transmitter.join(client.name);
@@ -325,23 +331,25 @@ public class Server implements ServerEventHandler, AutoCloseable {
                         }
                     }
 
-                    if (this.clients.size() > MIN_NUM) {
+                    if (this.clients.size() >= MIN_NUM) {
                         client.transmitter.startIn(this.countDown);
                     }
+
+                    // TODO find a easy way to not transmit startIn twice
+                    // if (this.clients.size() > MIN_NUM && this.clients.size() < MAX_NUM) {
+                    // client.transmitter.startIn(this.countDown);
+                    // }
 
                     System.out.format("%d/%d (min: %d)\n", this.clients.size(), MAX_NUM, MIN_NUM);
 
                     this.eventLoop(client);
                 } catch (IOException e) {
                     this.freeClient(client);
-                } catch (InterruptedException e) {
-
                 }
+            }
+        } catch (InterruptedException e) {
 
-                System.out.format("Thread #%d ends\n", threadId);
-            });
         }
-
     }
 
     private void eventLoop(Participant client) throws IOException, InterruptedException {
