@@ -23,11 +23,11 @@ public class Server implements ServerEventHandler, AutoCloseable {
     private static final Path QUIZ_DIRECTORY = Path.of("quiz_questions");
     public final int MAX_NUM;
     public final int MIN_NUM;
-    public final Duration TIME_FRAME = Duration.ofSeconds(30);
-    public final Duration FULL_TIME_FRAME = Duration.ofSeconds(10);
+    public final Duration TIME_FRAME;
+    public final Duration FULL_TIME_FRAME;
     private final Object new_client = new Object();
     private final Object is_ready = new Object();
-    private Duration countDown = TIME_FRAME;
+    private Duration countDown;
     private ServerSocket server_socket;
     private List<Participant> clients;
     private Thread[] client_threads;
@@ -46,7 +46,9 @@ public class Server implements ServerEventHandler, AutoCloseable {
     public static void main(String[] args) {
         int port = 12345;
         int min = 1;
-        int max = 1;
+        int max = 2;
+        int waitingTimeForMorePlayer = 60;
+        int waitingTimeForFullPlayer = 30;
 
         try (ServerSocket socket = new ServerSocket(port)) {
             if (args.length >= 1 && !args[0].isEmpty()) {
@@ -61,6 +63,14 @@ public class Server implements ServerEventHandler, AutoCloseable {
                 port = Integer.parseInt(args[2]);
             }
 
+            if (args.length >= 4 && !args[3].isEmpty()) {
+                waitingTimeForMorePlayer = Integer.parseInt(args[3]);
+            }
+
+            if (args.length >= 5 && !args[4].isEmpty()) {
+                waitingTimeForFullPlayer = Integer.parseInt(args[4]);
+            }
+
             if (min > max) {
                 throw new IllegalArgumentException(String.format("min must be smaller than or equal to max, but %d > %d", min, max));
             }
@@ -69,11 +79,27 @@ public class Server implements ServerEventHandler, AutoCloseable {
                 throw new IllegalArgumentException("min must be at least 1");
             }
 
-            try (Server server = new Server(socket, min, max)) {
+            if (waitingTimeForMorePlayer < 3) {
+                throw new IllegalArgumentException(String.format("wait time must be at least 3 seconds"));
+            }
+
+            if (waitingTimeForFullPlayer < 3) {
+                throw new IllegalArgumentException(String.format("wait time must be at least 3 seconds"));
+            }
+
+            if (waitingTimeForMorePlayer > 60) {
+                throw new IllegalArgumentException(String.format("wait time must not be more than 60 seconds"));
+            }
+
+            if (waitingTimeForFullPlayer > 30) {
+                throw new IllegalArgumentException(String.format("wait time must not be more than 30 seconds"));
+            }
+
+            try (Server server = new Server(socket, min, max, waitingTimeForMorePlayer, waitingTimeForFullPlayer)) {
                 server.run();
             }
         } catch (IOException e) {
-            System.out.println("An error happened during initialization");
+            System.out.println("An error occurred during initialization");
             e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -84,13 +110,20 @@ public class Server implements ServerEventHandler, AutoCloseable {
         }
     }
 
-    public Server(ServerSocket server_socket, int min_client, int max_client) throws IOException, InterruptedException {
+    public Server(ServerSocket server_socket, int min_client, int max_client, int beforeFullTime, int fullTime) throws IOException, InterruptedException {
         System.out.format("Minimum player count: %d\n", min_client);
         System.out.format("Maximum player count: %d\n", max_client);
         System.out.format("Running on port: %d\n", server_socket.getLocalPort());
+        System.out.format("Wait %ds when sufficient player\n", beforeFullTime);
+        System.out.format("Wait %ds when full\n", fullTime);
+        System.out.println("===========");
         this.server_socket = server_socket;
         this.MIN_NUM = min_client;
         this.MAX_NUM = max_client;
+        this.TIME_FRAME = Duration.ofSeconds(beforeFullTime);
+        this.FULL_TIME_FRAME = Duration.ofSeconds(fullTime);
+        this.countDown = this.TIME_FRAME;
+
         this.clients = Collections.synchronizedList(new ArrayList<>(MAX_NUM));
         this.client_threads = new Thread[MAX_NUM];
 
