@@ -137,6 +137,10 @@ public class HistoryBoard extends JDialog {
             }
         });
 
+        infoButton.addActionListener(e -> {
+            new HistoryInfoDialog(this, game);
+        });
+
         toolButtonPanel.add(downloadQuizButton);
         toolButtonPanel.add(downloadHistoryButton);
         toolButtonPanel.add(dashboardButton);

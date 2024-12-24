@@ -102,6 +102,10 @@ public class HistoryGame {
             return new Metadata(Instant.now(), null, null, score, 1);
         }
 
+        public boolean isLocal() {
+            return this.name == null && this.address == null;
+        }
+
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
