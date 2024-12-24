@@ -18,6 +18,8 @@ public class HistoryStorage {
     private static final Path DIRECTORY = Path.of("quiz_history");
 
     public static void save(Path path, HistoryGame game) throws IOException {
+        checkDirectory();
+
         if (!path.endsWith(".quih")) {
             path = Path.of(path.toString() + ".quih");
         }
@@ -26,6 +28,7 @@ public class HistoryStorage {
     }
 
     public static void save(HistoryGame game) throws IOException {
+        checkDirectory();
         game.export(getSavePath(game));
     }
     
@@ -64,5 +67,11 @@ public class HistoryStorage {
         fileChooser.setFileFilter(new FileNameExtensionFilter("Quiz History File (.quih)", "quih"));
 
         return fileChooser;
+    }
+
+    private static void checkDirectory() throws IOException {
+        if (!Files.exists(DIRECTORY)) {
+            Files.createDirectory(DIRECTORY);
+        }
     }
 }
