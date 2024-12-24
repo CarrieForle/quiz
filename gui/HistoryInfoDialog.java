@@ -35,7 +35,7 @@ public class HistoryInfoDialog extends JDialog {
             sb.append("Name: ");
             sb.append(metadata.name);
             sb.append("\n");
-            sb.append("Address: ");
+            sb.append("Server: ");
             sb.append(metadata.address);
             sb.append("\n");
             sb.append("Rank: ");
