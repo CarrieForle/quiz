@@ -279,6 +279,16 @@ public class MultiplayerClient extends AnswerFrame {
         return questionCount;
     }
 
+    @Override
+    protected void saveHistory() {
+        // TODO
+    }
+
+    @Override
+    protected String getQuizName() {
+        return quizName;
+    }
+
     private void receiveData() throws IOException {
         isEnd = p.checkEnd();
         

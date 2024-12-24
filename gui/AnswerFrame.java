@@ -260,7 +260,7 @@ public abstract class AnswerFrame {
     }
 
     private void updateTitle() {
-        frame.setTitle(String.format("刷題趣！ (%d/%d)", questionNum, getQuestionCount()));
+        frame.setTitle(String.format("刷題趣！ (%d/%d) %s", questionNum, getQuestionCount(), getQuizName()));
     }
 
     protected void cancelCountDown(String s, int progress) {
@@ -312,6 +312,7 @@ public abstract class AnswerFrame {
 
     }
 
+    protected abstract String getQuizName();
     protected abstract void saveHistory();
     protected abstract int getQuestionCount();
     protected abstract int getAnswer();

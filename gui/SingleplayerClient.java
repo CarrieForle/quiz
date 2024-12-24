@@ -156,6 +156,11 @@ public class SingleplayerClient extends AnswerFrame {
     protected int getQuestionCount() {
         return questionSet.getQuestions().size();
     }
+
+    @Override
+    protected String getQuizName() {
+        return questionSet.name;
+    }
 }
 
 class GetQuizDialog extends JDialog {
