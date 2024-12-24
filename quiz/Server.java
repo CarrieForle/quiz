@@ -163,15 +163,13 @@ public class Server implements ServerEventHandler, AutoCloseable {
     }
 
     private Participant waitAndInitClient() throws InterruptedException {
-        Participant res = null;
-
         while (this.data.get() == null) {
             synchronized (this.new_client) {
                 this.new_client.wait();
             }
         }
 
-        res = (Participant) this.data.get();
+        Participant res = (Participant) this.data.get();
         this.data.set(null);
 
         res.id = Thread.currentThread().threadId();
