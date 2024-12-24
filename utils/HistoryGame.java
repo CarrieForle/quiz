@@ -165,9 +165,17 @@ public class HistoryGame {
             if (key.equals("when")) {
                 when = Instant.ofEpochMilli(Long.parseLong(value));
             } else if (key.equals("name")) {
-                name = value;
+                if (value.equals("null")) {
+                    name = null;
+                } else {
+                    name = value;
+                }
             } else if (key.equals("address")) {
-                address = value;
+                if (value.equals("null")) {
+                    address = null;
+                } else {
+                    address = value;
+                }
             } else if (key.equals("score")) {
                 score = Integer.parseInt(value);
             } else if (key.equals("rank")) {

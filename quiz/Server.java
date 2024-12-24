@@ -755,9 +755,23 @@ class SocketDispatcher {
     }
 
     public Data accept() throws IOException {
-        Socket socket = this.server.accept();
-        DataInputStream in = new DataInputStream(socket.getInputStream());
-        String identifier = in.readUTF();
+        Socket socket;
+        DataInputStream in;
+        String identifier = "";
+        
+        while (true) {
+            try {
+                socket = this.server.accept();
+                int timeout = socket.getSoTimeout();
+                socket.setSoTimeout(10000);
+                in = new DataInputStream(socket.getInputStream());
+                identifier = in.readUTF();
+                socket.setSoTimeout(timeout);
+                break;
+            } catch (SocketTimeoutException e) {
+                System.out.println("An incoming connection timed out");
+            }
+        }
 
         Type type;
         Object data = null;
