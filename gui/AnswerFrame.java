@@ -198,14 +198,18 @@ public abstract class AnswerFrame {
         }
 
         if (question == null) {
-            try {
-                saveHistory();
-            } catch (IOException e) {
-                Common.errorMessage(frame, "Failed to save this game into history", e);
-            }
-
             frame.dispose();
             showLeaderboard();
+
+            Thread t = new Thread(() -> {
+                try {
+                    saveHistory();
+                } catch (IOException e) {
+                    Common.errorMessage(frame, "Failed to save this game into history", e);
+                }
+            });
+
+            t.start();
         } else {
             updateFields(question);
             questionNum++;
