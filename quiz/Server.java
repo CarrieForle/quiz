@@ -390,10 +390,10 @@ public class Server implements ServerEventHandler, AutoCloseable {
                 switch (data.type) {
                     case SINGLEPLAYER:
                         this.quiz_transmission.join();
-    
+
                         this.quiz_transmission = new Thread(() -> {
                             String filename = (String) this.data.get();
-    
+
                             try {
                                 if (filename == null || filename.isEmpty()) {
                                     this.storage.sendClientQuizList(data.socket);
@@ -406,53 +406,53 @@ public class Server implements ServerEventHandler, AutoCloseable {
                                 System.out.format("Failed to send quiz: %s\n", e.getMessage());
                             }
                         });
-    
+
                         this.quiz_transmission.start();
                         break;
                     case MULTIPLAYER:
                         Participant incoming = (Participant) this.data.get();
-    
+
                         if (!is_before_game.get()) {
                             incoming.transmitter.getMessenger().writeUTF("The game has already started");
                             incoming.transmitter.close();
                             break;
                         }
-    
+
                         if (this.clients.size() == MAX_NUM) {
                             incoming.transmitter.getMessenger().writeUTF("The room is full");
                             incoming.transmitter.close();
                             break;
                         }
-    
+
                         synchronized (this.clients) {
                             boolean is_name_duplicated = false;
-    
+
                             for (Participant p : this.clients) {
                                 if (incoming.name.equals(p.name)) {
                                     is_name_duplicated = true;
                                     break;
                                 }
                             }
-    
+
                             if (is_name_duplicated) {
                                 incoming.transmitter.getMessenger().writeUTF(String.format("A player named \"%s\" is already playing", incoming.name));
                                 incoming.transmitter.close();
                                 break;
                             }
                         }
-    
+
                         incoming.transmitter.getMessenger().writeUTF("OK");
-    
+
                         synchronized (this.new_client) {
                             this.new_client.notify();
                         }
-    
+
                         break;
                     case QUIZ_UPLOAD:
                         if (this.quiz_transmission != null) {
                             this.quiz_transmission.join();
                         }
-    
+
                         this.quiz_transmission = new Thread(() -> {
                             try {
                                 this.storage.saveQuizToFile(data.socket);
@@ -461,7 +461,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
                                 System.out.format("Failed to receive uploaded quiz: %s\n", e.getMessage());
                             }
                         });
-    
+
                         this.quiz_transmission.start();
                         break;
                     default:
@@ -774,25 +774,12 @@ class SocketDispatcher {
     }
 
     public Data accept() throws IOException {
-        Socket socket;
-        DataInputStream in;
-        String identifier = "";
-        
-        while (true) {
-            try {
-                socket = this.server.accept();
-                int oldTimeout = socket.getSoTimeout();
-                socket.setSoTimeout(10000);
-                in = new DataInputStream(socket.getInputStream());
-                identifier = in.readUTF();
-                socket.setSoTimeout(oldTimeout);
-                break;
-            } catch (SocketTimeoutException e) {
-                System.out.println("An incoming connection timed out");
-            } catch (IOException e) {
-                System.out.format("Incoming Socket Exception: %s\n", e);
-            }
-        }
+        Socket socket = this.server.accept();
+        int oldTimeout = socket.getSoTimeout();
+        socket.setSoTimeout(10000);
+        DataInputStream in = new DataInputStream(socket.getInputStream());
+        String identifier = in.readUTF();
+        socket.setSoTimeout(oldTimeout);
 
         Type type;
         Object data = null;
