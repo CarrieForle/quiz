@@ -199,12 +199,8 @@ public class MakeQuizFrame extends JFrame {
 
             File file = fileChooser.getSelectedFile();
 
-            if (!file.getName().endsWith(".quiz")) {
-                file = new File(file.getAbsolutePath() + ".quiz");
-            }
-
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8))) {
-                writer.write(quizBuilder.toString());
+            try {
+                QuizStorage.save(file.toPath(), this.quizBuilder);
                 this.setFile(file);
                 JOptionPane.showMessageDialog(this, "Quiz saved successfully!");
             } catch (IOException e) {
@@ -367,8 +363,7 @@ public class MakeQuizFrame extends JFrame {
     }
 
     private JFileChooser getFileChooser() {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileFilter(new FileNameExtensionFilter("Quiz File (.quiz)", "quiz"));
+        JFileChooser fileChooser = QuizStorage.getFileChooser();
         fileChooser.setSelectedFile(this.file);
 
         return fileChooser;

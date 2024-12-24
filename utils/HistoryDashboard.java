@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.util.List;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
 
 import utils.exceptions.CorruptedHistoryException;
 import gui.HistoryBoard;
@@ -101,8 +100,7 @@ public class HistoryDashboard extends JDialog {
         });
 
         openButton.addActionListener(e -> {
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setFileFilter(new FileNameExtensionFilter("Quiz History File (.quih)", "quih"));
+            JFileChooser fileChooser = HistoryStorage.getFileChooser();
 
             if (JFileChooser.APPROVE_OPTION != fileChooser.showOpenDialog(this)) {
                 return;

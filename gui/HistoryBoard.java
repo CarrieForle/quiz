@@ -8,6 +8,7 @@ import utils.exceptions.CorruptedHistoryException;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -27,7 +28,7 @@ public class HistoryBoard extends JDialog {
 
     public static void main(String[] args) {
         try {
-            HistoryGame game = HistoryStorage.load(Path.of("quiz_history/2024-12-24T00_17_03-程式設計與運算思維 Programming.quih"));
+            HistoryGame game = HistoryStorage.load(Path.of("quiz_history/2024-12-24T00_57_09-程式設計與運算思維 Programming.quih"));
             new HistoryBoard(null, game);
         } catch (IOException e) {
             System.out.println(e);
@@ -94,12 +95,51 @@ public class HistoryBoard extends JDialog {
 
         JPanel toolButtonPanel = new JPanel();
         JButton downloadQuizButton = new JButton("Download Quiz");
-        toolButtonPanel.add(downloadQuizButton);
         JButton downloadHistoryButton = new JButton("Download History");
-        toolButtonPanel.add(downloadHistoryButton);
         JButton dashboardButton = new JButton("Dashboard");
-        toolButtonPanel.add(dashboardButton);
         JButton infoButton = new JButton("Info");
+
+        downloadQuizButton.addActionListener(e -> {
+            JFileChooser fileChooser = HistoryStorage.getFileChooser();
+            fileChooser.setSelectedFile(new File(game.quiz.name + ".quiz"));
+
+            if (JFileChooser.APPROVE_OPTION == fileChooser.showSaveDialog(this)) {
+                try {
+                    QuizStorage.save(fileChooser.getSelectedFile().toPath(), game.quiz);
+                    JOptionPane.showMessageDialog(this, "Downloaded quiz successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
+                } catch (IOException ex) {
+                    Common.errorMessage(this, "Failed to download quiz", ex);
+                }
+            }
+        });
+
+        downloadHistoryButton.addActionListener(e -> {
+            JFileChooser fileChooser = HistoryStorage.getFileChooser();
+            fileChooser.setSelectedFile(HistoryStorage.getSavePath(game).toFile());
+
+            if (JFileChooser.APPROVE_OPTION == fileChooser.showSaveDialog(this)) {
+                try {
+                    HistoryStorage.save(fileChooser.getSelectedFile().toPath(), game);
+                    JOptionPane.showMessageDialog(this, "Downloaded history successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
+                } catch (IOException ex) {
+                    Common.errorMessage(this, "Failed to download history", ex);
+                }
+            }
+        });
+
+        dashboardButton.addActionListener(e -> {
+            dispose();
+
+            try {
+                new HistoryDashboard(parent);
+            } catch (IOException ex) {
+                Common.errorMessage(parent, "Error", ex);
+            }
+        });
+
+        toolButtonPanel.add(downloadQuizButton);
+        toolButtonPanel.add(downloadHistoryButton);
+        toolButtonPanel.add(dashboardButton);
         toolButtonPanel.add(infoButton);
 
         JPanel navigatePanel = new JPanel();
