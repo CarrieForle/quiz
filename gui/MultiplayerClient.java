@@ -4,6 +4,9 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
 import java.net.Socket;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -11,23 +14,26 @@ import javax.swing.*;
 
 import networking.ClientMessenger;
 import quiz.Client;
-import utils.Common;
-import utils.Question;
+import utils.*;
+import utils.HistoryGame.Play;
+import utils.HistoryGame.Metadata;
 
 public class MultiplayerClient extends AnswerFrame {
     private Thread readIncoming = new Thread();
-    private Question question = new Question();
+    private QuestionWithAnswer question = new QuestionWithAnswer();
+    private QuestionSet quiz = new QuestionSet();
+    private List<Play> plays = new ArrayList<Play>();
+    private Play currentPlay = new Play();
     private JTextArea chat = new JTextArea("You joined the game\n");
     private JTextField inputField = new JTextField();
     private Client p;
-    private String quizName;
     private String name;
     private int questionCount = 0;
     private int score = 0;
     private int rank = 1;
     private AtomicInteger myAnswer = new AtomicInteger(-1);
-    private int correctAnswer = -1;
     private boolean isEnd = false;
+    private Instant questionTimestamp = null;
     private int timeLimit = 10000;
     private List<Leaderboard.Player> leaderboard;
 
@@ -115,8 +121,8 @@ public class MultiplayerClient extends AnswerFrame {
             // UI won't display without thread.
             Thread t = new Thread(() -> {
                 try {
+                    quiz.name = p.getQuizName();
                     questionCount = p.getQuestionCount();
-                    quizName = p.getQuizName();
                     readQuestion();
                     start();
                 } catch (IOException e) {
@@ -173,6 +179,7 @@ public class MultiplayerClient extends AnswerFrame {
         question.question = p.getQuestion();
         question.setOptions(p.getOptions());
         timeLimit = p.getTimeStamp();
+        questionTimestamp = Instant.now();
 
         readIncoming = new Thread(() -> {
             try {
@@ -189,8 +196,11 @@ public class MultiplayerClient extends AnswerFrame {
     protected void onAnswering(int id, ActionEvent e) {
         try {
             p.writeAns(id);
+            currentPlay.choiceId = id;
             myAnswer.set(id);
+
             long timestamp = e.getWhen();
+            currentPlay.timeRemained = timeLimit - ((int) (timestamp - questionTimestamp.toEpochMilli()));
             p.writeTimeStamp(timestamp);
             readIncoming.join();
         } catch (IOException ex) {
@@ -204,6 +214,10 @@ public class MultiplayerClient extends AnswerFrame {
     protected void onWindowClosing(WindowEvent e) {
         try {
             p.close();
+
+            if (plays.size() > 0) {
+                saveHistory();
+            }
         } catch (IOException ex) {
             disconnect(ex);
         }
@@ -215,6 +229,7 @@ public class MultiplayerClient extends AnswerFrame {
             p.writeAns(-1);
             myAnswer.set(-1);
             p.writeTimeStamp(0);
+            currentPlay = Play.TIME_EXCEEDED;
             readIncoming.join();
         } catch (IOException e) {
             disconnect(e);
@@ -225,11 +240,14 @@ public class MultiplayerClient extends AnswerFrame {
 
     @Override
     protected int getAnswer() {
-        return correctAnswer;
+        return question.answer;
     }
 
     @Override
     protected void onRoundEnd() {
+        quiz.getQuestions().add(question);
+        plays.add(currentPlay);
+        currentPlay = new Play();
         countDownTimebar(4000, false);
         
         try {
@@ -280,20 +298,22 @@ public class MultiplayerClient extends AnswerFrame {
     }
 
     @Override
-    protected void saveHistory() {
-        // TODO
+    protected void saveHistory() throws IOException {
+        HistoryStorage.save(new HistoryGame(quiz, plays, new Metadata(name, p.getSocketAddressString(), score, rank)));
     }
 
     @Override
     protected String getQuizName() {
-        return quizName;
+        return quiz.name;
     }
 
     private void receiveData() throws IOException {
         isEnd = p.checkEnd();
-        
-        correctAnswer = p.getAnswer();
+        question.answer = p.getAnswer();
+
+        int oldScore = score;
         score = p.getScore();
+        currentPlay.scoreOffset = score - oldScore;
         System.out.printf("分數為%d", score);
         rank = p.getRank();
         System.out.printf("名次為%d", rank);

@@ -5,6 +5,7 @@ import gui.Leaderboard.Player;
 import networking.Messenger;
 
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 
 public class Client implements AutoCloseable {
@@ -118,5 +119,15 @@ public class Client implements AutoCloseable {
     public String getNameResponse() throws IOException {
         String response = this.m.readUTF();
         return response;
+    }
+    
+    public String getSocketAddressString() {
+        InetSocketAddress address = (InetSocketAddress) this.m.getSocket().getRemoteSocketAddress();
+
+        if (address.getPort() == 12345) {
+            return address.getHostName();
+        } else {
+            return address.getHostName() + ":" + address.getPort();
+        }
     }
 }

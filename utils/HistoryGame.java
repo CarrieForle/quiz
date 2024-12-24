@@ -98,6 +98,14 @@ public class HistoryGame {
             this.rank = rank;
         }
 
+        public Metadata(String name, String address, int score, int rank) {
+            this.when = Instant.now();
+            this.name = name;
+            this.address = address;
+            this.score = score;
+            this.rank = rank;
+        }
+
         public static Metadata local(int score) {
             return new Metadata(Instant.now(), null, null, score, 1);
         }

@@ -29,6 +29,8 @@ public class HistoryInfoDialog extends JDialog {
         sb.append("\n");
         
         if (metadata.isLocal()) {
+            sb.append("Singleplayer\n");
+        } else {
             sb.append("Multiplayer\n");
             sb.append("Name: ");
             sb.append(metadata.name);
@@ -39,8 +41,6 @@ public class HistoryInfoDialog extends JDialog {
             sb.append("Rank: ");
             sb.append(metadata.rank);
             sb.append("\n");
-        } else {
-            sb.append("Singleplayer\n");
         }
 
         sb.append("Score: ");

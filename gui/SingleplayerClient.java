@@ -41,7 +41,14 @@ public class SingleplayerClient extends AnswerFrame {
         JButton endGameButton = new JButton("End Game");
 
         endGameButton.addActionListener(e -> {
-            saveHistory();
+            try {
+                if (plays.size() > 0) {
+                    saveHistory();
+                }
+            } catch (IOException ex) {
+                Common.errorMessage(frame, "Failed to save this game into history", ex);
+            }
+
             frame.dispose();
             showLeaderboard();
         });
@@ -92,7 +99,7 @@ public class SingleplayerClient extends AnswerFrame {
         QuizAnswerResponse qar = new QuizAnswerResponse();
         qar.choice_id = id;
         qar.send_timestamp = e.getWhen();
-        currentPlay.timeRemained = (int) (qar.send_timestamp - running_timestamp);
+        currentPlay.timeRemained = getTimeLimit() - ((int) (qar.send_timestamp - running_timestamp));
         currentPlay.choiceId = id;
         currentPlay.scoreOffset = Server.calculateScore(qar, running.answer, running_timestamp);
 
@@ -112,16 +119,12 @@ public class SingleplayerClient extends AnswerFrame {
     }
     
     @Override
-    protected void saveHistory() {
+    protected void saveHistory() throws IOException {
         while (plays.size() < questionSet.size()) {
             plays.add(null);
         }
 
-        try {
-            HistoryStorage.save(new HistoryGame(questionSet, plays, Metadata.local(score)));
-        } catch (IOException e) {
-            Common.errorMessage(frame, "Failed to save this game into history", e);
-        }
+        HistoryStorage.save(new HistoryGame(questionSet, plays, Metadata.local(score)));
     }
 
     @Override

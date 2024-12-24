@@ -3,11 +3,12 @@ package gui;
 import javax.swing.*;
 import javax.swing.border.Border;
 
+import utils.Common;
 import utils.Question;
 
 import java.awt.*;
 import java.awt.event.*;
-
+import java.io.IOException;
 import java.util.TimerTask;
 import java.util.Timer;
 
@@ -197,7 +198,12 @@ public abstract class AnswerFrame {
         }
 
         if (question == null) {
-            saveHistory();
+            try {
+                saveHistory();
+            } catch (IOException e) {
+                Common.errorMessage(frame, "Failed to save this game into history", e);
+            }
+
             frame.dispose();
             showLeaderboard();
         } else {
@@ -313,7 +319,7 @@ public abstract class AnswerFrame {
     }
 
     protected abstract String getQuizName();
-    protected abstract void saveHistory();
+    protected abstract void saveHistory() throws IOException;
     protected abstract int getQuestionCount();
     protected abstract int getAnswer();
     protected abstract void onRoundEnd();

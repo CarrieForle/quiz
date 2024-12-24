@@ -45,8 +45,8 @@ public class Server implements ServerEventHandler, AutoCloseable {
 
     public static void main(String[] args) {
         int port = 12345;
-        int min = 2;
-        int max = 4;
+        int min = 1;
+        int max = 1;
 
         try (ServerSocket socket = new ServerSocket(port)) {
             if (args.length >= 1 && !args[0].isEmpty()) {
