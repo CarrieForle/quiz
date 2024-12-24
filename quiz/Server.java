@@ -467,7 +467,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
                             break;
                         }
 
-                        if (this.clients.size() == MAX_NUM) {
+                        if (this.clients.size() >= MAX_NUM) {
                             incoming.transmitter.getMessenger().writeUTF("The room is full");
                             incoming.transmitter.close();
                             break;
