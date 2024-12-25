@@ -142,21 +142,36 @@ public class HistoryBoard extends JDialog {
             new HistoryInfoDialog(this, game);
         });
 
-        prevButton.addActionListener(e -> {
-            if (currentId > 0) {
-                currentId--;
-                current = game.get(currentId);
-                updateUI();
+        Action prevQuestionAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentId > 0) {
+                    currentId--;
+                    current = game.get(currentId);
+                    updateUI();
+                }
             }
-        });
+        };
 
-        nextButton.addActionListener(e -> {
-            if (currentId < game.quiz.size() - 1) {
-                currentId++;
-                current = game.get(currentId);
-                updateUI();
+        Action nextQuestionAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentId < game.quiz.size() - 1) {
+                    currentId++;
+                    current = game.get(currentId);
+                    updateUI();
+                }
             }
-        });
+        };
+
+        prevButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "prev");
+        prevButton.getActionMap().put("prev", prevQuestionAction);
+
+        nextButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "next");
+        nextButton.getActionMap().put("next", nextQuestionAction);
+
+        prevButton.addActionListener(prevQuestionAction);
+        nextButton.addActionListener(nextQuestionAction);
         
         toolButtonPanel.add(prevButton);
         toolButtonPanel.add(downloadQuizButton);
@@ -168,7 +183,6 @@ public class HistoryBoard extends JDialog {
         toolButtonPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         
         add(toolButtonPanel, BorderLayout.SOUTH);
-
         
         Box navigateBox = Box.createVerticalBox();
         JScrollPane navigateScrollPane = new JScrollPane(navigateBox, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
