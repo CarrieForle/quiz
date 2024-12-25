@@ -40,7 +40,7 @@ public class HistoryBoard extends JDialog {
 
     public HistoryBoard(Window parent, HistoryGame game) {
         super(parent, "複習趣！", Dialog.ModalityType.DOCUMENT_MODAL);
-        setSize(600, 550);
+        setSize(650, 550);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setIconImage(Resource.icon.getImage());
         setLayout(new BorderLayout());
@@ -161,11 +161,14 @@ public class HistoryBoard extends JDialog {
         toolButtonPanel.add(dashboardButton);
         toolButtonPanel.add(infoButton);
         toolButtonPanel.add(nextButton);
-
+        
+        toolButtonPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        
         add(toolButtonPanel, BorderLayout.SOUTH);
+
         
         Box navigateBox = Box.createVerticalBox();
-        JScrollPane navigateScrollPane = new JScrollPane(navigateBox);
+        JScrollPane navigateScrollPane = new JScrollPane(navigateBox, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         navigateScrollPane.getHorizontalScrollBar().setUnitIncrement(15);
         navigateScrollPane.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
         
@@ -187,9 +190,12 @@ public class HistoryBoard extends JDialog {
 
             navigateBox.add(button);
             navigateBox.add(Box.createVerticalStrut(15));
-            navigateBox.setPreferredSize(new Dimension(80, 0));
         }
 
+        navigateBox.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+
+        navigateScrollPane.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        
         add(navigateScrollPane, BorderLayout.EAST);
         this.updateUI();
         setLocationRelativeTo(null);
