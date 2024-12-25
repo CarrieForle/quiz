@@ -3,4 +3,4 @@ services:
     build: .
     ports:
     - 25565:12345
-    command: [ "${MIN}", "${MAX}"]
+    command: [ "${MIN}", "${MAX}", "", "${NOTFULL}", "${FULL}"]
