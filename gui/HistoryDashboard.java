@@ -115,8 +115,6 @@ public class HistoryDashboard extends JDialog {
             }
         };
 
-        this.list.requestFocus();
-
         this.list.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "review");
         this.list.getActionMap().put("review", reviewAction);
 
