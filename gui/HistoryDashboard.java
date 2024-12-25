@@ -51,7 +51,7 @@ public class HistoryDashboard extends JDialog {
         super(parent, "複習趣！", Dialog.ModalityType.DOCUMENT_MODAL);
         setLayout(new BorderLayout());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(300, 500);
+        setSize(400, 300);
         setLocationRelativeTo(parent);
         setIconImage(Resource.icon.getImage());
         
