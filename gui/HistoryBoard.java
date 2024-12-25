@@ -90,12 +90,15 @@ public class HistoryBoard extends JDialog {
         add(mainPane);
 
         JPanel toolButtonPanel = new JPanel();
-        JButton prevButton = new JButton("<");
+        JButton prevButton = new JButton(new ImageIcon(Resource.leftArrow.getImage().getScaledInstance(12, 12, Image.SCALE_SMOOTH)));
         JButton downloadQuizButton = new JButton("Download Quiz");
         JButton downloadHistoryButton = new JButton("Download History");
         JButton dashboardButton = new JButton("Dashboard");
         JButton infoButton = new JButton("Info");
-        JButton nextButton = new JButton(">");
+        JButton nextButton = new JButton(new ImageIcon(Resource.rightArrow.getImage().getScaledInstance(12, 12, Image.SCALE_SMOOTH)));
+
+        prevButton.setPreferredSize(new Dimension(27, 27));
+        nextButton.setPreferredSize(new Dimension(27, 27));
 
         downloadQuizButton.addActionListener(e -> {
             JFileChooser fileChooser = HistoryStorage.getFileChooser();
