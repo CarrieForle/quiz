@@ -52,7 +52,7 @@ public class HistoryStorage {
 
     public static List<Path> list() throws IOException {
         checkAndCreateDirectory();
-        return Files.list(DIRECTORY).toList();
+        return Files.list(DIRECTORY).sorted((a, b) -> b.compareTo(a)).toList();
     }
 
     public static HistoryGame load(Path path) throws IOException, CorruptedHistoryException {
