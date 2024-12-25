@@ -15,7 +15,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 public class HistoryStorage {
-    private static final Path DIRECTORY = Path.of("quiz_history");
+    public static final Path DIRECTORY = Path.of("quiz_history");
 
     public static void save(Path path, HistoryGame game) throws IOException {
         checkAndCreateDirectory();

@@ -105,6 +105,7 @@ public class HistoryDashboard extends JDialog {
 
         openButton.addActionListener(e -> {
             JFileChooser fileChooser = HistoryStorage.getFileChooser();
+            fileChooser.setCurrentDirectory(HistoryStorage.DIRECTORY.toFile());
 
             if (JFileChooser.APPROVE_OPTION != fileChooser.showOpenDialog(this)) {
                 return;
