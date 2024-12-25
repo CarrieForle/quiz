@@ -15,8 +15,9 @@ import java.util.Random;
 public class LoginDialog extends JDialog {
     private static final float fontSize = 16f;
     private static final String[] names = {
-            "Patrick", "Michael", "Rick Astley", "大谷翔平", "李白", "Lebron James", "劉在石", "春日影", "YOUR MOM"
+        "Patrick", "Michael", "Rick Astley", "大谷翔平", "李白", "Lebron James", "劉在石", "春日影", "YOUR MOM"
     };
+    
     private LoginHandler handler;
     private JTextField nameField = new JTextField();
     private JTextField serverField = new JTextField();
