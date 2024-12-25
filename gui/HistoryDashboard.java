@@ -63,6 +63,7 @@ public class HistoryDashboard extends JDialog {
         JPanel buttonPanel = new JPanel();
         JButton reviewButton = new JButton("Review");
         JButton deleteButton = new JButton("Delete");
+        JButton clearButton = new JButton("Clear");
         JButton openButton = new JButton("Open");
 
         reviewButton.addActionListener(e -> {
@@ -103,6 +104,36 @@ public class HistoryDashboard extends JDialog {
             }
         });
 
+        clearButton.addActionListener(e -> {
+            if (this.historyPaths.isEmpty()) {
+                return;
+            }
+
+            if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "Do you want to clear your history? This cannot be undone", "Confirm Clear", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE)) {
+                while (true) {
+                    try {
+                        for (Path path : this.historyPaths) {
+                            Files.delete(path);
+                        }
+
+                        JOptionPane.showMessageDialog(this, "History cleared successfully", "Success", JOptionPane.PLAIN_MESSAGE);
+                        break;
+                    } catch (IOException ex) {
+                        if (JOptionPane.YES_OPTION != JOptionPane.showConfirmDialog(this, "Failed to delete file. Do you wish to continue deletion?", "Deletion Failed", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE)) {
+                            break;
+                        }
+                    }
+                }
+
+                try {
+                    this.updateUI();
+                    repaint();
+                } catch (IOException ex) {
+                    throw new UncheckedIOException(ex);
+                }
+            }
+        });
+
         openButton.addActionListener(e -> {
             JFileChooser fileChooser = HistoryStorage.getFileChooser();
             fileChooser.setCurrentDirectory(HistoryStorage.DIRECTORY.toFile());
@@ -125,6 +156,7 @@ public class HistoryDashboard extends JDialog {
 
         buttonPanel.add(reviewButton);
         buttonPanel.add(deleteButton);
+        buttonPanel.add(clearButton);
         buttonPanel.add(openButton);
 
         add(buttonPanel, BorderLayout.SOUTH);
