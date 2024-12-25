@@ -5,7 +5,6 @@ import gui.Leaderboard.Player;
 import networking.Messenger;
 
 import java.io.*;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 
 public class Client implements AutoCloseable {
