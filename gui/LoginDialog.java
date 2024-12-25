@@ -14,19 +14,20 @@ import java.util.Random;
 // It is up to the client to decide when to dispose it.
 public class LoginDialog extends JDialog {
     private static final float fontSize = 16f;
+    private static final String[] names = {
+            "Patrick", "Michael", "Rick Astley", "大谷翔平", "李白", "Lebron James", "劉在石", "春日影", "YOUR MOM"
+    };
     private LoginHandler handler;
     private JTextField nameField = new JTextField();
     private JTextField serverField = new JTextField();
 
     public static void main(String[] args) {
-        LoginDialog l = new LoginDialog(null, new LoginHandler() {
+        new LoginDialog(null, new LoginHandler() {
             @Override
             public void login(LoginDialog l, InetSocketAddress address, String name) {
 
             }
         });
-
-        l.setVisible(true);
     }
 
     public static class Info {
@@ -59,11 +60,11 @@ public class LoginDialog extends JDialog {
         return info;
     }
 
-    public LoginDialog(Window parent, LoginHandler handler) {
+    private LoginDialog(Window parent, LoginHandler handler) {
         this(parent, handler, null);
     }
 
-    public LoginDialog(Window parent, LoginHandler handler, Info info) {
+    private LoginDialog(Window parent, LoginHandler handler, Info info) {
         super(parent, "Login", Dialog.ModalityType.DOCUMENT_MODAL);
         setSize(400, 220);
         setLayout(new BorderLayout());
@@ -127,7 +128,9 @@ public class LoginDialog extends JDialog {
         // Submit Button
         JPanel submitButtonPanel = new JPanel();
         JButton submitButton = new JButton("Login");
+        JButton rollNameButton = new JButton("Roll Name");
         submitButtonPanel.add(submitButton);
+        submitButtonPanel.add(rollNameButton);
         add(submitButtonPanel, BorderLayout.SOUTH);
 
         final LoginDialog self = this;
@@ -161,10 +164,10 @@ public class LoginDialog extends JDialog {
         serverField.getActionMap().put("login", loginAction);
         
         submitButton.addActionListener(loginAction);
-
-        String[] names = {
-            "Patrick", "Michael", "Rick Astley", "大谷翔平", "李白", "Lebron James", "劉在石", "春日影", "YOUR MOM"
-        };
+        
+        rollNameButton.addActionListener(e -> {
+            this.nameField.setText(names[new Random().nextInt(names.length)]);
+        });
 
         this.nameField.setText(names[new Random().nextInt(names.length)]);
         this.serverField.setText("127.0.0.1");
