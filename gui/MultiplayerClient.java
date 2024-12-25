@@ -311,7 +311,7 @@ public class MultiplayerClient extends AnswerFrame {
 
     @Override
     protected void onWindowClosed(WindowEvent e) {
-        new MainMenu();
+        
     }
 
     private void receiveData() throws IOException {

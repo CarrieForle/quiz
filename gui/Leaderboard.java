@@ -185,7 +185,6 @@ public abstract class Leaderboard extends JFrame {
         JButton quitButton = new JButton("Menu");
         quitButton.addActionListener(e -> {
             this.dispose();
-            new MainMenu();
         });
         quitButton.setPreferredSize(new Dimension(100, 30));
 
