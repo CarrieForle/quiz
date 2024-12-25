@@ -14,6 +14,7 @@ import java.nio.file.Path;
 
 public class HistoryBoard extends JDialog {
     private HistoryGame game;
+    private int currentId = 0;
     private HistoryGame.Snapshot current;
     private JLabel scoreLabel = new JLabel("Score: 0");
     private JLabel timeLabel = new JLabel(" ", JLabel.CENTER);
@@ -28,7 +29,7 @@ public class HistoryBoard extends JDialog {
 
     public static void main(String[] args) {
         try {
-            HistoryGame game = HistoryStorage.load(Path.of("quiz_history/2024-12-24T00_57_09-程式設計與運算思維 Programming.quih"));
+            HistoryGame game = HistoryStorage.load(Path.of("quiz_history/2024-12-24T16_47_14-網際網路概論 (四題).quih"));
             new HistoryBoard(null, game);
         } catch (IOException e) {
             System.out.println(e);
@@ -146,6 +147,28 @@ public class HistoryBoard extends JDialog {
         toolButtonPanel.add(dashboardButton);
         toolButtonPanel.add(infoButton);
 
+        JButton nextButton = new JButton(">");
+        JButton prevButton = new JButton("<");
+
+        prevButton.addActionListener(e -> {
+            if (currentId > 0) {
+                currentId--;
+                current = game.get(currentId);
+                updateUI();
+            }
+        });
+
+        nextButton.addActionListener(e -> {
+            if (currentId < game.quiz.size() - 1) {
+                currentId++;
+                current = game.get(currentId);
+                updateUI();
+            }
+        });
+
+        add(nextButton, BorderLayout.EAST);
+        add(prevButton, BorderLayout.WEST);
+
         JPanel navigatePanel = new JPanel();
         JScrollPane navigateScrollPane = new JScrollPane(navigatePanel, JScrollPane.VERTICAL_SCROLLBAR_NEVER,JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         navigateScrollPane.getHorizontalScrollBar().setUnitIncrement(15);
@@ -155,8 +178,11 @@ public class HistoryBoard extends JDialog {
             final int id = i;
 
             button.addActionListener(e -> {
-                current = game.get(id);
-                updateUI();
+                if (currentId != id) {
+                    current = game.get(id);
+                    currentId = id;
+                    updateUI();
+                }
             });
 
             navigatePanel.add(button);
