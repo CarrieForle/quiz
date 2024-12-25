@@ -48,11 +48,6 @@ public class HistoryBoard extends JDialog {
         this.game = game;
         this.current = game.get(0);
 
-        JPanel titlePanel = new JPanel();
-        JLabel titleLabel = new JLabel(game.quiz.name);
-        titlePanel.add(titleLabel);
-        add(titlePanel, BorderLayout.NORTH);
-
         this.questionArea.setText("Review Question");
         this.timebar.setValue(100);
         this.scoreLabel.setText("Score: " + game.metadata.score);
@@ -95,10 +90,12 @@ public class HistoryBoard extends JDialog {
         add(mainPane);
 
         JPanel toolButtonPanel = new JPanel();
+        JButton prevButton = new JButton("<");
         JButton downloadQuizButton = new JButton("Download Quiz");
         JButton downloadHistoryButton = new JButton("Download History");
         JButton dashboardButton = new JButton("Dashboard");
         JButton infoButton = new JButton("Info");
+        JButton nextButton = new JButton(">");
 
         downloadQuizButton.addActionListener(e -> {
             JFileChooser fileChooser = HistoryStorage.getFileChooser();
@@ -142,14 +139,6 @@ public class HistoryBoard extends JDialog {
             new HistoryInfoDialog(this, game);
         });
 
-        toolButtonPanel.add(downloadQuizButton);
-        toolButtonPanel.add(downloadHistoryButton);
-        toolButtonPanel.add(dashboardButton);
-        toolButtonPanel.add(infoButton);
-
-        JButton nextButton = new JButton(">");
-        JButton prevButton = new JButton("<");
-
         prevButton.addActionListener(e -> {
             if (currentId > 0) {
                 currentId--;
@@ -165,14 +154,21 @@ public class HistoryBoard extends JDialog {
                 updateUI();
             }
         });
+        
+        toolButtonPanel.add(prevButton);
+        toolButtonPanel.add(downloadQuizButton);
+        toolButtonPanel.add(downloadHistoryButton);
+        toolButtonPanel.add(dashboardButton);
+        toolButtonPanel.add(infoButton);
+        toolButtonPanel.add(nextButton);
 
-        add(nextButton, BorderLayout.EAST);
-        add(prevButton, BorderLayout.WEST);
-
-        JPanel navigatePanel = new JPanel();
-        JScrollPane navigateScrollPane = new JScrollPane(navigatePanel, JScrollPane.VERTICAL_SCROLLBAR_NEVER,JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        add(toolButtonPanel, BorderLayout.SOUTH);
+        
+        Box navigateBox = Box.createVerticalBox();
+        JScrollPane navigateScrollPane = new JScrollPane(navigateBox);
         navigateScrollPane.getHorizontalScrollBar().setUnitIncrement(15);
-
+        navigateScrollPane.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+        
         for (int i = 0; i < game.quiz.size(); i++) {
             JButton button = new JButton(String.format("Q%d", i + 1));
             final int id = i;
@@ -184,15 +180,17 @@ public class HistoryBoard extends JDialog {
                     updateUI();
                 }
             });
+            
+            button.setMaximumSize(new Dimension(60, 30));
+            button.setPreferredSize(new Dimension(60, 30));
+            button.setAlignmentX(0.5f);
 
-            navigatePanel.add(button);
+            navigateBox.add(button);
+            navigateBox.add(Box.createVerticalStrut(15));
+            navigateBox.setPreferredSize(new Dimension(80, 0));
         }
 
-        JSplitPane toolPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, navigateScrollPane, toolButtonPanel);
-        toolPane.setDividerLocation(0.5f);
-        toolPane.setResizeWeight(0.5f);
-
-        add(toolPane, BorderLayout.SOUTH);
+        add(navigateScrollPane, BorderLayout.EAST);
         this.updateUI();
         setLocationRelativeTo(null);
         setVisible(true);
@@ -222,7 +220,7 @@ public class HistoryBoard extends JDialog {
     }
 
     private void updateUI() {
-        setTitle(String.format("複習趣！ (%d/%d)", this.game.indexOf(this.current) + 1, this.game.quiz.size()));
+        setTitle(String.format("複習趣！ (%d/%d) %s", this.game.indexOf(this.current) + 1, this.game.quiz.size(), this.game.quiz.name));
 
         QuestionWithAnswer question = this.current.question;
         HistoryGame.Play play = this.current.play;
