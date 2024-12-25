@@ -1,6 +1,8 @@
 package gui;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -66,43 +68,63 @@ public class HistoryDashboard extends JDialog {
         JButton clearButton = new JButton("Clear");
         JButton openButton = new JButton("Open");
 
-        reviewButton.addActionListener(e -> {
-            if (this.historyPaths.isEmpty()) {
-                return;
-            }
+        final HistoryDashboard self = this;
 
-            try {
-                HistoryGame game = HistoryStorage.load(this.historyPaths.get(this.list.getSelectedIndex()));
-
-                dispose();
-                new HistoryBoard((Window) getParent(), game);
-            } catch (IOException ex) {
-                Common.errorMessage(this, "Failed to open game history file", ex);
-            } catch (CorruptedHistoryException ex) {
-                Common.errorMessage(this, "This game history is corrupted", ex);
-            }
-        });
-
-        deleteButton.addActionListener(e -> {
-            if (this.historyPaths.isEmpty()) {
-                return;
-            }
-
-            if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "Are you sure you want to delete it?", "Confirm Deletion", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE)) {
-                try {
-                    Files.delete(this.historyPaths.get(this.list.getSelectedIndex()));
-                } catch (IOException ex) {
-                    Common.errorMessage(this, "Failed to delete file", ex);
+        Action reviewAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (self.historyPaths.isEmpty()) {
+                    return;
                 }
 
                 try {
-                    this.updateUI();
-                    repaint();
+                    HistoryGame game = HistoryStorage.load(self.historyPaths.get(list.getSelectedIndex()));
+
+                    dispose();
+                    new HistoryBoard((Window) getParent(), game);
                 } catch (IOException ex) {
-                    throw new UncheckedIOException(ex);
+                    Common.errorMessage(self, "Failed to open game history file", ex);
+                } catch (CorruptedHistoryException ex) {
+                    Common.errorMessage(self, "This game history is corrupted", ex);
                 }
             }
-        });
+        };
+
+        Action deleteAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (self.historyPaths.isEmpty()) {
+                    return;
+                }
+
+                if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(self, "Are you sure you want to delete it?",
+                        "Confirm Deletion", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE)) {
+                    try {
+                        Files.delete(self.historyPaths.get(self.list.getSelectedIndex()));
+                    } catch (IOException ex) {
+                        Common.errorMessage(self, "Failed to delete file", ex);
+                    }
+
+                    try {
+                        self.updateUI();
+                        repaint();
+                    } catch (IOException ex) {
+                        throw new UncheckedIOException(ex);
+                    }
+                }
+            }
+        };
+
+        this.list.requestFocus();
+
+        this.list.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "review");
+        this.list.getActionMap().put("review", reviewAction);
+
+        this.list.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
+        this.list.getActionMap().put("delete", deleteAction);
+
+        reviewButton.addActionListener(reviewAction);
+        deleteButton.addActionListener(deleteAction);
 
         clearButton.addActionListener(e -> {
             if (this.historyPaths.isEmpty()) {
