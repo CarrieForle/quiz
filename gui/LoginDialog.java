@@ -182,14 +182,6 @@ public class LoginDialog extends JDialog {
         setVisible(true);
     }
 
-    public void setAddress(String socketAddress) {
-        this.serverField.setText(socketAddress);
-    }
-
-    public void setName(String name) {
-        this.nameField.setText(name);
-    }
-
     private Info getInfo() {
         String name = this.nameField.getText();
         String address = this.serverField.getText();
