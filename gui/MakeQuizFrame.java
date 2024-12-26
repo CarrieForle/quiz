@@ -39,9 +39,31 @@ public class MakeQuizFrame extends JFrame {
     public MakeQuizFrame() {
         setTitle(String.format("出題趣！ (%s)", this.file));
         setSize(600, 600);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setLayout(new BorderLayout());
-        addWindowListener(new OpenMenuOnClosing(this));
+
+        final MakeQuizFrame self = this;
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                switch (JOptionPane.showConfirmDialog(self, "Do you want to save before exiting?", "Save before quit", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE)) {
+                    case JOptionPane.YES_OPTION:
+                        saveQuiz();
+                        dispose();
+                        break;
+                    case JOptionPane.NO_OPTION:
+                        dispose();
+                        break;
+                }
+            }
+
+            @Override
+            public void windowClosed(WindowEvent e) {
+                new MainMenu();
+            }
+        });
+
         setIconImage(Resource.icon.getImage());
         
         this.constructButtons();
