@@ -29,7 +29,7 @@ public class MakeQuizFrame extends JFrame {
     private JPanel buttonPanel = new JPanel();
     private List<QuestionButton> questionButtons = new ArrayList<QuestionButton>();
     private IncompleteDialog incompleteFrame = new IncompleteDialog(this);
-    private JLabel status = new JLabel("Status: Editing Q1", SwingConstants.CENTER);
+    private JLabel status = new JLabel("", SwingConstants.CENTER);
     private static LoginDialog.Info loginInfo;
 
     public static void main(String[] args) {
@@ -37,7 +37,6 @@ public class MakeQuizFrame extends JFrame {
     }
 
     public MakeQuizFrame() {
-        setTitle(String.format("出題趣！ (%s)", this.file));
         setSize(600, 600);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -70,6 +69,8 @@ public class MakeQuizFrame extends JFrame {
         this.constructButtons();
         this.editing = this.quizBuilder.get(0);
         this.questionButtons.get(0).select();
+        this.updateTitle();
+        this.updateStatusToQuizName();
         
         JPanel questionPanel = new JPanel(new BorderLayout());
 
@@ -190,7 +191,7 @@ public class MakeQuizFrame extends JFrame {
         this.editing = this.quizBuilder.insert_new(i);
         this.addButton(this.editing);
         this.questionButtons.get(i).select();
-        this.updateStatusToCurrentEditing();
+        this.updateTitle();
         this.clearFields();
         this.updateButtonPanel();
     }
@@ -216,7 +217,7 @@ public class MakeQuizFrame extends JFrame {
 
         this.editing = this.quizBuilder.get(new_index);
         this.questionButtons.get(new_index).select();
-        this.updateStatusToCurrentEditing();
+        this.updateTitle();
         this.updateQuestionUI();
         this.updateButtonPanel();
     }
@@ -254,19 +255,19 @@ public class MakeQuizFrame extends JFrame {
 
             try {
                 String contents = Files.readString(file.toPath());
+
                 this.quizBuilder = new QuizBuilder(contents);
 
                 if (this.quizBuilder.size() == 0) {
                     this.quizBuilder.append_new();
                 }
 
-                this.questionButtons.get(this.quizBuilder.indexOf(this.editing)).deselect();
                 this.editing = this.quizBuilder.get(0);
-                this.questionButtons.get(0).select();
                 this.setFile(file);
                 this.updateQuestionUI();
-                this.updateStatusToCurrentEditing();
+                this.updateStatusToQuizName();
                 this.constructButtons();
+                this.questionButtons.get(0).select();
             } catch (IOException e) {
                 e.printStackTrace();
                 Common.errorMessage(this, "Failed to load quiz", e);
@@ -297,6 +298,7 @@ public class MakeQuizFrame extends JFrame {
         }
 
         this.quizBuilder.setName(name);
+        this.updateStatusToQuizName();
     }
 
     public void uploadQuiz() {
@@ -392,12 +394,12 @@ public class MakeQuizFrame extends JFrame {
         }
     }
 
-    private void updateStatus(String s) {
-        this.status.setText(String.format("Status: %s", s));
+    private void updateTitle() {
+        this.setTitle(String.format("出題趣！ (%s) (%d/%d)", file.getName(), this.quizBuilder.indexOf(this.editing) + 1, this.quizBuilder.size()));
     }
 
-    private void updateStatusToCurrentEditing() {
-        this.updateStatus(String.format("Editing %s", this.getQuestionName(this.editing)));
+    private void updateStatusToQuizName() {
+        this.status.setText(this.quizBuilder.getName());
     }
 
     private JFileChooser getFileChooser() {
@@ -420,7 +422,7 @@ public class MakeQuizFrame extends JFrame {
             this.questionButtons.get(this.quizBuilder.indexOf(editing)).deselect();
             editing = referenceButton.question;
             referenceButton.select();
-            updateStatusToCurrentEditing();
+            updateTitle();
             updateQuestionUI();
         });
 
@@ -434,7 +436,7 @@ public class MakeQuizFrame extends JFrame {
 
     private void setFile(File file) {
         this.file = file;
-        this.setTitle(String.format("出題趣！ (%s)", file.getName()));
+        this.updateTitle();
     }
 
     QuizBuilder getQuizBuilder() {
