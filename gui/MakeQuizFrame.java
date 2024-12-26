@@ -49,8 +49,9 @@ public class MakeQuizFrame extends JFrame {
             public void windowClosing(WindowEvent e) {
                 switch (JOptionPane.showConfirmDialog(self, "Do you want to save before exiting?", "Save before quit", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE)) {
                     case JOptionPane.YES_OPTION:
-                        saveQuiz();
-                        dispose();
+                        if (saveQuiz()) {
+                            dispose();
+                        }
                         break;
                     case JOptionPane.NO_OPTION:
                         dispose();
@@ -212,7 +213,7 @@ public class MakeQuizFrame extends JFrame {
         if (new_index >= this.quizBuilder.size()) {
             new_index = this.quizBuilder.size() - 1;
         }
-        
+
         this.editing = this.quizBuilder.get(new_index);
         this.questionButtons.get(new_index).select();
         this.updateStatusToCurrentEditing();
@@ -235,6 +236,8 @@ public class MakeQuizFrame extends JFrame {
             } catch (IOException e) {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Failed to save quiz.");
+
+                return false;
             }
 
             return true;
