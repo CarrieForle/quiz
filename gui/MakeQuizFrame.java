@@ -157,7 +157,7 @@ public class MakeQuizFrame extends JFrame {
 
         while (true) {
             try {
-                String input = JOptionPane.showInputDialog(this, "Input the index of new question", "Inset new question", JOptionPane.QUESTION_MESSAGE);
+                String input = JOptionPane.showInputDialog(this, "Input the index of new question", "Insert new question", JOptionPane.QUESTION_MESSAGE);
 
                 if (input == null) {
                     return;
