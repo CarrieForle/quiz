@@ -68,6 +68,7 @@ public class MakeQuizFrame extends JFrame {
         
         this.constructButtons();
         this.editing = this.quizBuilder.get(0);
+        this.questionButtons.get(0).select();
         
         JPanel questionPanel = new JPanel(new BorderLayout());
 
@@ -184,8 +185,10 @@ public class MakeQuizFrame extends JFrame {
 
     public void addQuestion(int i) {
         this.saveQuestion();
+        this.questionButtons.get(this.quizBuilder.indexOf(this.editing)).deselect();
         this.editing = this.quizBuilder.insert_new(i);
-        this.addButton(editing);
+        this.addButton(this.editing);
+        this.questionButtons.get(i).select();
         this.updateStatusToCurrentEditing();
         this.clearFields();
         this.updateButtonPanel();
@@ -196,7 +199,7 @@ public class MakeQuizFrame extends JFrame {
             return;
         }
 
-        int new_index = 0;
+        int new_index = this.quizBuilder.indexOf(this.editing);
         this.quizBuilder.remove(this.editing);
 
         for (QuestionButton button : this.questionButtons) {
@@ -206,13 +209,18 @@ public class MakeQuizFrame extends JFrame {
             }
         }
 
+        if (new_index >= this.quizBuilder.size()) {
+            new_index = this.quizBuilder.size() - 1;
+        }
+        
         this.editing = this.quizBuilder.get(new_index);
+        this.questionButtons.get(new_index).select();
         this.updateStatusToCurrentEditing();
         this.updateQuestionUI();
         this.updateButtonPanel();
     }
 
-    public void saveQuiz() {
+    public boolean saveQuiz() {
         JFileChooser fileChooser = this.getFileChooser();
 
         if (JFileChooser.APPROVE_OPTION == fileChooser.showSaveDialog(this)) {
@@ -228,6 +236,10 @@ public class MakeQuizFrame extends JFrame {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Failed to save quiz.");
             }
+
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -245,7 +257,9 @@ public class MakeQuizFrame extends JFrame {
                     this.quizBuilder.append_new();
                 }
 
+                this.questionButtons.get(this.quizBuilder.indexOf(this.editing)).deselect();
                 this.editing = this.quizBuilder.get(0);
+                this.questionButtons.get(0).select();
                 this.setFile(file);
                 this.updateQuestionUI();
                 this.updateStatusToCurrentEditing();
@@ -400,7 +414,9 @@ public class MakeQuizFrame extends JFrame {
             }
             
             saveQuestion();
+            this.questionButtons.get(this.quizBuilder.indexOf(editing)).deselect();
             editing = referenceButton.question;
+            referenceButton.select();
             updateStatusToCurrentEditing();
             updateQuestionUI();
         });
@@ -505,6 +521,10 @@ class QuestionButton extends JButton {
 
     public QuestionButton(QuizBuilder.PartialQuestionWithAnswer q) {
         this.question = q;
+
+        this.deselect();
+        setPreferredSize(new Dimension(50, 30));
+
         this.updateToolTip();
     }
 
@@ -524,5 +544,13 @@ class QuestionButton extends JButton {
         }
 
         this.setToolTipText(text);
+    }
+
+    public void select() {
+        setBorder(BorderFactory.createLineBorder(Color.RED));
+    }
+    
+    public void deselect() {
+        setBorder(BorderFactory.createLineBorder(Color.BLACK));
     }
 }
