@@ -233,10 +233,10 @@ public class MakeQuizFrame extends JFrame {
             try {
                 Path path = QuizStorage.save(file.toPath(), this.quizBuilder);
                 this.setFile(path.toFile());
-                JOptionPane.showMessageDialog(this, "Quiz saved successfully!");
+                JOptionPane.showMessageDialog(this, "Quiz saved successfully!", "Success!", JOptionPane.PLAIN_MESSAGE);
             } catch (IOException e) {
                 e.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Failed to save quiz.");
+                Common.errorMessage(this, "Failed to save quiz", e);
 
                 return false;
             }
