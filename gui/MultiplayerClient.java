@@ -225,6 +225,11 @@ public class MultiplayerClient extends AnswerFrame {
     }
 
     @Override
+    protected void onWindowClosed(WindowEvent e) {
+        new MainMenu();
+    }
+
+    @Override
     protected void onTimeExceed() {
         try {
             p.writeAns(-1);
@@ -307,11 +312,6 @@ public class MultiplayerClient extends AnswerFrame {
     @Override
     protected String getQuizName() {
         return quiz.name;
-    }
-
-    @Override
-    protected void onWindowClosed(WindowEvent e) {
-        
     }
 
     private void receiveData() throws IOException {
