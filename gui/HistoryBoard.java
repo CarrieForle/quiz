@@ -101,7 +101,7 @@ public class HistoryBoard extends JDialog {
         nextButton.setPreferredSize(new Dimension(27, 27));
 
         downloadQuizButton.addActionListener(e -> {
-            JFileChooser fileChooser = HistoryStorage.getFileChooser();
+            JFileChooser fileChooser = QuizStorage.getFileChooser();
             fileChooser.setSelectedFile(new File(game.quiz.name + ".quiz"));
 
             if (JFileChooser.APPROVE_OPTION == fileChooser.showSaveDialog(this)) {
