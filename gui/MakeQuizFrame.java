@@ -31,6 +31,7 @@ public class MakeQuizFrame extends JFrame {
     private IncompleteDialog incompleteFrame = new IncompleteDialog(this);
     private JLabel status = new JLabel("", SwingConstants.CENTER);
     private static LoginDialog.Info loginInfo;
+    private Desktop desktop = Desktop.getDesktop();
 
     public static void main(String[] args) {
         new MakeQuizFrame();
@@ -139,8 +140,27 @@ public class MakeQuizFrame extends JFrame {
 
         JSplitPane mainPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, questionPanel, answerPanel);
         mainPane.setResizeWeight(0.7);
+
+        JLabel helpButton = new JLabel(new ImageIcon(Resource.questionMark.getImage().getScaledInstance(16, 16, Image.SCALE_SMOOTH)));
         
-        this.add(this.status, BorderLayout.NORTH);
+        helpButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        helpButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                try {
+                    desktop.browse(Path.of("docs/make_quiz.html").toUri());
+                } catch (Exception ex) {
+                    System.out.println("Failed to browse webpage");
+                    System.out.println(ex);
+                }
+            }
+        });
+        
+        JPanel statusPanel = new JPanel(new BorderLayout());
+        statusPanel.add(helpButton, BorderLayout.WEST);
+        statusPanel.add(this.status, BorderLayout.CENTER);
+        
+        this.add(statusPanel, BorderLayout.NORTH);
         this.add(mainPane, BorderLayout.CENTER);
         this.add(actionButtonPanel, BorderLayout.SOUTH);
 
