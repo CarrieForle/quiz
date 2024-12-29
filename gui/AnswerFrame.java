@@ -38,14 +38,7 @@ public abstract class AnswerFrame {
     private int score = 0;
 
     public AnswerFrame() {
-        frame = new JFrame("刷題趣！") {
-            @Override
-            public void dispose() {
-                super.dispose();
-                timer.cancel();
-            }
-        };
-
+        frame = new JFrame("刷題趣！");
         frame.setSize(600, 550);
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         frame.setIconImage(Resource.icon.getImage());
@@ -54,12 +47,13 @@ public abstract class AnswerFrame {
             @Override
             public void windowClosing(WindowEvent e) {
                 onWindowClosing(e);
-                frame.dispose();
             }
 
             @Override
             public void windowClosed(WindowEvent e) {
                 onWindowClosed(e);
+                timer.cancel();
+                frame.dispose();
             }
         });
 
