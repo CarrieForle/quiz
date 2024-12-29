@@ -227,7 +227,7 @@ public class MultiplayerClient extends AnswerFrame {
         } catch (IOException ex) {
             disconnect(ex);
         }
-        
+
         new MainMenu();
     }
 
@@ -339,6 +339,5 @@ public class MultiplayerClient extends AnswerFrame {
         }
 
         frame.dispose();
-        new MainMenu();
     }
 }

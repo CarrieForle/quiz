@@ -10,6 +10,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.Timer;
 
 public abstract class AnswerFrame {
@@ -35,6 +36,7 @@ public abstract class AnswerFrame {
     protected JTextArea[] optionAreas = new JTextArea[4];
     protected JButton[] answerButtons = new JButton[4];
     protected JScrollPane[] optionScrollAreas = new JScrollPane[4];
+    private AtomicBoolean isInGame = new AtomicBoolean(true);
     private int score = 0;
 
     public AnswerFrame() {
@@ -47,13 +49,14 @@ public abstract class AnswerFrame {
             @Override
             public void windowClosing(WindowEvent e) {
                 onWindowClosing(e);
-                timer.cancel();
                 frame.dispose();
             }
-
+            
             @Override
             public void windowClosed(WindowEvent e) {
                 onWindowClosed(e);
+                timer.cancel();
+                isInGame.set(false);
             }
         });
 
@@ -96,7 +99,10 @@ public abstract class AnswerFrame {
 
                 Thread t = new Thread(() -> {
                     onAnswering(id, e);
-                    endRound(id);
+
+                    if (isInGame.get()) {
+                        endRound(id);
+                    }
                 });
 
                 t.start();
