@@ -468,10 +468,19 @@ class IncompleteDialog extends JDialog {
     private JTabbedPane pane = new JTabbedPane();
 
     public IncompleteDialog(MakeQuizFrame parent) {
-        super(parent, "Quiz failed to upload", Dialog.ModalityType.DOCUMENT_MODAL);
+        super(parent, "Failed to upload quiz", Dialog.ModalityType.DOCUMENT_MODAL);
         setSize(300, 400);
         setLocationRelativeTo(parent);
-        add(this.pane);
+        setLayout(new BorderLayout());
+
+        JTextArea title = new JTextArea("The following violations are found and your quiz is therefore not uploaded. Please correct them and try again.");
+        title.setEditable(false);
+        title.setWrapStyleWord(true);
+        title.setLineWrap(true);
+        title.setOpaque(false);
+        title.setFocusable(false);
+        add(title, BorderLayout.NORTH);
+        add(this.pane, BorderLayout.CENTER);
     }
 
     public void addTab(String tabName, PartialQuestionWithAnswer question) {
