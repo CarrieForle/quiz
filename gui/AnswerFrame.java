@@ -189,6 +189,11 @@ public abstract class AnswerFrame {
 
         onRoundEnd();
 
+        // prevent displaying leaderboard when exiting answering last question
+        if (!isInGame.get()) {
+            return;
+        }
+
         for (JScrollPane area : optionScrollAreas) {
             area.setBorder(getNormalBorder());
         }
