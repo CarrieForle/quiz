@@ -11,15 +11,15 @@ import java.util.List;
 public abstract class Leaderboard extends JFrame {
     public static void main(String[] args) {
         Player[] players = { 
-            new Player("Bob", 1),
-            new Player("Jennifer", 2),
-            new Player("Jimmy", 3),
-            new Player("Patrick", 4),
-            new Player("Becky", 5),
-            new Player("Tom", 6)
+            new Player("Bob", 3504),
+            new Player("Jennifer", 2342),
+            new Player("Jimmy", 2354),
+            new Player("Patrick", 1231),
+            new Player("Becky", 980),
+            new Player("Tom", 194)
         };
 
-        new Leaderboard(List.of(players), new CorrectPlayer(players[0], 10, 10)) {
+        new Leaderboard(List.of(players), new CorrectPlayer(players[3], 3, 10)) {
             @Override
             protected void onContinue() {
                 
