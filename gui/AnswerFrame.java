@@ -47,13 +47,13 @@ public abstract class AnswerFrame {
             @Override
             public void windowClosing(WindowEvent e) {
                 onWindowClosing(e);
+                timer.cancel();
+                frame.dispose();
             }
 
             @Override
             public void windowClosed(WindowEvent e) {
                 onWindowClosed(e);
-                timer.cancel();
-                frame.dispose();
             }
         });
 
@@ -267,7 +267,7 @@ public abstract class AnswerFrame {
         try {
             timer.scheduleAtFixedRate(countdownTask, 0, 100);
         } catch (IllegalStateException e) {
-            
+
         }
     }
 

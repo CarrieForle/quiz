@@ -213,6 +213,11 @@ public class MultiplayerClient extends AnswerFrame {
 
     @Override
     protected void onWindowClosing(WindowEvent e) {
+        
+    }
+
+    @Override
+    protected void onWindowClosed(WindowEvent e) {
         try {
             p.close();
 
@@ -222,10 +227,7 @@ public class MultiplayerClient extends AnswerFrame {
         } catch (IOException ex) {
             disconnect(ex);
         }
-    }
-
-    @Override
-    protected void onWindowClosed(WindowEvent e) {
+        
         new MainMenu();
     }
 
