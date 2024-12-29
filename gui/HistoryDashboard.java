@@ -85,7 +85,7 @@ public class HistoryDashboard extends JDialog {
                 } catch (IOException ex) {
                     Common.errorMessage(self, "Failed to open game history file", ex);
                 } catch (CorruptedHistoryException ex) {
-                    Common.errorMessage(self, "This game history is corrupted", ex);
+                    Common.errorMessage(self, "Failed to parse game history file", ex);
                 }
             }
         };
@@ -170,7 +170,7 @@ public class HistoryDashboard extends JDialog {
             } catch (IOException ex) {
                 Common.errorMessage(this, "Failed to open game history file", ex);
             } catch (CorruptedHistoryException ex) {
-                Common.errorMessage(this, "This game history is corrupted", ex);
+                Common.errorMessage(this, "Failed to parse game history file", ex);
             }
         });
 

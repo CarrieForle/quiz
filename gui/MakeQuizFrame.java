@@ -185,8 +185,8 @@ public class MakeQuizFrame extends JFrame {
 
                 index = Integer.parseInt(input);
 
-                if (index < 1 || index > this.quizBuilder.size() + 1) {
-                    Common.errorMessage(this, "Number is out of bound");
+                if (index < 1 || index > quizBuilder.size() + 1) {
+                    Common.errorMessage(this, String.format("The number is out of range. It must lie between 1 and ", this.quizBuilder.size()));
                     continue;
                 }
 

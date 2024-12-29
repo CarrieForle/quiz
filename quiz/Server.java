@@ -462,13 +462,13 @@ public class Server implements ServerEventHandler, AutoCloseable {
                         Participant incoming = (Participant) this.data.get();
 
                         if (!is_before_game.get()) {
-                            incoming.transmitter.getMessenger().writeUTF("The game has already started");
+                            incoming.transmitter.getMessenger().writeUTF("The game has already started. Please try again later.");
                             incoming.transmitter.close();
                             break;
                         }
 
                         if (this.clients.size() >= MAX_NUM) {
-                            incoming.transmitter.getMessenger().writeUTF("The room is full");
+                            incoming.transmitter.getMessenger().writeUTF("The room is full. Please try again later.");
                             incoming.transmitter.close();
                             break;
                         }
@@ -484,7 +484,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
                             }
 
                             if (is_name_duplicated) {
-                                incoming.transmitter.getMessenger().writeUTF(String.format("A player named \"%s\" is already playing", incoming.name));
+                                incoming.transmitter.getMessenger().writeUTF(String.format("A player named \"%s\" is already playing. Please change your name and try again.", incoming.name));
                                 incoming.transmitter.close();
                                 break;
                             }

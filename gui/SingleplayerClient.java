@@ -46,7 +46,7 @@ public class SingleplayerClient extends AnswerFrame {
                     saveHistory();
                 }
             } catch (IOException ex) {
-                Common.errorMessage(frame, "Failed to save this game into history", ex);
+                Common.errorMessage(frame, "Failed to save this game into history. You will not be able to review it", ex);
             }
 
             frame.dispose();
@@ -302,7 +302,7 @@ class ChooseQuizDialog extends JDialog {
             } catch (IOException ex) {
                 Common.connectionFailedMessage(this, ex);
             } catch (CorruptedQuestionsException ex) {
-                Common.errorMessage(this, "Failed to parse quiz from server");
+                Common.errorMessage(this, "Failed to parse quiz from the server");
             }
         });
 
