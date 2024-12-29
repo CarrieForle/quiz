@@ -264,7 +264,11 @@ public abstract class AnswerFrame {
             }
         };
 
-        timer.scheduleAtFixedRate(countdownTask, 0, 100);
+        try {
+            timer.scheduleAtFixedRate(countdownTask, 0, 100);
+        } catch (IllegalStateException e) {
+            
+        }
     }
 
     private void updateTitle() {
