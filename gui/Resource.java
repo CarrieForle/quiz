@@ -13,23 +13,13 @@ public class Resource {
     public static final ImageIcon questionMark;
 
     static {
-        ImageIcon tmp = readImage("/assets/podium.png");
+        ImageIcon tmp = new ImageIcon("assets/podium.png");
         podium = new ImageIcon(tmp.getImage().getScaledInstance(250, 105,
 java.awt.Image.SCALE_SMOOTH));
-        icon = readImage("/assets/icon-mid.png");
-        github = readImage("/assets/github.png");
-        leftArrow = readImage("/assets/left.png");
-        rightArrow = readImage("/assets/right.png");
-        questionMark = readImage("/assets/question-mark.png");
-    }
-    
-    private static ImageIcon readImage(String path) {
-        try {
-            InputStream stream = Resource.class.getResourceAsStream(path);
-
-            return new ImageIcon(stream.readAllBytes());
-        } catch (Exception ex) {
-            return new ImageIcon(path);
-        }
+        icon = new ImageIcon("assets/icon-mid.png");
+        github = new ImageIcon("assets/github.png");
+        leftArrow = new ImageIcon("assets/left.png");
+        rightArrow = new ImageIcon("assets/right.png");
+        questionMark = new ImageIcon("assets/question-mark.png");
     }
 }
