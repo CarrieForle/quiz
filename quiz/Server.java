@@ -206,7 +206,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
         Participant res = (Participant) this.data.get();
         this.data.set(null);
 
-        res.id = Thread.currentThread().threadId();
+        res.id = Thread.currentThread().getId();
 
         return res;
     }
@@ -304,12 +304,12 @@ public class Server implements ServerEventHandler, AutoCloseable {
 
     private void handlingClient() {
         Participant client = null;
-        final long threadId = Thread.currentThread().threadId();
+        final long threadId = Thread.currentThread().getId();
 
         try {
             while (!this.is_game_end.get()) {
                 try {
-                    System.out.format("Thread #%d is ready to serve a client.\n", Thread.currentThread().threadId());
+                    System.out.format("Thread #%d is ready to serve a client.\n", Thread.currentThread().getId());
 
                     client = waitAndGetClient();
                     client.transmitter.getMessenger().getSocket().setSoTimeout(15000);
@@ -373,7 +373,7 @@ public class Server implements ServerEventHandler, AutoCloseable {
             }
         }
         
-        System.out.format("Thread #%d: Event Loop end", Thread.currentThread().threadId());
+        System.out.format("Thread #%d: Event Loop end", Thread.currentThread().getId());
     }
 
     public static int calculateScore(QuizAnswerResponse qar, int answer, long question_sending_time) {

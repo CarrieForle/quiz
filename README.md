@@ -11,7 +11,7 @@
 
 ## Run
 
-Get [the latest stable tags](https://github.com/CarrieForle/quiz/tags) from the repo and run the following lines in cmd or powershell.
+Install JDK 17+ (21 Recommended) and get [the latest stable tags](https://github.com/CarrieForle/quiz/tags) from the repo and run the following lines in cmd or powershell.
 
 ### Run client
 
