@@ -27,11 +27,12 @@ cd quiz
 .\run-server
 ```
 
-You can apply 2 optional arguments to constrain min and max number of players. For example to run a server with minimum 2 player and maximum 6.
-
-```powershell
-.\run-server 2 6
-```
+You can apply 5 optional *positional* arguments as follows:
+- minimum player to start (default: 2)
+- maximum player to start (default: 4)
+- bound port (default: 12345)
+- time until game starts in second after player count reaches the minimum (default: 15)
+- time until game starts in second after player count reaches the maximum (default: 10)
 
 ### Docker
 

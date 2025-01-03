@@ -46,9 +46,9 @@ public class Server implements ServerEventHandler, AutoCloseable {
 
     public static void main(String[] args) {
         int port = 12345;
-        int min = 1;
-        int max = 1;
-        int waitingTimeForMorePlayer = 10;
+        int min = 2;
+        int max = 4;
+        int waitingTimeForMorePlayer = 15;
         int waitingTimeForFullPlayer = 10;
 
         try (ServerSocket socket = new ServerSocket(port)) {
@@ -219,8 +219,8 @@ public class Server implements ServerEventHandler, AutoCloseable {
         System.out.println("Server on!");
 
         try {
-            // this.quiz = loadRandomQuestions();
-            this.quiz = loadQuestions(QUIZ_DIRECTORY.resolve("lol.quiz"));
+            this.quiz = loadRandomQuestions();
+            // this.quiz = loadQuestions(QUIZ_DIRECTORY.resolve("lol.quiz"));
             System.out.format("lol.quiz is loaded");
             this.waitForEnoughPlayer();
             this.is_before_game.set(false);
