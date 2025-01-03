@@ -2,9 +2,9 @@ package gui;
 
 import javax.swing.*;
 
-import utils.OpenMenuOnClosing;
-
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.Serializable;
 import java.util.List;
 
@@ -61,7 +61,14 @@ public abstract class Leaderboard extends JFrame {
         // this.setResizable(false);
         this.setIconImage(Resource.icon.getImage());
         this.setResizable(false);
-        this.addWindowListener(new OpenMenuOnClosing(this));
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                new MainMenu();
+                dispose();
+
+            }
+        });
 
         // Title Label
         JLabel titleLabel = new JLabel("LEADERBOARD");
@@ -184,7 +191,8 @@ public abstract class Leaderboard extends JFrame {
 
         JButton quitButton = new JButton("Menu");
         quitButton.addActionListener(e -> {
-            this.dispose();
+            new MainMenu();
+            dispose();
         });
         quitButton.setPreferredSize(new Dimension(100, 30));
 
