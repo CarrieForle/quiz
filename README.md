@@ -7,6 +7,7 @@
 - Singleplayer and Multiplayer
 - Leaderboard system
 - Quiz making tools
+- Review your history game
 - A fun learning experience :)
 
 ## Run
