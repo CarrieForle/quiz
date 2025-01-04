@@ -201,7 +201,7 @@ public class LoginDialog extends JDialog {
         }
 
         if ("$#\0".chars().anyMatch(x -> name.indexOf(x) != -1)) {
-            return "User name must not contain illegal character";
+            return "Username must not contain illegal character";
         }
 
         if (username.length() > 16) {
@@ -212,6 +212,10 @@ public class LoginDialog extends JDialog {
     }
 
     private static InetSocketAddress validateAddress(String socketAddress) {
+        if (socketAddress.isEmpty()) {
+            throw new IllegalArgumentException("Server address must not be blank");
+        }
+
         String address = socketAddress;
         int portDelimiter = socketAddress.lastIndexOf(":");
         int port = 0;
