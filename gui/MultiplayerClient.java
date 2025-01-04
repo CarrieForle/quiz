@@ -25,7 +25,8 @@ public class MultiplayerClient extends AnswerFrame {
     private List<Play> plays = new ArrayList<Play>();
     private Play currentPlay = new Play();
     private JTextArea chat = new JTextArea("You joined the game\n");
-    private JTextField inputField = new JTextField();
+    private JButton chatButton = new JButton("Send");
+    private JTextField chatField = new JTextField();
     private Client p;
     private String name;
     private int questionCount = 0;
@@ -64,36 +65,38 @@ public class MultiplayerClient extends AnswerFrame {
 
         JPanel chatPanel = new JPanel(new BorderLayout(0, 5));
         JPanel inputPanel = new JPanel(new BorderLayout(5, 0));
-        inputField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        inputPanel.add(inputField);
+        chatField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        inputPanel.add(chatField);
 
         AbstractAction sendTextAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String message = inputField.getText().trim();
+                if (!chatButton.isEnabled()) {
+                    return;
+                }
+
+                String message = chatField.getText().trim();
 
                 if (message.isEmpty()) {
                     return;
                 }
 
                 try {
-                    p.message(name, inputField.getText());
+                    p.message(name, chatField.getText());
                 } catch (IOException ex) {
                     disconnect(ex);
                 }
 
-                inputField.setText("");
+                chatField.setText("");
             }
         };
 
-        inputField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "send");
-        inputField.getActionMap().put("send", sendTextAction);
+        chatField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "send");
+        chatField.getActionMap().put("send", sendTextAction);
 
-        JButton inputButton = new JButton("Send");
-        inputButton.addActionListener(sendTextAction);
-
-        inputPanel.add(inputButton, BorderLayout.WEST);
-        inputPanel.add(inputField, BorderLayout.CENTER);
+        chatButton.addActionListener(sendTextAction);
+        inputPanel.add(chatButton, BorderLayout.WEST);
+        inputPanel.add(chatField, BorderLayout.CENTER);
         chatPanel.add(chatPane, BorderLayout.CENTER);
         chatPanel.add(inputPanel, BorderLayout.SOUTH);
         chatPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -114,6 +117,7 @@ public class MultiplayerClient extends AnswerFrame {
             if (!response.equals("OK")) {
                 Common.errorMessage(frame, response);
                 frame.dispose();
+                new MainMenu();
                 return;
             }
 
@@ -185,6 +189,7 @@ public class MultiplayerClient extends AnswerFrame {
         readIncoming = new Thread(() -> {
             try {
                 receiveData();
+                enableChat();
             } catch (IOException e) {
                 disconnect(e);
             }
@@ -203,6 +208,7 @@ public class MultiplayerClient extends AnswerFrame {
             long timestamp = e.getWhen();
             currentPlay.timeRemained = timeLimit - ((int) (timestamp - questionTimestamp.toEpochMilli()));
             p.writeTimeStamp(timestamp);
+            disableChat();
             readIncoming.join();
         } catch (IOException ex) {
             disconnect(ex);
@@ -238,6 +244,7 @@ public class MultiplayerClient extends AnswerFrame {
             myAnswer.set(-1);
             p.writeTimeStamp(0);
             currentPlay = Play.TIME_EXCEEDED;
+            disableChat();
             readIncoming.join();
         } catch (IOException e) {
             disconnect(e);
@@ -339,5 +346,17 @@ public class MultiplayerClient extends AnswerFrame {
         }
 
         frame.dispose();
+
+        new MainMenu();
+    }
+
+    private void disableChat() {
+        chatButton.setEnabled(false);
+        chatField.setEnabled(false);
+    }
+    
+    private void enableChat() {
+        chatButton.setEnabled(true);
+        chatField.setEnabled(true);
     }
 }
