@@ -37,7 +37,7 @@ You can apply 5 optional *positional* arguments as follows:
 
 ### Docker
 
-The server can be ran as a docker service.
+The server can be run as a docker service.
 
 ```bash
 docker compose up -d
